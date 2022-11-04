@@ -1,0 +1,490 @@
+{% extends 'home/admin/index.html' %}
+{% load static %}
+{% block title %}
+    <title>Supplier</title>
+{% endblock %}
+{% block css %}
+{% endblock %}
+{% block body %}
+
+    <style>
+
+
+        #UserTable_length {
+            left: 20px;
+            position: absolute;
+        }
+
+        #UserTable_filter {
+            width: 50%;
+            float: right;
+        }
+
+        .dt-buttons {
+            position: absolute;
+            left: 174px;
+        }
+
+        input[type=search] {
+            width: 100px !important;
+        }
+    </style>
+
+    <div class="ui right aligned basic  grid">
+        <div class="sixteen wide column">
+            <div class="ui  pointing secondary menu">
+                <div style="cursor: pointer;" class="item active" data-tab="user"
+                >Supplier List
+                </div>
+                <div style=" position: absolute;right: 1.5rem;top: 18px;">
+                    <button class="ui green mini plus button right" onclick="showUserModal()">
+                        <i class="plus square outline icon"></i>
+                        Add Supplier
+                    </button>
+                </div>
+            </div>
+            <div class="ui tab " data-tab="user">
+
+                <div class="row" style="padding-left: 5px; padding-right: 5px">
+                    <div class="wide">
+
+                        <table class="ui unstackable tiny sortable celled very nowrap very compact table" id="UserTable"
+                               style="margin-top: 5px;width: 100%">
+                            <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Phone No.</th>
+                                <th>GST</th>
+                                <th>Address</th>
+                                <th>Added On</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="ui modal" id="myModalUser">
+                        <i class="close icon"></i>
+                        <div class="header">
+                            Add Supplier
+                        </div>
+                        <div class="content">
+
+                            <form class="ui tiny form" id="addForm">{% csrf_token %}
+                                <div class="one required fields">
+                                    <div class="sixteen wide field">
+                                        <label>Supplier Name</label>
+                                        <input type="text" name="Name" placeholder="Supplier Name" id="supplierName">
+                                    </div>
+
+                                </div>
+
+                                <div class="two fields">
+                                    <div class="field required">
+                                        <label>Phone Number</label>
+                                        <input type="number" name="phone" id="phone" placeholder="Phone Number">
+                                    </div>
+                                    <div class="field">
+                                        <label>GST Number</label>
+                                        <input type="text" name="gst" id="gst" placeholder="GST Number">
+                                    </div>
+                                </div>
+                                <div class="one required fields">
+                                    <div class="sixteen wide field">
+                                        <label>Address</label>
+                                        <input type="text" name="address" placeholder="Supplier Address" id="address">
+                                    </div>
+
+                                </div>
+
+
+                            </form>
+
+                            <div class="actions" style="padding-top: 20px; padding-bottom: 20px ;float: right">
+                                <div class="ui cancel button">Cancel</div>
+                                <button class="ui right labeled icon button green" onclick="addUser()">
+                                    Submit
+                                    <i class="checkmark icon"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ui basic modal custom" id="deleteUser">
+                    <div class="ui icon header">
+                        <i class="archive icon"></i>
+                        Supplier Details will be Deleted
+                    </div>
+                    <div class="content">
+                        <p style="text-align: center">The Supplier will be deleted, are you sure to delete this
+                            Supplier?</p>
+                    </div>
+                    <div class="actions">
+                        <div class="ui red basic cancel inverted button">
+                            <i class="remove icon"></i>
+                            No
+                        </div>
+                        <input type="hidden" id="UserID">
+                        <div class="ui green ok inverted button" onclick="deleteUser()">
+                            <i class="checkmark icon"></i>
+                            Yes
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ui modal" id="userModal">
+                    <i class="close icon"></i>
+                    <div class="header">
+                        Edit Supplier Details
+                    </div>
+                    <div class="content">
+
+                        <form class="ui tiny form" id="EditForm">{% csrf_token %}
+                            <div class="one required fields">
+                                <div class="sixteen wide field">
+                                    <label>Supplier Name</label>
+                                    <input type="text" name="Name" placeholder="Supplier Name" id="supplierNameEdit">
+                                </div>
+
+                            </div>
+
+                            <div class="two fields">
+                                <div class="field required">
+                                    <label>Phone Number</label>
+                                    <input type="number" name="phone" id="phoneEdit" placeholder="Phone Number">
+                                </div>
+                                <div class="field">
+                                    <label>GST Number</label>
+                                    <input type="text" name="gst" id="gstEdit" placeholder="GST Number">
+                                </div>
+                            </div>
+                            <div class="one required fields">
+                                <div class="sixteen wide field">
+                                    <label>Address</label>
+                                    <input type="text" name="address" placeholder="Supplier Address" id="addressEdit">
+                                </div>
+
+                            </div>
+
+
+                            <input type="hidden" id="EditUserId">
+                        </form>
+
+                        <div class="actions" style="padding-top: 20px; padding-bottom: 20px ;float: right">
+                            <div class="ui cancel button">Cancel</div>
+                            <button class="ui right labeled icon button green" onclick="editUser()">
+                                Update
+                                <i class="checkmark icon"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+
+        var userTab;
+
+
+        function showUserModal() {
+            $('#myModalUser').modal('show');
+        }
+
+        function EditUser() {
+            $('')
+        }
+
+        function addUser() {
+
+            var supplierName = $('#supplierName').val();
+            var phone = $('#phone').val();
+            var gst = $('#gst').val();
+            var address = $('#address').val();
+
+
+            if (supplierName === '' || phone === '' || address === '') {
+                $('body')
+                    .toast({
+                        class: 'orange',
+                        message: '* fields are required.'
+                    })
+                ;
+            } else {
+
+                var csrfmiddlewaretoken = $("input[name='csrfmiddlewaretoken']").val();
+
+                data = new FormData();
+                data.append('supplierName', supplierName);
+                data.append('phone', phone);
+                data.append('gst', gst);
+                data.append('address', address);
+
+
+                data.append('csrfmiddlewaretoken', csrfmiddlewaretoken);
+
+
+                $.ajax({
+                    type: 'post',
+                    url: '{% url "homeApp:add_supplier_api" %}',
+                    data: data,
+                    contentType: false,
+                    cache: false,
+                    processData: false,
+
+
+                    success: function (response) {
+                        if (response.message === 'success') {
+                            $('body')
+                                .toast({
+                                    class: 'success',
+                                    message: 'New Supplier Added Successfully.'
+                                })
+                            ;
+
+
+                            userTab.ajax.reload();
+                            $('#addForm').trigger('reset');
+                            $('#myModalUser').modal('toggle');
+                        } else {
+                            $('body')
+                                .toast({
+                                    class: 'error',
+                                    message: 'An error occurred !'
+                                })
+                            ;
+
+                        }
+
+                        return response;
+                    },
+                    error: function () {
+                        $('body')
+                            .toast({
+                                class: 'error',
+                                message: 'An error occurred !'
+                            })
+                        ;
+                    }
+                });
+
+
+            }
+
+        }
+
+
+        // user Details
+
+        userTab = $('#UserTable').DataTable({
+            dom: 'Blfrtip',
+            "scrollY": "350px",
+            "scrollX": true,
+            fixedColumns: {
+                left: 1,
+                right: 1
+            },
+            buttons: [{
+                extend: 'excel',
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4]
+                }
+            }
+                {% comment %}      , {
+                          extend: 'print',
+                          exportOptions: {
+                               columns: [1, 2, 3, 4, 5, 6, 7, 8]
+                          }
+                      }{% endcomment %}
+            ],
+            "columnDefs": [
+                {"name": "name", "targets": 0, "orderable": true},
+                {"name": "phone", "targets": 1, "orderable": true},
+                {"name": "gst", "targets": 2, "orderable": true},
+                {"name": "address", "targets": 3, "orderable": true},
+                {"name": "datetime", "targets": 4, "orderable": true},
+                {"name": "action", "targets": 5, "orderable": false}
+
+            ],
+            aaSorting: [[0, 'asc']],
+            "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            "pageLength": 10,
+            "processing": true,
+            "serverSide": true,
+            "ajax": "{% url 'homeApp:SupplierListJson' %}"
+        });
+
+
+        function delUser(id) {
+            $('#deleteUser')
+                .modal('show')
+            ;
+            $('#UserID').val(id)
+        }
+
+        function deleteUser() {
+            var id = $('#UserID').val();
+            var formdata = new FormData();
+            formdata.append('userID', id);
+
+            $.ajax({
+                url: "{% url 'homeApp:delete_supplier' %}",
+                type: "post",
+                data: formdata,
+                contentType: false,
+                cache: false,
+                processData: false,
+
+                success: function (response) {
+                    if (response.message === 'success') {
+                        $('body')
+                            .toast({
+                                class: 'success',
+                                message: 'Product Detail Deleted Successfully.'
+                            })
+                        ;
+
+
+                        userTab.ajax.reload();
+                    } else {
+                        $('body')
+                            .toast({
+                                class: 'error',
+                                message: 'An error occurred !'
+                            })
+                        ;
+
+                    }
+
+                    return response;
+                },
+                error: function () {
+                    $('body')
+                        .toast({
+                            class: 'error',
+                            message: 'An error occurred !'
+                        })
+                    ;
+                }
+            });
+
+        }
+
+        function GetUserDetails(id) {
+            $('#userModal').modal('show');
+            $.ajax({
+                type: 'get',
+                url: '{% url "homeApp:get_supplier_detail"%}?id=' + id,
+
+                success: function (response) {
+                    $('#EditUserId').val(response.data['ID']);
+                    $('#supplierNameEdit').val(response.data['Name']);
+                    $('#phoneEdit').val(response.data['Phone']);
+                    $('#gstEdit').val(response.data['GST']);
+                    $('#addressEdit').val(response.data['Address']);
+
+
+                },
+                error: function () {
+                    $('body')
+                        .toast({
+                            class: 'error',
+                            message: 'An error occurred !'
+                        })
+                    ;
+                }
+            });
+        }
+
+        function editUser() {
+
+            var EditUserId = $('#EditUserId').val();
+            var supplierName = $('#supplierNameEdit').val();
+            var phone = $('#phoneEdit').val();
+            var gst = $('#gstEdit').val();
+            var address = $('#addressEdit').val();
+
+
+            if (supplierName === '' || phone === '' || address === '') {
+                $('body')
+                    .toast({
+                        class: 'orange',
+                        message: '* fields are required.'
+                    })
+                ;
+            } else {
+
+                var csrfmiddlewaretoken = $("input[name='csrfmiddlewaretoken']").val();
+
+                data = new FormData();
+                data.append('supplierName', supplierName);
+                data.append('phone', phone);
+                data.append('gst', gst);
+                data.append('address', address);
+
+                data.append('EditUserId', EditUserId);
+
+
+                data.append('csrfmiddlewaretoken', csrfmiddlewaretoken);
+
+
+                $.ajax({
+                    type: 'post',
+                    url: '{% url "homeApp:edit_supplier_api" %}',
+                    data: data,
+                    contentType: false,
+                    cache: false,
+                    processData: false,
+
+
+                    success: function (response) {
+                        if (response.message === 'success') {
+                            $('body')
+                                .toast({
+                                    class: 'success',
+                                    message: 'Supplier detail updated Successfully.'
+                                })
+                            ;
+
+
+                            userTab.ajax.reload();
+                            $('#EditForm').trigger('reset');
+                            $('#userModal').modal('toggle');
+                        } else {
+                            $('body')
+                                .toast({
+                                    class: 'error',
+                                    message: 'An error occurred !'
+                                })
+                            ;
+
+                        }
+
+                        return response;
+                    },
+                    error: function () {
+                        $('body')
+                            .toast({
+                                class: 'error',
+                                message: 'An error occurred !'
+                            })
+                        ;
+                    }
+                });
+
+
+            }
+        }
+
+
+    </script>
+
+{% endblock %}

@@ -1,0 +1,493 @@
+{% extends 'home/admin/index.html' %}
+{% load static %}
+{% block title %}
+    <title>Edit Sale</title>
+{% endblock %}
+{% block css %}
+    <style>
+        .avatar-upload {
+            position: relative;
+            max-width: 115px;
+            margin: 5px auto;
+        }
+
+        .avatar-upload .avatar-edit {
+            position: absolute;
+            right: 12px;
+            z-index: 1;
+            top: 10px;
+        }
+
+        .avatar-upload .avatar-edit input {
+            display: none;
+        }
+
+        .avatar-upload .avatar-edit input + label {
+            display: inline-block;
+            width: 25px;
+            height: 25px;
+            margin-bottom: 0;
+            border-radius: 100%;
+            background: #FFFFFF;
+            border: 1px solid transparent;
+            box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.12);
+            cursor: pointer;
+            font-weight: normal;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .avatar-upload .avatar-edit input + label:hover {
+            background: #f1f1f1;
+            border-color: #d6d6d6;
+        }
+
+        .avatar-upload .avatar-edit input + label:after {
+            color: #757575;
+            position: absolute;
+            top: 10px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            margin: auto;
+
+        }
+
+        .avatar-upload .avatar-preview {
+            width: 100px;
+            height: 100px;
+            position: relative;
+            border-radius: 100%;
+            border: 6px solid #F8F8F8;
+            box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.1);
+        }
+
+        .avatar-upload .avatar-preview > div {
+            width: 100%;
+            height: 100%;
+            border-radius: 100%;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+    </style>
+{% endblock %}
+{% block body %}
+
+    <div class="ui aligned basic  grid">
+        <div class="sixteen wide column">
+            <div class="ui  pointing secondary menu">
+                <div style="cursor: pointer;" class="item active" data-tab="user"
+                >Edit Sale
+                </div>
+            </div>
+            <div class="ui tab " data-tab="user">
+
+                <div class="ui row teal stacked segment padded">
+                    <div class="content">
+
+                        <form class="ui  small form " id="addForm">{% csrf_token %}
+                            <div class="one required fields ">
+                                <div class="sixteen wide field required">
+                                    <label>Delivery Photo with Customer</label>
+
+                                    <div class="ui" style="width: 100%; text-align: center">
+                                        <div class="ui icon header">
+                                            <div class="inline ">
+
+                                                <div class="avatar-upload">
+                                                    <div class="avatar-edit">
+                                                        <input type='file' id="photo" name="photo"
+                                                               accept=".png, .jpg, .jpeg"/>
+                                                        <label for="photo"><i class="edit icon"
+                                                                              style="font-size: 1rem;padding: 0.4rem"></i>
+                                                        </label>
+                                                    </div>
+                                                    <div class="avatar-preview">
+                                                        <div id="photoImg"
+                                                             style="background-image: url('{{ instance.deliveryPhoto.medium.url }}');">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                            </div>
+
+
+                            <div class="two fields">
+                                <div class=" field required">
+                                    <label>Customer Name</label>
+                                    <select class="ui clearable search dropdown" id="customer">
+                                        <option value="">Search By Customer Name</option>
+                                    </select>
+                                </div>
+                                <div class=" field required">
+                                    <label>Product Name</label>
+                                    <select class="ui dropdown clearable search fluid " id="product">
+                                        <option value="">Search By Product Name</option>
+                                    </select>
+                                </div>
+
+
+                            </div>
+                            <div class="three required fields ">
+
+                                <div class="field required">
+                                    <label>Assign To</label>
+                                    <select class="ui dropdown clearable search fluid " id="assignTo">
+                                        <option value="">Search By Staff Name</option>
+                                        {% for user in users %}
+                                            <option value="{{ user.pk }}">{{ user.name }} - {{ user.address }}</option>
+                                        {% endfor %}
+
+
+                                    </select>
+                                </div>
+                                <div class="field required">
+                                    <label>Advance Paid (₹)</label>
+                                    <input type="number" name="advance" id="advance" placeholder="Advance Amount Paid" value="{{ instance.advancePaid}}">
+                                </div>
+                                <div class=" field required">
+                                    <label>Tenure (In Months)</label>
+                                    <input type="number" name="tenure" id="tenure" placeholder="Tenure (In Months)" value="{{ instance.tenureInMonth }}">
+                                </div>
+
+
+                            </div>
+
+                            <div class="three required fields ">
+
+                                <div class="field required" id="calender2">
+                                    <label>Installment Start Date</label>
+                                    <input type="text" name="idate" id="idate" placeholder="Installment Start Date" value="{{ instance.installmentStartDate }}">
+                                </div>
+                                <div class="field required">
+                                    <label>Monthly EMI Amount (₹)</label>
+                                    <input type="number" name="emi" id="emi" placeholder="Monthly EMI Amount" value="{{ instance.emiAmount }}">
+                                </div>
+                                <div class="field required">
+                                    <label>Total Payable Amount (₹)</label>
+                                    <input type="number" name="totalAmount" id="totalAmount"
+                                           placeholder="Total Payable Amount" value="{{ instance.totalAmount }}">
+                                </div>
+
+
+                            </div>
+
+                            <div class="one  fields ">
+
+                                <div class="sixteen wide  field ">
+                                    <label>Any Remark</label>
+                                    <textarea name="" id="remark" placeholder="Any Remark" rows="3">{{ instance.remark }}</textarea>
+                                </div>
+
+
+                            </div>
+
+                            <div class="ui label teal" data-variation="mini" data-inverted="" data-tooltip="Location"
+                                 data-position="bottom center">
+                                <i class="map marked alternate icon"></i>
+
+                                <a class="detail"><span id="htmlLat">0.0</span>,<span id="htmlLong">0.0</span> </a>
+                            </div>
+                            <input type="hidden" value="{{ instance.pk }}" id="saleID">
+
+                        </form>
+                    </div>
+                    <div class="ui  aligned basic  grid">
+                        <div class="row" style="padding-left: 5px;padding-right: 5px">
+                            <div class="16 wide column center aligned">
+                                <button onclick="salesSave()" id="saveBtn" class="ui green  button">
+                                    Submit Detail
+                                </button>
+                                <button id="saveBtnLoad" style="display: none;" class="ui teal double loading button">
+                                    Saving ....
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+
+
+            </div>
+        </div>
+
+
+    </div>
+
+    <input type="hidden" id="lat" value="24.809611">
+    <input type="hidden" id="lng" value="93.935577">
+    <input type="hidden" id="loc" value="N/A">
+
+    <p id="demo"></p>
+
+
+{% endblock %}
+
+{% block js %}
+    <script type="text/javascript">
+        $('.ui.dropdown').dropdown({fullTextSearch: true});
+    </script>
+
+    <script>
+        $('#assignTo').val('{{ instance.assignedTo_id }}').change();
+        var today = new Date();
+        $('#calender2')
+            .calendar({
+                    initialDate: {{ instance.installmentStartDate|date:'d' }} + '/' + {{ instance.installmentStartDate|date:'m' }} + '/' + {{ instance.installmentStartDate|date:'Y' }},
+                monthFirst: false,
+                type: 'date',
+                formatter: {
+                    date: function (date, settings) {
+                        if (!date) return '';
+                        var day = date.getDate();
+                        var month = date.getMonth() + 1;
+                        var year = date.getFullYear();
+                        return day + '/' + month + '/' + year;
+                    }
+                    },
+                    popupOptions: {
+                        observeChanges: false
+                    }
+
+                }
+            );
+
+        function readURLPhoto(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#photoImg').css('background-image', 'url(' + e.target.result + ')');
+                    $('#photoImg').hide();
+                    $('#photoImg').fadeIn(650);
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        $("#photo").change(function () {
+            readURLPhoto(this);
+        });
+
+
+        function salesSave() {
+            showLoading();
+            var photo = document.getElementById("photo").files[0];
+            var customer = $('#customer').val();
+            var product = $('#product').val();
+            var emi = $('#emi').val();
+            var advance = $('#advance').val();
+            var tenure = $('#tenure').val();
+            var totalAmount = $('#totalAmount').val();
+            var lat = $('#lat').val();
+            var lng = $('#lng').val();
+            var remark = $('#remark').val();
+            var idate = $('#idate').val();
+            var assignTo = $('#assignTo').val();
+            var saleID = $('#saleID').val();
+
+            if (customer === '' || product === '' ||
+                emi === '' || advance === '' || tenure === '' || totalAmount === '' || idate === '' || assignTo === '') {
+                $('body')
+                    .toast({
+                        class: 'orange',
+                        message: '* fields are required !'
+                    })
+                ;
+                hideLoading();
+            } else {
+                data = new FormData();
+                data.append('photo', photo);
+                data.append('customer', customer);
+                data.append('product', product);
+                data.append('emi', emi);
+                data.append('advance', advance);
+                data.append('tenure', tenure);
+                data.append('totalAmount', totalAmount);
+                data.append('lat', lat);
+                data.append('lng', lng);
+                data.append('remark', remark);
+                data.append('idate', idate);
+                data.append('assignTo', assignTo);
+                data.append('saleID', saleID);
+
+                $.ajax({
+                    type: 'post',
+                    url: '{% url "homeApp:edit_sales_admin_api" %}',
+                    data: data,
+                    contentType: false,
+                    cache: false,
+                    processData: false,
+
+
+                    success: function (response) {
+                        if (response.message === 'success') {
+                            $('body')
+                                .toast({
+                                    class: 'success',
+                                    message: 'Sales Detail updated Successfully.'
+                                });
+
+                            hideLoading();
+
+                            location.href = "{% url 'homeApp:sales_list_admin' %}"
+
+                        } else {
+                            $('body')
+                                .toast({
+                                    class: 'error',
+                                    message: 'An error occurred !'
+                                })
+                            ;
+                            hideLoading();
+                        }
+
+                        return response;
+                    },
+                    error: function () {
+                        $('body')
+                            .toast({
+                                class: 'error',
+                                message: 'An error occurred !'
+                            })
+                        ;
+                        hideLoading();
+                    }
+
+                });
+
+
+            }
+
+        }
+
+        var x = document.getElementById("demo");
+        var options = {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        };
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition, showError);
+            } else {
+                x.innerHTML = "Geolocation is not supported by this browser.";
+            }
+        }
+
+        function showPosition(position) {
+            $('#lat').val(position.coords.latitude);
+            $('#lng').val(position.coords.longitude);
+            $('#htmlLat').html(position.coords.latitude);
+            $('#htmlLong').html(position.coords.longitude);
+            console.log(position)
+
+
+        }
+
+        function showError(error) {
+            switch (error.code) {
+                case error.PERMISSION_DENIED:
+                    x.innerHTML = "User denied the request for Geolocation."
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    x.innerHTML = "Location information is unavailable."
+                    break;
+                case error.TIMEOUT:
+                    x.innerHTML = "The request to get user location timed out."
+                    break;
+                case error.UNKNOWN_ERROR:
+                    x.innerHTML = "An unknown error occurred."
+                    break;
+            }
+        }
+
+        $(getLocation());
+        navigator.permissions.query({name: 'geolocation'}).then(function (result) {
+            console.log(result);
+            if (result.state === 'granted') {
+                $('#save1').prop('disabled', false);
+                $('#save2').prop('disabled', false);
+            } else {
+                $('#save1').prop('disabled', true);
+                $('#save2').prop('disabled', true);
+            }
+            // Don't do anything if the permission was denied.
+        });
+
+        $(getProductList());
+        $(getCustomerList());
+
+        function getProductList() {
+            $.ajax({
+                type: 'get',
+                url: "{% url 'homeApp:list_product_api' %}",
+
+                success: function (response) {
+
+                    $('#product').html('');
+                    $('#product').append('<option value="">Search By Product</option>');
+                    var j;
+                    for (j = 0; j < response.data.length; j++) {
+
+                        $('#product').append('<option value="' + response.data[j]['Detail'] + '" >' + response.data[j]['DisplayDetail'] + '</option>');
+
+                    }
+                    $('#product').val('{{ instance.productID.name }} - {{ instance.productID.categoryID }} @{{ instance.productID.pk }}')
+
+
+                },
+
+                error: function () {
+                    $('body')
+                        .toast({
+                            class: 'error',
+                            message: 'An error occurred !'
+                        })
+                    ;
+                }
+            });
+
+
+        }
+
+        function getCustomerList() {
+            $.ajax({
+                type: 'get',
+                url: "{% url 'homeApp:list_customer_api' %}",
+
+                success: function (response) {
+
+                    $('#customer').html('');
+                    $('#customer').append(' <option value="">Search By Customer Name</option>');
+                    var j;
+                    for (j = 0; j < response.data.length; j++) {
+
+                        $('#customer').append('<option value="' + response.data[j]['Detail'] + '" >' + response.data[j]['DisplayDetail'] + '</option>');
+
+                    }
+                    $('#customer').val('{{ instance.customerID.name }} - {{ instance.customerID.address }} @ {{ instance.customerID.pk }}')
+
+                },
+
+                error: function () {
+                    $('body')
+                        .toast({
+                            class: 'error',
+                            message: 'An error occurred !'
+                        })
+                    ;
+                }
+            });
+
+
+        }
+    </script>
+{% endblock %}

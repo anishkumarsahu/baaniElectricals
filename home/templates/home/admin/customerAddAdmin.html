@@ -1,0 +1,459 @@
+{% extends 'home/admin/index.html' %}
+{% load static %}
+{% block title %}
+    <title>Add Customer</title>
+{% endblock %}
+{% block css %}
+    <style>
+        .avatar-upload {
+            position: relative;
+            max-width: 115px;
+            margin: 5px auto;
+        }
+
+        .avatar-upload .avatar-edit {
+            position: absolute;
+            right: 12px;
+            z-index: 1;
+            top: 10px;
+        }
+
+        .avatar-upload .avatar-edit input {
+            display: none;
+        }
+
+        .avatar-upload .avatar-edit input + label {
+            display: inline-block;
+            width: 25px;
+            height: 25px;
+            margin-bottom: 0;
+            border-radius: 100%;
+            background: #FFFFFF;
+            border: 1px solid transparent;
+            box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.12);
+            cursor: pointer;
+            font-weight: normal;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .avatar-upload .avatar-edit input + label:hover {
+            background: #f1f1f1;
+            border-color: #d6d6d6;
+        }
+
+        .avatar-upload .avatar-edit input + label:after {
+            color: #757575;
+            position: absolute;
+            top: 10px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            margin: auto;
+
+        }
+
+        .avatar-upload .avatar-preview {
+            width: 100px;
+            height: 100px;
+            position: relative;
+            border-radius: 100%;
+            border: 6px solid #F8F8F8;
+            box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.1);
+        }
+
+        .avatar-upload .avatar-preview > div {
+            width: 100%;
+            height: 100%;
+            border-radius: 100%;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+    </style>
+{% endblock %}
+{% block body %}
+
+    <div class="ui aligned basic  grid">
+        <div class="sixteen wide column">
+            <div class="ui  pointing secondary menu">
+                <div style="cursor: pointer;" class="item active" data-tab="user"
+                >Add Customer
+                </div>
+            </div>
+            <div class="ui tab " data-tab="user">
+
+                <div class="ui row teal stacked segment padded">
+                    <div class="content">
+
+
+                        <form class="ui tiny form " id="addForm">{% csrf_token %}
+                            <div class="three required fields">
+                                <div class="field required">
+                                    <label>Photo</label>
+
+                                    <div class="ui" style="width: 100%; text-align: center">
+                                        <div class="ui icon header">
+                                            <div class="inline ">
+
+                                                <div class="avatar-upload">
+                                                    <div class="avatar-edit">
+                                                        <input type='file' id="photo" name="photo"
+                                                               accept=".png, .jpg, .jpeg"/>
+                                                        <label for="photo"><i class="edit icon"
+                                                                              style="font-size: 1rem;padding: 0.4rem"></i>
+                                                        </label>
+                                                    </div>
+                                                    <div class="avatar-preview">
+                                                        <div id="photoImg"
+                                                             style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/2/24/Circle-icons-image.svg');">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                <div class="field required">
+                                    <label>ID (Front)</label>
+
+                                    <div class="ui" style="width: 100%; text-align: center">
+                                        <div class="ui icon header">
+                                            <div class="inline ">
+
+                                                <div class="avatar-upload">
+                                                    <div class="avatar-edit">
+                                                        <input type='file' id="idf" name="photo"
+                                                               accept=".png, .jpg, .jpeg"/>
+                                                        <label for="idf"><i class="edit icon"
+                                                                            style="font-size: 1rem;padding: 0.4rem"></i>
+                                                        </label>
+                                                    </div>
+                                                    <div class="avatar-preview">
+                                                        <div id="idfImg"
+                                                             style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/2/24/Circle-icons-image.svg');">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                <div class="field required">
+                                    <label>ID (Back)</label>
+
+                                    <div class="ui" style="width: 100%; text-align: center">
+                                        <div class="ui icon header">
+                                            <div class="inline ">
+
+                                                <div class="avatar-upload">
+                                                    <div class="avatar-edit">
+                                                        <input type='file' id="idb" name="photo"
+                                                               accept=".png, .jpg, .jpeg"/>
+                                                        <label for="idb"><i class="edit icon"
+                                                                            style="font-size: 1rem;padding: 0.4rem"></i>
+                                                        </label>
+                                                    </div>
+                                                    <div class="avatar-preview">
+                                                        <div id="idbImg"
+                                                             style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/2/24/Circle-icons-image.svg');">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+
+                            </div>
+                            <div class="two required fields ">
+
+                                <div class="eight wide field required">
+                                    <label>Customer Name</label>
+                                    <input type="text" name="name" id="name" placeholder="Customer Name">
+                                </div>
+                                <div class="eight wide field required">
+                                    <label>Phone Number</label>
+                                    <input type="number" name="phone" id="phone" placeholder="Phone Number">
+                                </div>
+
+
+                            </div>
+
+                            <div class="three fields">
+                                <div class=" field required">
+                                    <label>District</label>
+                                    <select class="ui clearable search dropdown" id="district">
+                                        <option value="">Search By District</option>
+                                        <option value="Bishnupur">Bishnupur</option>
+                                        <option value="Chandel">Chandel</option>
+                                        <option value="Churachandpur">Churachandpur</option>
+                                        <option value="Imphal East">Imphal East</option>
+                                        <option value="Imphal West">Imphal West</option>
+                                        <option value="Jiribam">Jiribam</option>
+                                        <option value="Kakching">Kakching</option>
+                                        <option value="Kamjong">Kamjong</option>
+                                        <option value="Kangpokpi">Kangpokpi</option>
+                                        <option value="Noney">Noney</option>
+                                        <option value="Pherzawl">Pherzawl</option>
+                                        <option value="Senapati">Senapati</option>
+                                        <option value="Tamenglong">Tamenglong</option>
+                                        <option value="Tengnoupal">Tengnoupal</option>
+                                        <option value="Thoubal">Thoubal</option>
+                                        <option value="Ukhrul">Ukhrul</option>
+                                    </select>
+                                </div>
+                                <div class="field required">
+                                    <label>Landmark</label>
+                                    <input type="text" name="landmark" id="landmark" placeholder="Landmark">
+                                </div>
+                                <div class="field required">
+                                    <label>Address</label>
+                                    <input type="text" name="address" id="address" placeholder="Address">
+                                </div>
+
+
+                            </div>
+
+                            <div class="ui label teal" data-variation="mini" data-inverted="" data-tooltip="Location"
+                                 data-position="bottom center">
+                                <i class="map marked alternate icon"></i>
+
+                                <a class="detail"><span id="htmlLat">0.0</span>,<span id="htmlLong">0.0</span> </a>
+                            </div>
+
+                        </form>
+                    </div>
+                    <div class="ui  aligned basic  grid">
+                        <div class="row" style="padding-left: 5px;padding-right: 5px">
+                            <div class="16 wide column center aligned">
+                                <button onclick="salesSave()" id="saveBtn" class="ui green  button">
+                                    Submit Detail
+                                </button>
+                                <button id="saveBtnLoad" style="display: none;" class="ui green double loading button">
+                                    Saving ....
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+
+            </div>
+        </div>
+
+
+    </div>
+
+
+    <input type="hidden" id="lat" value="24.809611">
+    <input type="hidden" id="lng" value="93.935577">
+    <input type="hidden" id="loc" value="N/A">
+
+    <p id="demo"></p>
+
+
+{% endblock %}
+
+{% block js %}
+    <script>
+        function readURLPhoto(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#photoImg').css('background-image', 'url(' + e.target.result + ')');
+                    $('#photoImg').hide();
+                    $('#photoImg').fadeIn(650);
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        $("#photo").change(function () {
+            readURLPhoto(this);
+        });
+
+        function readURLIdF(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#idfImg').css('background-image', 'url(' + e.target.result + ')');
+                    $('#idfImg').hide();
+                    $('#idfImg').fadeIn(650);
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        $("#idf").change(function () {
+            readURLIdF(this);
+        });
+
+        function readURLIdB(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#idbImg').css('background-image', 'url(' + e.target.result + ')');
+                    $('#idbImg').hide();
+                    $('#idbImg').fadeIn(650);
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        $("#idb").change(function () {
+            readURLIdB(this);
+        });
+
+
+        function salesSave() {
+            showLoading();
+            var photo = document.getElementById("photo").files[0];
+            var idf = document.getElementById("idf").files[0];
+            var idb = document.getElementById("idb").files[0];
+            var name = $('#name').val();
+            var phone = $('#phone').val();
+            var district = $('#district').val();
+            var address = $('#address').val();
+            var lat = $('#lat').val();
+            var lng = $('#lng').val();
+            var landmark = $('#landmark').val();
+
+            if (photo === undefined || idf === undefined || idb === undefined || name === '' || phone === '' ||
+                district === '' || address === '' || landmark === '') {
+                $('body')
+                    .toast({
+                        class: 'orange',
+                        message: '* fields are required !'
+                    })
+                ;
+                hideLoading();
+            } else {
+                data = new FormData();
+                data.append('photo', photo);
+                data.append('idf', idf);
+                data.append('idb', idb);
+                data.append('name', name);
+                data.append('phone', phone);
+                data.append('district', district);
+                data.append('address', address);
+                data.append('lat', lat);
+                data.append('lng', lng);
+                data.append('landmark', landmark);
+
+                $.ajax({
+                    type: 'post',
+                    url: '{% url "homeApp:add_customer_api" %}',
+                    data: data,
+                    contentType: false,
+                    cache: false,
+                    processData: false,
+
+
+                    success: function (response) {
+                        if (response.message === 'success') {
+                            $('body')
+                                .toast({
+                                    class: 'success',
+                                    message: 'New customer added Successfully.'
+                                });
+
+                            hideLoading();
+
+                            location.href = "{% url 'homeApp:customer_list_admin' %}"
+
+                        } else {
+                            $('body')
+                                .toast({
+                                    class: 'error',
+                                    message: 'An error occurred !'
+                                })
+                            ;
+                            hideLoading();
+                        }
+
+                        return response;
+                    },
+                    error: function () {
+                        $('body')
+                            .toast({
+                                class: 'error',
+                                message: 'An error occurred !'
+                            })
+                        ;
+                        hideLoading();
+                    }
+
+                });
+
+
+            }
+
+        }
+
+        var x = document.getElementById("demo");
+        var options = {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        };
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition, showError);
+            } else {
+                x.innerHTML = "Geolocation is not supported by this browser.";
+            }
+        }
+
+        function showPosition(position) {
+            {#x.innerHTML = "Latitude: " + position.coords.latitude +#}
+            {#    "<br>Longitude: " + position.coords.longitude;#}
+            $('#lat').val(position.coords.latitude);
+            $('#lng').val(position.coords.longitude);
+            $('#htmlLat').html(position.coords.latitude);
+            $('#htmlLong').html(position.coords.longitude);
+            console.log(position)
+
+
+        }
+
+        function showError(error) {
+            switch (error.code) {
+                case error.PERMISSION_DENIED:
+                    x.innerHTML = "User denied the request for Geolocation."
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    x.innerHTML = "Location information is unavailable."
+                    break;
+                case error.TIMEOUT:
+                    x.innerHTML = "The request to get user location timed out."
+                    break;
+                case error.UNKNOWN_ERROR:
+                    x.innerHTML = "An unknown error occurred."
+                    break;
+            }
+        }
+
+        $(getLocation());
+        navigator.permissions.query({name: 'geolocation'}).then(function (result) {
+            console.log(result);
+            if (result.state === 'granted') {
+                $('#save1').prop('disabled', false);
+                $('#save2').prop('disabled', false);
+            } else {
+                $('#save1').prop('disabled', true);
+                $('#save2').prop('disabled', true);
+            }
+            // Don't do anything if the permission was denied.
+        });
+
+    </script>
+{% endblock %}

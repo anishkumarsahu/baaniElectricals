@@ -1,0 +1,154 @@
+{% extends 'home/admin/index.html' %}
+{% load static %}
+{% block title %}
+    <title>InstallmentReport|Admin</title>
+{% endblock %}
+{% block css %}
+{% endblock %}
+{% block body %}
+
+    <style>
+
+        #UserTable_length {
+            left: 20px;
+            position: absolute;
+        }
+
+        #UserTable_filter {
+            width: 50%;
+            float: right;
+        }
+
+        .dt-buttons {
+            position: absolute;
+            left: 174px;
+        }
+
+        input[type=search] {
+            width: 100px !important;
+        }
+    </style>
+
+    <div class="ui right aligned basic  grid">
+        <div class="sixteen wide column">
+            <div class="ui  pointing secondary menu">
+                <div style="cursor: pointer;" class="item active" data-tab="user"
+                >Installments Report
+                </div>
+            </div>
+
+            <div class="ui tab " data-tab="user">
+
+                <div class="ui centered aligned basic padded grid">
+                    <div class="row">
+                        <div class="ui segment" style="width: 100%">
+                            <div class="ui icon header">
+                                <i class="cogs icon"></i>
+                                Generate Installments Report
+                            </div>
+                            <div class="ui divider"></div>
+                            <label class="ui tiny label purple">All reports are based on the installments list and
+                                user.</label>
+
+                            <div class="ui left aligned segment">
+                                <div class="ui tiny form">
+                                    <div class="five fields">
+                                        <div class="field"></div>
+
+                                        <div class="field">
+                                            <label>Staff User</label>
+                                            <select class="ui dropdown" id="status">
+
+                                                <option value="All" selected>All</option>
+                                                {% for user in users %}
+                                                    <option value="{{ user.pk }}">{{ user.name|capfirst }}</option>
+                                                {% endfor %}
+
+
+                                            </select>
+                                        </div>
+                                        <div class="field">
+                                            <label>Installment Start Date</label>
+                                            <div class="ui calendar" id="rangestart">
+                                                <div class="ui input left icon">
+                                                    <i class="calendar icon"></i>
+                                                    <input type="text" placeholder="Start" id="startDate">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="field">
+                                            <label>Installment End Date</label>
+                                            <div class="ui calendar" id="rangeend">
+                                                <div class="ui input left icon">
+                                                    <i class="calendar icon"></i>
+                                                    <input type="text" placeholder="End" id="endDate">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="field"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <a onclick="GetReport()" class="ui primary button">Generate Now</a>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block js %}
+    <script>
+
+        var today = new Date();
+        $('#rangestart').calendar({
+            initialDate: today.getDate() + '/' + (today.getMonth() + 1) + '/' + today.getFullYear(),
+            monthFirst: false,
+            type: 'day',
+            endCalendar: $('#rangeend'),
+            formatter: {
+                date: function (date, settings) {
+                    if (!date) return '';
+                    var day = date.getDate();
+                    var month = date.getMonth() + 1;
+                    var year = date.getFullYear();
+                    return day + '/' + month + '/' + year;
+                }
+            }
+        });
+        $('#rangeend').calendar({
+            initialDate: today.getDate() + '/' + (today.getMonth() + 1) + '/' + today.getFullYear(),
+            monthFirst: false,
+            type: 'day',
+            startCalendar: $('#rangestart'),
+            formatter: {
+                date: function (date, settings) {
+                    if (!date) return '';
+                    var day = date.getDate();
+                    var month = date.getMonth() + 1;
+                    var year = date.getFullYear();
+                    return day + '/' + month + '/' + year;
+                }
+            }
+        });
+
+
+        function GetReport() {
+            var status = $('#status').val();
+            var startDate = $('#startDate').val();
+            var endDate = $('#endDate').val();
+
+            window.location.href = "{% url 'homeApp:download_installment_report' %}?status=" + status + '&startDate=' + startDate + '&endDate=' + endDate
+
+        }
+
+    </script>
+
+{% endblock %}

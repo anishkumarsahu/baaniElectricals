@@ -1,0 +1,461 @@
+{% extends 'home/admin/index.html' %}
+{% load static %}
+{% block title %}
+    <title>Add Purchase</title>
+{% endblock %}
+{% block css %}
+{% endblock %}
+{% block body %}
+
+    <div class="ui  aligned basic  grid">
+        <div class="sixteen wide column">
+            <div class="ui  pointing secondary menu">
+                <div style="cursor: pointer;" class="item active" data-tab="user"
+                >Add Purchase
+                </div>
+            </div>
+            <div class="ui tab " data-tab="user">
+
+                <div class="row" style="padding-left: 5px; padding-right: 5px">
+                    <div class="content">
+
+                        <form class="ui tiny form" id="addForm">{% csrf_token %}
+                            <div class="three required fields">
+                                <div class="field">
+                                    <label>Supplier Name</label>
+                                    <select class="ui clearable search dropdown" id="supplierNameID">
+                                        <option value="">Search By Supplier</option>
+                                        {% for supplier in suppliers %}
+                                            <option value="{{ supplier.name }}|{{ supplier.pk }}"> {{ supplier.name }}
+                                                - {{ supplier.address }}</option>
+                                        {% endfor %}
+
+                                    </select>
+                                </div>
+                                <div class="field required">
+                                    <label>Invoice Number</label>
+                                    <input type="text" name="invoice" id="invoice" placeholder="Invoice Number">
+                                </div>
+                                <div class="field required" id="standard_calendar">
+                                    <label>Invoice</label>
+                                    <input type="text" name="idate" id="idate" placeholder="Invoice Date">
+                                </div>
+
+                            </div>
+                            <div class="ui divider"></div>
+                            <div class="four required fields info">
+                                <div class="seven wide field">
+                                    <label>Product Name</label>
+                                    <select class="ui clearable search dropdown" id="productNameID">
+                                        <option value="">Search By Product</option>
+                                        {% for product in products %}
+                                            <option value="{{ product.name }}@{{ product.pk }}"> {{ product.name }}
+                                                - {{ product.categoryID }}- {{ product.brandID }}</option>
+                                        {% endfor %}
+
+                                    </select>
+                                </div>
+                                <div class="three wide field required">
+                                    <label>Quantity</label>
+                                    <input type="number" name="quantity" id="quantity" placeholder="Quantity">
+                                </div>
+                                <div class="three wide field required">
+                                    <label>Rate</label>
+                                    <input type="number" name="rate" id="rate" placeholder="Unit Rate">
+                                </div>
+                                <div class="three wide field required">
+                                    <label>TAX %</label>
+                                    <input type="number" name="tax" id="tax" placeholder="TAX %">
+                                </div>
+
+                            </div>
+
+                            <div class="three fields info">
+
+                                <div class="three wide field required">
+                                    <label>Total(₹)</label>
+                                    <input type="number" name="total" id="total" placeholder="Total">
+                                </div>
+                                <div class="three wide field required">
+                                    <label>Net Total(₹)</label>
+                                    <input type="number" name="net" id="net" placeholder="Net Total">
+                                </div>
+                                <div class="seven wide field required" style="padding-top: 1.8rem;">
+                                    {#                                     <div class="field" style="    padding-top: 1.8rem;">#}
+                                    <div class="ui mini buttons">
+                                        <button class="ui positive button" id="addItemBtn" type="button"
+                                                onclick="addSubItems()"><i class="plus icon"></i>Add
+                                        </button>
+                                        <button style="display: none" type="button" id="updateItemBtn"
+                                                onclick="updateSubItems()" class="ui orange button">
+                                            <i class="icon redo"></i>
+                                            Update
+                                        </button>
+                                        <div class="or"></div>
+                                        <button class="ui button red" type="button" onclick="ClearData()"><i
+                                                class="minus icon"></i>
+                                            Clear
+                                        </button>
+
+
+                                    </div>
+                                </div>
+
+                            </div>
+
+
+                        </form>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+
+
+    </div>
+    <div class="ui  aligned basic  grid">
+        <div class="row" style="padding-left: 5px;padding-right: 5px">
+            <div class="twelve wide computer sixteen wide mobile column" style="overflow-x: auto;">
+                <table class="ui very unstackable compact table " id="itemTable" style="font-size: 0.8em">
+                    <thead>
+                    <tr>
+                        <th>Sl No.</th>
+                        <th>Product</th>
+                        <th>Qty</th>
+                        <th>Rate(₹)</th>
+                        <th>Total(₹)</th>
+                        <th>GST %</th>
+                        <th>Net Total(₹)</th>
+                        <th>Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <div class="four wide computer sixteen wide mobile column" style="text-align: center;">
+
+                <div class="ui vertical menu" style="text-align: left;width: 100%">
+                    <a class="teal item ">
+                        <strong style="color: black;">Taxable Value (₹) :</strong>
+                        <div class="ui violet label" id="taxable" contentEditable="true">0.00</div>
+                    </a>
+                    <a class="teal item ">
+                        <strong style="color: black;">GST (₹) :</strong>
+                        <div class="ui violet label" id="totalGst" contentEditable="true">0.00</div>
+                    </a>
+                    <a class="teal item ">
+                        <strong style="color: black;">Other Charges (₹) :</strong>
+                        <div onkeyup="calTaxAndTotal()" class="ui violet label" id="otherCharges"
+                             contentEditable="true">0.00
+                        </div>
+                    </a>
+                    <a class="teal item ">
+                        <strong style="color: black;">Round Off (₹) :</strong>
+                        <div onkeyup="calTaxAndTotal()" class="ui violet label" id="roundOff" contentEditable="true">
+                            0.00
+                        </div>
+                    </a>
+                    <a class="teal item active">
+                        <strong style="color: black;">Grand Total (₹) :</strong>
+                        <div class="ui blue label" id="grandTotal">0.00</div>
+                    </a>
+
+                </div>
+
+                <div class="ui center aligned basic segment"
+                     style="padding-top: 0;padding-bottom: 0;">
+
+
+                    <div class="ui segment" style="padding-bottom: 0">
+                        <div id="saveBtn">
+                            <div class="ui  column very relaxed grid" style="padding-bottom: 0;">
+                                <div class="column">
+                                    <a onclick="salesSave()" style="cursor: pointer;">
+                                        <i class="save icon" style="font-size: 2rem"></i>
+                                        <p>Save Now</p>
+                                    </a>
+                                </div>
+
+                            </div>
+                        </div>
+                        <button id="saveBtnLoad" style="display: none;" class="ui green double loading button">
+                            Saving ....
+                        </button>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="ui basic modal custom" id="delItemModal">
+        <div class="ui icon header">
+            <i class="archive icon"></i>
+            Item will be Deleted.
+        </div>
+        <div class="content">
+            <p style="text-align: center">The Item detail will be deleted, are you sure to delete
+                this Item?</p>
+        </div>
+        <div class="actions">
+            <div class="ui red basic cancel inverted button">
+                <i class="remove icon"></i>
+                No
+            </div>
+            <input type="hidden" id="itemDelID">
+            <div class="ui green ok inverted button" onclick="deleteItem()">
+                <i class="checkmark icon"></i>
+                Yes
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block js %}
+    <script>
+        var today = new Date();
+        $('#standard_calendar')
+            .calendar({
+                    initialDate: today.getDate() + '/' + (today.getMonth() + 1) + '/' + today.getFullYear(),
+                    monthFirst: false,
+                    type: 'date',
+                    formatter: {
+                        date: function (date, settings) {
+
+                            if (!date) return '';
+                            var day = String(date.getDate());
+                            var month = String(date.getMonth() + 1);
+                            var year = date.getFullYear();
+                            return day + '/' + month + '/' + year;
+                        }
+                    }
+                }
+            );
+
+        function delItem(id) {
+            $('#delItemModal')
+                .modal('show')
+            ;
+            $('#itemDelID').val(id)
+        }
+
+        function deleteItem() {
+            var id = $('#itemDelID').val();
+            $('#' + id).remove();
+            calTaxAndTotal();
+            addRowCount('#itemTable');
+
+
+        }
+
+        function productCalc() {
+            var quantity = $('#quantity').val();
+            var rate = $('#rate').val();
+            var gst = $('#tax').val();
+            var total = quantity * rate
+            $('#total').val(total.toFixed(2));
+            var net = total + (total * (gst / 100))
+            $('#net').val(net.toFixed(2));
+        }
+
+        $("#quantity").keyup(function () {
+            productCalc();
+        });
+        $("#tax").keyup(function () {
+            productCalc();
+        });
+        $("#rate").keyup(function () {
+            productCalc();
+        });
+
+        function ClearData() {
+
+            $('#addItemBtn').css('display', '');
+            $('#updateItemBtn').css('display', 'none');
+            $('#quantity').val('');
+            $('#rate').val('');
+            $('#tax').val('');
+            $('#net').val('');
+            $('#total').val('');
+            $('#productNameID').dropdown('restore defaults');
+
+        }
+
+        function calTaxAndTotal() {
+
+            var taxable = 0.0;
+            var totalWithGst = 0.0;
+            var grandTotal = 0.0;
+            $('#itemTable tbody tr').each(function () {
+
+                var id = $(this).closest('tr').attr('id');
+                var total = $('#total' + id).html();
+                var net = $('#net' + id).html();
+                taxable = parseFloat(taxable) + parseFloat(total);
+                totalWithGst = parseFloat(totalWithGst) + parseFloat(net);
+
+            });
+            var totalGst = totalWithGst - taxable;
+
+            $('#taxable').html(taxable.toFixed(2));
+            $('#totalGst').html(totalGst.toFixed(2));
+            var otherCharges = $('#otherCharges').html()
+            var roundOff = $('#roundOff').html()
+
+            grandTotal = parseFloat(totalWithGst) + parseFloat(otherCharges) + parseFloat(roundOff)
+            $('#grandTotal').html(Math.round(grandTotal.toFixed(2)))
+        }
+
+
+        function addSubItems() {
+            var itemID = $('#productNameID').val();
+            var Quantity = $('#quantity').val();
+            var Rate = $('#rate').val();
+            var Tax = $('#tax').val();
+            var Net = $('#net').val();
+            var Total = $('#total').val();
+            const myArray = itemID.split("@");
+
+
+            if (itemID === '' || Quantity === '' || Rate === '' ||
+                Tax === '' || Net === '' || Total === '') {
+                $('body')
+                    .toast({
+                        class: 'orange',
+                        message: '* fields are required !'
+                    })
+                ;
+            } else {
+                $('#' + myArray[1]).remove();
+                $('#itemTable tbody').append('<tr id ="' + myArray[1] + '" ><td  id ="row' + myArray[1] + '">#</td> <td id ="product' + myArray[1] + '">' + myArray[0] + '</td><td id ="quantity' + myArray[1] + '">' + Quantity + '</td><td id ="rate' + myArray[1] + '">' + Rate + '</td><td id ="total' + myArray[1] + '">' + Total + '</td><td id ="tax' + myArray[1] + '">' + Tax + '</td><td id ="net' + myArray[1] + '">' + Net + '</td><td><button style="font-size:10px;" onclick="GetItemDetail(' + myArray[1] + ')" class="ui circular facebook icon button green"><i class="pen icon"></i></button><button style="font-size:10px;" onclick="delItem(' + myArray[1] + ')" class="ui circular youtube icon button"><i class="trash alternate icon"></i></button></td></tr>');
+                ClearData();
+                calTaxAndTotal();
+            }
+
+        }
+
+        function GetItemDetail(id) {
+            $('#addItemBtn').css('display', 'none');
+            $('#updateItemBtn').css('display', '');
+            var product = $('#product' + id).html();
+            var quantity = $('#quantity' + id).html();
+            var rate = $('#rate' + id).html();
+            var tax = $('#tax' + id).html();
+            var net = $('#net' + id).html();
+            var total = $('#total' + id).html();
+            $('#productNameID').val(product + '@' + id).change();
+            $('#quantity').val(quantity);
+            $('#rate').val(rate);
+            $('#tax').val(tax);
+            $('#net').val(net);
+            $('#total').val(total);
+
+        }
+
+
+        function updateSubItems() {
+            addSubItems();
+
+        }
+
+        function salesSave() {
+            showLoading();
+            var taxable = $('#taxable').html();
+            var totalGst = $('#totalGst').html();
+            var otherCharges = $('#otherCharges').html();
+            var roundOff = $('#roundOff').html();
+            var grandTotal = $('#grandTotal').html();
+            var supplierNameID = $('#supplierNameID').val();
+            var invoice = $('#invoice').val();
+            var idate = $('#idate').val();
+            var datas = '';
+            $('#itemTable tbody tr').each(function () {
+                var id = $(this).closest('tr').attr('id');
+                var product = $('#product' + id).html();
+                var quantity = $('#quantity' + id).html();
+                var rate = $('#rate' + id).html();
+                var tax = $('#tax' + id).html();
+                var net = $('#net' + id).html();
+                var total = $('#total' + id).html();
+                datas = datas + '' + id + '|' + product + '|' + quantity + '|' + rate + '|' + tax + '|' + net + '|' + total + '@'
+            });
+
+            if (taxable === '' || totalGst === '' || otherCharges === '' || roundOff === '' || grandTotal === '' ||
+                supplierNameID === '' || invoice === '' || idate === '' || datas === '') {
+                $('body')
+                    .toast({
+                        class: 'orange',
+                        message: '* fields are required !'
+                    })
+                ;
+                hideLoading();
+            } else {
+                data = new FormData();
+                data.append('taxable', taxable);
+                data.append('totalGst', totalGst);
+                data.append('otherCharges', otherCharges);
+                data.append('roundOff', roundOff);
+                data.append('grandTotal', grandTotal);
+                data.append('supplierNameID', supplierNameID);
+                data.append('invoice', invoice);
+                data.append('idate', idate);
+                data.append('datas', datas);
+
+                $.ajax({
+                    type: 'post',
+                    url: '{% url "homeApp:add_purchase_api" %}',
+                    data: data,
+                    contentType: false,
+                    cache: false,
+                    processData: false,
+
+
+                    success: function (response) {
+                        if (response.message === 'success') {
+                            $('body')
+                                .toast({
+                                    class: 'success',
+                                    message: 'New purchase created Successfully.'
+                                });
+
+                            hideLoading();
+
+                            location.href = "{% url 'homeApp:purchase_list' %}"
+
+                        } else {
+                            $('body')
+                                .toast({
+                                    class: 'error',
+                                    message: 'An error occurred !'
+                                })
+                            ;
+                            hideLoading();
+                        }
+
+                        return response;
+                    },
+                    error: function () {
+                        $('body')
+                            .toast({
+                                class: 'error',
+                                message: 'An error occurred !'
+                            })
+                        ;
+                        hideLoading();
+                    }
+
+                });
+
+
+            }
+
+        }
+
+
+    </script>
+{% endblock %}

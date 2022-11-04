@@ -1,0 +1,150 @@
+{% extends 'home/collection/indexCollection.html' %}
+{% load static %}
+{% block title %}
+    <title>Customer Detail</title>
+{% endblock %}
+{% block css %}
+{% endblock %}
+{% block body %}
+
+    <style>
+
+
+        #UserTable_length {
+            left: 20px;
+            position: absolute;
+        }
+
+        #UserTable_filter {
+            width: 50%;
+            float: right;
+        }
+
+        .dt-buttons {
+            position: absolute;
+            left: 174px;
+        }
+
+        input[type=search] {
+            width: 100px !important;
+        }
+    </style>
+
+    <div class="ui right aligned basic  grid">
+        <div class="sixteen wide column">
+            <div class="ui  pointing secondary menu">
+                <div style="cursor: pointer;" class="item active" data-tab="user"
+                >Customer Detail
+                </div>
+
+            </div>
+            <div class="ui tab  " data-tab="user" style="padding: 5px;">
+                <h5 class="ui horizontal left aligned divider header">
+                    <i class="left align icon"></i>
+                    Basic Detail
+                </h5>
+                <div class="ui horizontal segment cards">
+                    <div class="card teal" style="width: 100%; text-align: left">
+                        <div class="image">
+                            <img src="{{ instance.photo.medium.url }}">
+                        </div>
+                        <div class="content aligned left">
+                            <div class="header">{{ instance.name|capfirst }}</div>
+                            <div class="meta">
+                                <a> Code: {{ instance.customerCode }}</a> <br>
+                                <a style="color: teal">{{ instance.phoneNumber }}</a>
+                            </div>
+                            <div class="description">
+                                {{ instance.address|capfirst }} , {{ instance.district }}, {{ instance.landmark }}
+                            </div>
+                            <div class="meta">
+                                <a> Added On: {{ instance.datetime }} by {{ instance.addedBy.name }}</a>
+                            </div>
+                            <div class="ui label teal" data-variation="mini" data-inverted="" data-tooltip="Location"
+                                 data-position="bottom center">
+                                <i class="map marked alternate icon"></i>
+
+                                <a class="detail"><span id="htmlLat">{{ instance.latitude }}</span>,<span
+                                        id="htmlLong">{{ instance.longitude }}</span> </a>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+                <h5 class="ui horizontal left aligned divider header">
+                    <i class="left align icon"></i>
+                    ID Detail
+                </h5>
+                <div class="ui grid teal segment">
+                    <div class="two column row ">
+                        <div class="column">
+                            <img class="ui image" src="{{ instance.idProofFront.medium.url }}">
+                        </div>
+                        <div class="column">
+                            <img class="ui image" src="{{ instance.idProofBack.medium.url }}">
+                        </div>
+
+
+                    </div>
+                </div>
+
+                <h5 class="ui horizontal left aligned divider header">
+                    <i class="left align icon"></i>
+                    Sales List
+                </h5>
+                <div style="width: 100%; overflow-x: scroll">
+                    <table class="ui unstackable teal table">
+                        <thead>
+                        <tr>
+                            <th>Slno.</th>
+                            <th>SaleID</th>
+                            <th>ProductName</th>
+                            <th>Total_Amount</th>
+                            <th>Paid_Amount</th>
+                            <th>Status</th>
+                            <th>AssignedTo</th>
+                            <th>AddedBy</th>
+                            <th>Added_On</th>
+                            <th>Detail</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for sale in sales %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ sale.saleNo }}</td>
+                                <td>{{ sale.productName }}</td>
+                                <td>{{ sale.totalAmount }}</td>
+                                <td>{{ sale.amountPaid }}</td>
+                                <td>{{ sale.isClosed }}</td>
+                                <td>{{ sale.assignedTo.name }}</td>
+                                <td>{{ sale.addedBy.name }}</td>
+                                <td>{{ sale.datetime }}</td>
+                                <td><a data-inverted="" data-tooltip="Sales Detail" data-position="left center"
+                                       data-variation="mini" style="font-size:10px;" href="/sales_detail/{{ sale.pk }}/"
+                                       class="ui circular facebook icon button green">
+                                    <i class="receipt icon"></i>
+                                </a></td>
+                            </tr>
+                        {% endfor %}
+
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+{% endblock %}
+
+{% block js %}
+    <script>
+
+
+    </script>
+
+{% endblock %}
