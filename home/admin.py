@@ -11,102 +11,42 @@ class StaffGroupAdmin(admin.ModelAdmin):
 admin.site.register(StaffGroup, StaffGroupAdmin)
 
 
+class PartyGroupAdmin(admin.ModelAdmin):
+    list_display = ['name', 'datetime', 'lastUpdatedOn', 'isDeleted']
+
+
+admin.site.register(PartyGroup, PartyGroupAdmin)
+
+
 class StaffUserAdmin(admin.ModelAdmin):
-    list_display = ['name', 'phone', 'address', 'email', 'username', 'userPassword', 'group', 'isActive', 'datetime',
+    list_display = ['name', 'phone', 'address', 'email', 'username', 'userPassword', 'group', 'partyGroupID',
+                    'isActive', 'datetime',
                     'lastUpdatedOn']
 
 
 admin.site.register(StaffUser, StaffUserAdmin)
 
 
-class UnitAdmin(admin.ModelAdmin):
-    list_display = ['name', 'datetime', 'lastUpdatedOn', 'isDeleted']
+class BankAdmin(admin.ModelAdmin):
+    list_display = ['name', 'accountNumber', 'datetime', 'lastUpdatedOn', 'isDeleted']
 
 
-admin.site.register(Unit, UnitAdmin)
+admin.site.register(Bank, BankAdmin)
 
 
-class CategoryAdmin(admin.ModelAdmin):
-    list_display = ['name', 'datetime', 'lastUpdatedOn', 'isDeleted']
+class PartyAdmin(admin.ModelAdmin):
+    list_display = ['name', 'phone', 'address', 'partyGroupID', 'datetime', 'lastUpdatedOn', 'isDeleted']
 
 
-admin.site.register(Category, CategoryAdmin)
+admin.site.register(Party, PartyAdmin)
 
 
-class BrandAdmin(admin.ModelAdmin):
-    list_display = ['name', 'datetime', 'lastUpdatedOn', 'isDeleted']
+class CollectionAdmin(admin.ModelAdmin):
+    search_fields = ['partyID', 'modeOfPayment', 'paidAmount', 'collectedBy', 'remark']
+    list_display = ['partyID', 'modeOfPayment', 'paidAmount', 'remark', 'collectionAddress', 'collectedBy',
+                    'approvedOn',
+                    'latitude',
+                    'longitude', 'isApproved', 'approvedBy', 'datetime']
 
 
-admin.site.register(Brand, BrandAdmin)
-
-
-class ProductAdmin(admin.ModelAdmin):
-    list_display = ['name', 'stock', 'categoryID', 'brandID', 'unitID', 'cp', 'mrp', 'sp', 'datetime', 'lastUpdatedOn',
-                    'isDeleted']
-
-
-admin.site.register(Product, ProductAdmin)
-
-
-class SupplierAdmin(admin.ModelAdmin):
-    list_display = ['name', 'phone', 'gst', 'address', 'datetime', 'lastUpdatedOn', 'isDeleted']
-
-
-admin.site.register(Supplier, SupplierAdmin)
-
-
-class PurchaseProductListAdmin(admin.TabularInline):
-    model = PurchaseProduct
-    extra = 0
-
-
-class PurchaseAdmin(admin.ModelAdmin):
-    search_fields = ['supplierName']
-    list_display = ['supplierName', 'taxableAmount', 'gstAmount', 'otherCharges', 'invoiceDate', 'grandTotal',
-                    'invoiceNumber', 'isDeleted', 'datetime', 'lastUpdatedOn']
-
-    inlines = (PurchaseProductListAdmin,)
-
-
-admin.site.register(Purchase, PurchaseAdmin)
-
-
-class CustomerAdmin(admin.ModelAdmin):
-    search_fields = ['name', 'customerCode', 'phoneNumber', 'district', 'address']
-    list_display = ['name', 'customerCode', 'phoneNumber', 'district', 'address', 'addedBy', 'latitude', 'longitude',
-                    'isDeleted', 'datetime', 'lastUpdatedOn']
-
-
-admin.site.register(Customer, CustomerAdmin)
-
-
-class InstallmentsListAdmin(admin.TabularInline):
-    model = Installment
-    extra = 0
-
-
-class SalesAdmin(admin.ModelAdmin):
-    list_display = ['customerName', 'productName', 'advancePaid', 'tenureInMonth', 'emiAmount', 'totalAmount',
-                    'amountPaid', 'addedBy', 'isDeleted', 'datetime', 'lastUpdatedOn']
-
-    inlines = (InstallmentsListAdmin,)
-
-
-admin.site.register(Sale, SalesAdmin)
-
-
-class LoginAndLogoutAdmin(admin.ModelAdmin):
-    list_display = ['userID', 'statusType', 'isDeleted', 'datetime']
-
-
-admin.site.register(LoginAndLogoutStatus, LoginAndLogoutAdmin)
-
-
-class InstallmentListAdmin(admin.ModelAdmin):
-    search_fields = ['saleID', 'emiAmount', 'assignedTo', 'collectedBy', 'remark']
-    list_display = ['saleID', 'installmentDate', 'emiAmount', 'paidAmount', 'dueAmount', 'NextDueDate', 'remark',
-                    'assignedTo',
-                    'collectedBy', 'paymentReceivedOn', 'datetime']
-
-
-admin.site.register(Installment, InstallmentListAdmin)
+admin.site.register(Collection, CollectionAdmin)

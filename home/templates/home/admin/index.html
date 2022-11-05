@@ -161,39 +161,7 @@
             </a>
         </div>
     </div>
-    <div class="item">
-        <div class="header">
-            Sales
-        </div>
-        <div class="menu">
-            <a class="item" href="{% url 'homeApp:customer_list_admin' %}">
-                <div><i class="users icon"></i>Customer List</div>
-            </a>
-            <a class="item" href="{% url 'homeApp:sales_list_admin' %}">
-                <div><i class="cart arrow down icon"></i>Sales List</div>
-            </a>
-            <a class="item" href="{% url 'homeApp:installment_list_admin' %}">
-                <div><i class="hand holding usd icon"></i>Installment List</div>
-            </a>
-        </div>
-    </div>
-    <div class="item">
-        <div class="header">
-            Purchase
-        </div>
-        <div class="menu">
-            <a class="item" href="{% url 'homeApp:purchase_list' %}">
-                <div><i class="cash register icon"></i>Purchase List</div>
-            </a>
-            <a class="item" href="{% url 'homeApp:product_list' %}">
-                <div><i class="product hunt icon"></i>Products List</div>
-            </a>
-            <a class="item" href="{% url 'homeApp:supplier_add' %}">
-                <div><i class="people carry icon"></i>Supplier List</div>
-            </a>
 
-        </div>
-    </div>
     {% if request.user|has_group:"Admin" %}
     <div class="item">
         <div class="header">
@@ -201,7 +169,7 @@
         </div>
         <div class="menu">
             <a class="item" href="{% url 'homeApp:user_list' %}">
-                <div><i class="user tie icon"></i>User List</div>
+                <div><i class="user tie icon"></i>Staff List</div>
             </a>
 
         </div>
@@ -211,47 +179,24 @@
                 Login/Logout
             </div>
             <div class="menu">
-                <a class="item" href="{% url 'homeApp:login_logout_report_admin' %}">
+                <a class="item" href="#">
                     <div><i class="user clock icon"></i>User Login/Logout</div>
                 </a>
 
             </div>
         </div>
-        <div class="item">
-            <div class="header">
-                Report
-            </div>
-            <div class="menu">
-                <a class="item" href="{% url 'homeApp:report_admin' %}">
-                    <div><i class="file excel icon"></i>Sales Report</div>
-                </a>
-                <a class="item" href="{% url 'homeApp:installment_report_admin' %}">
-                    <div><i class="hand holding usd icon"></i>Installments Report</div>
-                </a>
 
-            </div>
-        </div>
     {% endif %}
-    <div class="item">
-        <div class="header">
-            Documents
-        </div>
-        <div class="menu">
-            <a class="item" href="{% url 'homeApp:document_list_admin' %}">
-                <div><i class="cloud upload alternate icon"></i>Documents List</div>
-            </a>
 
-        </div>
-    </div>
     <div class="item">
         <div class="header">
             Profile
         </div>
         <div class="menu">
-            <a class="item" href="{% url 'homeApp:my_profile_admin' %}">
+            <a class="item" href="#">
                 <div><i class="user icon"></i>My Profile</div>
             </a>
-            <a class="item" href="{% url 'homeApp:logout' %}">
+            <a class="item" href="#">
                 <div><i class="sign out alternate icon"></i>Logout</div>
             </a>
         </div>
@@ -289,14 +234,14 @@
         <div class="ui dropdown item">
             <i class="user cirlce icon"></i>
             <div class="menu">
-                <a href="{% url 'homeApp:my_profile_admin' %}" class="item">
+                <a href="#" class="item">
                     <i class="info circle icon"></i> Profile</a
                 >
                 {% comment %}  <a href="#" class="item">
                     <i class="wrench icon"></i>
                     Settings</a
                 >{% endcomment %}
-                <a href="{% url 'homeApp:logout' %}" class="item">
+                <a href="#" class="item">
                     <i class="sign out alternate icon"></i>
                     Logout
                 </a>
@@ -336,94 +281,94 @@
                                     0
                                 </div>
                             </div>
-                            <div class="meta">
-                                Customers Added
+                                <div class="meta">
+                                    Customers Added
+                                </div>
+                                <div class="description">
+                                    Total number of customers added by user.
+                                </div>
                             </div>
-                            <div class="description">
-                                Total number of customers added by user.
-                            </div>
-                        </div>
-                        <div class="extra content">
-                            <div class="ui two buttons">
-                                <a class="ui red button" href="{% url 'homeApp:customer_list_admin' %}">More Info</a>
+                            <div class="extra content">
+                                <div class="ui two buttons">
+                                    <a class="ui red button" href="#">More Info</a>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="four wide computer eight wide tablet sixteen wide mobile column">
-                    <div class="ui fluid card">
-                        <div class="content">
-                            <div class="ui right floated header green">
-                                <i class="cart plus icon"></i>
-                            </div>
+                    <div class="four wide computer eight wide tablet sixteen wide mobile column">
+                        <div class="ui fluid card">
+                            <div class="content">
+                                <div class="ui right floated header green">
+                                    <i class="cart plus icon"></i>
+                                </div>
                             <div class="header">
                                 <div class="ui header green" id="salesCount">
                                     0
                                 </div>
                             </div>
-                            <div class="meta">
-                                Sales Created
+                                <div class="meta">
+                                    Sales Created
+                                </div>
+                                <div class="description">
+                                    Total number of sales created by user.
+                                </div>
                             </div>
-                            <div class="description">
-                                Total number of sales created by user.
-                            </div>
-                        </div>
-                        <div class="extra content">
-                            <div class="ui two buttons">
-                                <a class="ui green button" href="{% url 'homeApp:sales_list_admin' %}">More Info</a>
+                            <div class="extra content">
+                                <div class="ui two buttons">
+                                    <a class="ui green button" href="#">More Info</a>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="four wide computer eight wide tablet sixteen wide mobile column">
-                    <div class="ui fluid card">
-                        <div class="content">
-                            <div class="ui right floated header teal">
-                                <i class="calendar plus icon"></i>
-                            </div>
+                    <div class="four wide computer eight wide tablet sixteen wide mobile column">
+                        <div class="ui fluid card">
+                            <div class="content">
+                                <div class="ui right floated header teal">
+                                    <i class="calendar plus icon"></i>
+                                </div>
                             <div class="header">
                                 <div class="ui teal header" id="todayInstallmentCount">0</div>
                             </div>
-                            <div class="meta">
-                                Today's Installment
+                                <div class="meta">
+                                    Today's Installment
+                                </div>
+                                <div class="description">
+                                    Number of installment collected by the user today.
+                                </div>
                             </div>
-                            <div class="description">
-                                Number of installment collected by the user today.
-                            </div>
-                        </div>
-                        <div class="extra content">
-                            <div class="ui two buttons">
-                                <a class="ui teal button" href="{% url 'homeApp:installment_list_admin' %}">More
-                                    Info</a>
+                            <div class="extra content">
+                                <div class="ui two buttons">
+                                    <a class="ui teal button" href="#">More
+                                        Info</a>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="four wide computer eight wide tablet sixteen wide mobile column">
-                    <div class="ui fluid card">
-                        <div class="content">
-                            <div class="ui right floated header purple">
-                                <i class="hand holding usd icon"></i>
+                    <div class="four wide computer eight wide tablet sixteen wide mobile column">
+                        <div class="ui fluid card">
+                            <div class="content">
+                                <div class="ui right floated header purple">
+                                    <i class="hand holding usd icon"></i>
                             </div>
                             <div class="header">
                                 <div class="ui purple header" id="collection">0</div>
                             </div>
-                            <div class="meta">
-                                Today's Collection
+                                <div class="meta">
+                                    Today's Collection
+                                </div>
+                                <div class="description">
+                                    Total amount collected on installments collections.
+                                </div>
                             </div>
-                            <div class="description">
-                                Total amount collected on installments collections.
-                            </div>
-                        </div>
-                        <div class="extra content">
-                            <div class="ui two buttons">
-                                <a class="ui purple button" href="{% url 'homeApp:installment_list_admin' %}">More
-                                    Info</a>
+                            <div class="extra content">
+                                <div class="ui two buttons">
+                                    <a class="ui purple button" href="#">More
+                                        Info</a>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-           </div>
                 <h5 class="ui top attached header">
                     Daily Trending's
                 </h5>
@@ -557,7 +502,7 @@
         function GetDetail() {
             $.ajax({
                 type: 'get',
-                url: '{% url "homeApp:get_admin_report_api"%}',
+                url: '#',
 
                 success: function (response) {
                     $('#customerCount').html(response.data['customerCount']);
@@ -583,7 +528,7 @@
         function GetLastThreeDaysCollectionDetail() {
             $.ajax({
                 type: 'get',
-                url: '{% url "homeApp:get_last_three_days_collection_report_for_admin_api"%}',
+                url: '#',
 
                 success: function (response) {
                     console.log(response)
@@ -616,7 +561,7 @@
         function GetStaffDailyCollectionDetail() {
             $.ajax({
                 type: 'get',
-                url: '{% url "homeApp:get_daily_collections_by_staff"%}',
+                url: '#',
 
                 success: function (response) {
                     $('#staffCollection').html('');
