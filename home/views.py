@@ -74,8 +74,10 @@ def collection_home(request):
 @is_activated()
 def user_list(request):
     groups = StaffGroup.objects.filter(isDeleted__exact=False).order_by('name')
+    party_groups = PartyGroup.objects.filter(isDeleted__exact=False).order_by('name')
     context = {
-        'groups': groups
+        'groups': groups,
+        'party_groups': party_groups
     }
     return render(request, 'home/admin/userList.html', context)
 
@@ -113,13 +115,13 @@ def purchase_list(request):
 #     return render(request, 'home/admin/purchaseAdd.html', context)
 
 
-@check_group('Both')
+@check_group('Admin')
 @is_activated()
-def supplier_add(request):
-    return render(request, 'home/admin/supplierList.html')
+def party_group_list(request):
+    return render(request, 'home/admin/partyGroupList.html')
 
 
-@check_group('Collection')
+@check_group('Admin')
 def customer_list(request):
     return render(request, 'home/collection/customerListByStaff.html')
 

@@ -163,17 +163,28 @@
     </div>
 
     {% if request.user|has_group:"Admin" %}
-    <div class="item">
-        <div class="header">
-            Staff
-        </div>
-        <div class="menu">
-            <a class="item" href="{% url 'homeApp:user_list' %}">
-                <div><i class="user tie icon"></i>Staff List</div>
-            </a>
+        <div class="item">
+            <div class="header">
+                Staff
+            </div>
+            <div class="menu">
+                <a class="item" href="{% url 'homeApp:user_list' %}">
+                    <div><i class="user tie icon"></i>Staff List</div>
+                </a>
 
+            </div>
         </div>
-    </div>
+        <div class="item">
+            <div class="header">
+                Party
+            </div>
+            <div class="menu">
+                <a class="item" href="{% url 'homeApp:party_group_list' %}">
+                    <div><i class="user friends icon"></i>Party Group List</div>
+                </a>
+
+            </div>
+        </div>
         <div class="item">
             <div class="header">
                 Login/Logout

@@ -142,29 +142,57 @@
 
                             <form class="ui tiny form" id="addForm">{% csrf_token %}
                                 <div class="two fields required">
-                                    <label>Photo</label>
+                                    <div class="eight wide field">
+                                        <label>Photo</label>
 
-                                    <div class="ui" style="width: 100%; text-align: center">
-                                        <div class="ui icon header">
-                                            <div class="inline ">
+                                        <div class="ui" style="width: 100%; text-align: center">
+                                            <div class="ui icon header">
+                                                <div class="inline ">
 
-                                                <div class="avatar-upload">
-                                                    <div class="avatar-edit">
-                                                        <input type='file' id="imageUpload" name="photo"
-                                                               accept=".png, .jpg, .jpeg"/>
-                                                        <label for="imageUpload"><i class="edit icon"
-                                                                                    style="font-size: 1rem;padding: 0.4rem"></i>
-                                                        </label>
-                                                    </div>
-                                                    <div class="avatar-preview">
-                                                        <div id="cImg"
-                                                             style="background-image: url('https://cdn-icons.flaticon.com/png/512/4785/premium/4785452.png?token=exp=1651559899~hmac=8bd1641cd72c54268deafab8b26dd7a9');">
+                                                    <div class="avatar-upload">
+                                                        <div class="avatar-edit">
+                                                            <input type='file' id="imageUpload" name="photo"
+                                                                   accept=".png, .jpg, .jpeg"/>
+                                                            <label for="imageUpload"><i class="edit icon"
+                                                                                        style="font-size: 1rem;padding: 0.4rem"></i>
+                                                            </label>
+                                                        </div>
+                                                        <div class="avatar-preview">
+                                                            <div id="cImg"
+                                                                 style="background-image: url('https://cdn-icons.flaticon.com/png/512/4785/premium/4785452.png?token=exp=1651559899~hmac=8bd1641cd72c54268deafab8b26dd7a9');">
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
 
+                                        </div>
+                                    </div>
+                                    <div class="eight wide field">
+                                        <label>ID Proof</label>
+
+                                        <div class="ui" style="width: 100%; text-align: center">
+                                            <div class="ui icon header">
+                                                <div class="inline ">
+
+                                                    <div class="avatar-upload">
+                                                        <div class="avatar-edit">
+                                                            <input type='file' id="imageUploadID" name="photo"
+                                                                   accept=".png, .jpg, .jpeg"/>
+                                                            <label for="imageUploadID"><i class="edit icon"
+                                                                                          style="font-size: 1rem;padding: 0.4rem"></i>
+                                                            </label>
+                                                        </div>
+                                                        <div class="avatar-preview">
+                                                            <div id="cImgID"
+                                                                 style="background-image: url('https://cdn-icons.flaticon.com/png/512/4785/premium/4785452.png?token=exp=1651559899~hmac=8bd1641cd72c54268deafab8b26dd7a9');">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
                                     </div>
                                 </div>
 
@@ -199,13 +227,24 @@
 
                                     </div>
                                 </div>
-                                <div class="two fields">
+                                <div class="three fields">
                                     <div class="field required">
                                         <label>Group</label>
                                         <select class="ui fluid dropdown" id="UserGroup">
                                             <option value="" hidden>Group</option>
                                             {% for group in groups %}
                                                 <option value="{{ group.name }}">{{ group.name|capfirst }}</option>
+                                            {% endfor %}
+
+
+                                        </select>
+                                    </div>
+                                    <div class="field required">
+                                        <label>Party Group</label>
+                                        <select class="ui fluid dropdown" id="PartyGroup">
+                                            <option value="" hidden>Party Group</option>
+                                            {% for group in party_groups %}
+                                                <option value="{{ group.id }}">{{ group.name|capfirst }}</option>
                                             {% endfor %}
 
 
@@ -412,6 +451,21 @@
             readURLPhoto(this);
         });
 
+        function readURLPhotoID(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#cImgID').css('background-image', 'url(' + e.target.result + ')');
+                    $('#cImgID').hide();
+                    $('#cImgID').fadeIn(650);
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        $("#imageUploadID").change(function () {
+            readURLPhotoID(this);
+        });
 
         function showUserModal() {
             $('#myModalUser').modal('show');
@@ -424,6 +478,7 @@
         function addUser() {
             //for User
             var imageUpload = document.getElementById("imageUpload").files[0];
+            var imageUploadID = document.getElementById("imageUploadID").files[0];
             var CompanyUserName = $('#CompanyUserName').val();
             var UserPhoneNo = $('#UserPhoneNo').val();
             var UserEmail = $('#UserEmail').val();
@@ -432,10 +487,11 @@
             var UserStatus = $('#UserStatus').val();
             var UserPwd = $('#UserPwd').val();
             var ConfirmPwd = $('#ConfirmPwd').val();
+            var PartyGroup = $('#PartyGroup').val();
 
 
-            if (CompanyUserName === '' || UserPhoneNo === '' || imageUpload === undefined ||
-                UserAddress === '' || UserPwd === '' || ConfirmPwd === '' || UserGroup === '' || UserStatus === '') {
+            if (CompanyUserName === '' || UserPhoneNo === '' || imageUpload === undefined || imageUploadID === undefined ||
+                UserAddress === '' || UserPwd === '' || ConfirmPwd === '' || UserGroup === '' || UserStatus === '' || PartyGroup === '') {
                 $('body')
                     .toast({
                         class: 'orange',
@@ -448,6 +504,7 @@
 
                 data = new FormData();
                 data.append('imageUpload', imageUpload);
+                data.append('imageUploadID', imageUploadID);
                 data.append('CompanyUserName', CompanyUserName);
                 data.append('UserPhoneNo', UserPhoneNo);
                 data.append('UserEmail', UserEmail);
@@ -455,6 +512,7 @@
                 data.append('UserGroup', UserGroup);
                 data.append('UserStatus', UserStatus);
                 data.append('UserPwd', UserPwd);
+                data.append('PartyGroup', PartyGroup);
 
 
                 data.append('csrfmiddlewaretoken', csrfmiddlewaretoken);

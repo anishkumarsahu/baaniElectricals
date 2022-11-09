@@ -29,10 +29,13 @@ def add_staff_api(request):
             UserGroup = request.POST.get("UserGroup")
             UserStatus = request.POST.get("UserStatus")
             UserPwd = request.POST.get("UserPwd")
+            PartyGroup = request.POST.get("PartyGroup")
             imageUpload = request.FILES["imageUpload"]
+            imageUploadID = request.FILES["imageUploadID"]
 
             staff = StaffUser()
             staff.photo = imageUpload
+            staff.idProof = imageUploadID
             staff.name = CompanyUserName
             staff.phone = UserPhoneNo
             staff.email = UserEmail
@@ -40,6 +43,7 @@ def add_staff_api(request):
             staff.group = UserGroup
             staff.isActive = UserStatus
             staff.userPassword = UserPwd
+            staff.partyGroupID_id = int(PartyGroup)
             staff.save()
             username = 'USER' + get_random_string(length=3, allowed_chars='1234567890')
             while User.objects.select_related().filter(username__exact=username).count() > 0:
@@ -57,12 +61,8 @@ def add_staff_api(request):
 
                 try:
                     g = Group.objects.get(name=UserGroup)
-                    h = Group.objects.get(name='Both')
                     g.user_set.add(new_user.pk)
                     g.save()
-                    if UserGroup != 'Collection':
-                        h.user_set.add(new_user.pk)
-                        h.save()
 
                 except:
                     g = Group()
@@ -70,12 +70,6 @@ def add_staff_api(request):
                     g.save()
                     g.user_set.add(new_user.pk)
                     g.save()
-                    if UserGroup != 'Collection':
-                        h = Group()
-                        h.name = 'Both'
-                        h.save()
-                        h.user_set.add(new_user.pk)
-                        h.save()
             return JsonResponse({'message': 'success'}, safe=False)
         except:
             return JsonResponse({'message': 'error'}, safe=False)
@@ -374,123 +368,110 @@ def edit_staff_api(request):
 #
 # # ---------------------------------Supplier ----------------------------------------------------
 #
-# @transaction.atomic
-# @csrf_exempt
-# def add_supplier_api(request):
-#     if request.method == 'POST':
-#         try:
-#             supplierName = request.POST.get("supplierName")
-#             phone = request.POST.get("phone")
-#             gst = request.POST.get("gst")
-#             address = request.POST.get("address")
+@transaction.atomic
+@csrf_exempt
+def add_party_group_api(request):
+    if request.method == 'POST':
+        try:
+            groupName = request.POST.get("groupName")
+            description = request.POST.get("description")
+
+            obj = PartyGroup()
+            obj.name = groupName
+            obj.description = description
+            obj.save()
+
+            return JsonResponse({'message': 'success'}, safe=False)
+        except:
+            return JsonResponse({'message': 'error'}, safe=False)
+
+
 #
-#             obj = Supplier()
-#             obj.name = supplierName
-#             obj.phone = phone
-#             obj.gst = gst
-#             obj.address = address
-#             obj.save()
+@transaction.atomic
+@csrf_exempt
+def delete_part_group(request):
+    if request.method == 'POST':
+        try:
+            id = request.POST.get("userID")
+            obj = PartyGroup.objects.select_related().get(pk=int(id))
+            obj.isDeleted = True
+            obj.save()
+            return JsonResponse({'message': 'success'}, safe=False)
+        except:
+            return JsonResponse({'message': 'error'}, safe=False)
+
+
+class PartyGroupListJson(BaseDatatableView):
+    order_columns = ['name', 'description', 'datetime']
+
+    def get_initial_queryset(self):
+        # if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+        return PartyGroup.objects.select_related().filter(isDeleted__exact=False)
+
+    def filter_queryset(self, qs):
+
+        search = self.request.GET.get('search[value]', None)
+        if search:
+            qs = qs.filter(
+                Q(name__icontains=search) | Q(description__icontains=search)
+                | Q(datetime__icontains=search)
+            )
+
+        return qs
+
+    def prepare_results(self, qs):
+        json_data = []
+        for item in qs:
+            action = '''<button  data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "GetUserDetails('{}')" class="ui circular facebook icon button green">
+                    <i class="pen icon"></i>
+                  </button>
+                  <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
+                    <i class="trash alternate icon"></i>
+                  </button></td>'''.format(item.pk, item.pk),
+
+            json_data.append([
+                escape(item.name),
+                escape(item.description),
+                escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
+                action,
+
+            ])
+
+        return json_data
+
+
+def get_party_group_detail(request):
+    id = request.GET.get('id')
+    instance = get_object_or_404(PartyGroup, id=id)
+    # instance = BankDetails.objects.get(companyID_id=company.pk)
+
+    data = {
+        'ID': instance.pk,
+        'Name': instance.name,
+        'Description': instance.description,
+    }
+    return JsonResponse({'data': data}, safe=False)
+
+
 #
-#             return JsonResponse({'message': 'success'}, safe=False)
-#         except:
-#             return JsonResponse({'message': 'error'}, safe=False)
-#
-#
-# @transaction.atomic
-# @csrf_exempt
-# def delete_supplier(request):
-#     if request.method == 'POST':
-#         try:
-#             id = request.POST.get("userID")
-#             obj = Supplier.objects.select_related().get(pk=int(id))
-#             obj.isDeleted = True
-#             obj.save()
-#             return JsonResponse({'message': 'success'}, safe=False)
-#         except:
-#             return JsonResponse({'message': 'error'}, safe=False)
-#
-#
-# class SupplierListJson(BaseDatatableView):
-#     order_columns = ['name', 'phone', 'gst', 'address', 'datetime']
-#
-#     def get_initial_queryset(self):
-#         # if 'Admin' in self.request.user.groups.values_list('name', flat=True):
-#         return Supplier.objects.select_related().filter(isDeleted__exact=False)
-#
-#     def filter_queryset(self, qs):
-#
-#         search = self.request.GET.get('search[value]', None)
-#         if search:
-#             qs = qs.filter(
-#                 Q(name__icontains=search) | Q(phone__icontains=search)
-#                 | Q(gst__icontains=search) | Q(addtress__icontains=search)
-#                 | Q(datetime__icontains=search)
-#             )
-#
-#         return qs
-#
-#     def prepare_results(self, qs):
-#         json_data = []
-#         for item in qs:
-#             action = '''<button  data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "GetUserDetails('{}')" class="ui circular facebook icon button green">
-#                     <i class="pen icon"></i>
-#                   </button>
-#                   <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
-#                     <i class="trash alternate icon"></i>
-#                   </button></td>'''.format(item.pk, item.pk),
-#
-#             json_data.append([
-#                 escape(item.name),
-#                 escape(item.phone),
-#                 escape(item.gst),
-#                 escape(item.address),
-#                 escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
-#                 action,
-#
-#             ])
-#
-#         return json_data
-#
-#
-# def get_supplier_detail(request):
-#     id = request.GET.get('id')
-#     instance = get_object_or_404(Supplier, id=id)
-#     # instance = BankDetails.objects.get(companyID_id=company.pk)
-#
-#     data = {
-#         'ID': instance.pk,
-#         'Name': instance.name,
-#         'Phone': instance.phone,
-#         'GST': instance.gst,
-#         'Address': instance.address,
-#
-#     }
-#     return JsonResponse({'data': data}, safe=False)
-#
-#
-# @transaction.atomic
-# @csrf_exempt
-# def edit_supplier_api(request):
-#     if request.method == 'POST':
-#         try:
-#             Id = request.POST.get("EditUserId")
-#             supplierName = request.POST.get("supplierName")
-#             phone = request.POST.get("phone")
-#             gst = request.POST.get("gst")
-#             address = request.POST.get("address")
-#
-#             obj = Supplier.objects.select_related().get(id=int(Id))
-#             obj.name = supplierName
-#             obj.phone = phone
-#             obj.gst = gst
-#             obj.address = address
-#             obj.save()
-#
-#             return JsonResponse({'message': 'success'}, safe=False)
-#         except:
-#             return JsonResponse({'message': 'error'}, safe=False)
-#
-#
+@transaction.atomic
+@csrf_exempt
+def edit_part_group_api(request):
+    if request.method == 'POST':
+        try:
+            Id = request.POST.get("EditId")
+            name = request.POST.get("groupName")
+            description = request.POST.get("description")
+            obj = PartyGroup.objects.select_related().get(id=int(Id))
+            obj.name = name
+            obj.description = description
+
+            obj.save()
+
+            return JsonResponse({'message': 'success'}, safe=False)
+        except:
+            return JsonResponse({'message': 'error'}, safe=False)
+
 # # ----------------------------------Purchase------------------------
 #
 # @csrf_exempt

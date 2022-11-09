@@ -38,7 +38,7 @@ urlpatterns = [
     # path('product_list/', product_list, name='product_list'),
     path('purchase_list/', purchase_list, name='purchase_list'),
     # path('purchase_add/', purchase_add, name='purchase_add'),
-    path('supplier_add/', supplier_add, name='supplier_add'),
+    path('party_group_list/', party_group_list, name='party_group_list'),
     # path('installment_list_admin/', installment_list_admin, name='installment_list_admin'),
     # path('sales_detail_admin/<int:id>/', sales_detail_admin, name='sales_detail_admin'),
     #
@@ -59,12 +59,12 @@ urlpatterns = [
     # path('api/edit_product_api/', edit_product_api, name='edit_product_api'),
     # path('api/ProductListJson/', ProductListJson.as_view(), name='ProductListJson'),
     #
-    # # api Supplier
-    # path('api/add_supplier_api/', add_supplier_api, name='add_supplier_api'),
-    # path('api/delete_supplier/', delete_supplier, name='delete_supplier'),
-    # path('api/get_supplier_detail/', get_supplier_detail, name='get_supplier_detail'),
-    # path('api/edit_supplier_api/', edit_supplier_api, name='edit_supplier_api'),
-    # path('api/SupplierListJson/', SupplierListJson.as_view(), name='SupplierListJson'),
+    # # api party group
+    path('api/add_party_group_api/', add_party_group_api, name='add_party_group_api'),
+    path('api/delete_part_group/', delete_part_group, name='delete_part_group'),
+    path('api/get_party_group_detail/', get_party_group_detail, name='get_party_group_detail'),
+    path('api/edit_part_group_api/', edit_part_group_api, name='edit_part_group_api'),
+    path('api/PartyGroupListJson/', PartyGroupListJson.as_view(), name='PartyGroupListJson'),
     #
     # # api purchase
     #
