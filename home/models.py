@@ -68,6 +68,7 @@ class StaffUser(models.Model):
 class Bank(models.Model):
     name = models.CharField(max_length=200, blank=True, null=True)
     accountNumber = models.CharField(max_length=200, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
     datetime = models.DateTimeField(auto_now_add=True, auto_now=False)
     lastUpdatedOn = models.DateTimeField(auto_now_add=False, auto_now=True)
     isDeleted = models.BooleanField(default=False)

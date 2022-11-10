@@ -1,0 +1,468 @@
+{% extends 'home/admin/index.html' %}
+{% load static %}
+{% block title %}
+    <title>Party</title>
+{% endblock %}
+{% block css %}
+{% endblock %}
+{% block body %}
+
+    <style>
+
+
+        #UserTable_length {
+            left: 20px;
+            position: absolute;
+        }
+
+        #UserTable_filter {
+            width: 50%;
+            float: right;
+        }
+
+        .dt-buttons {
+            position: absolute;
+            left: 174px;
+        }
+
+        input[type=search] {
+            width: 100px !important;
+        }
+    </style>
+
+    <div class="ui right aligned basic  grid">
+        <div class="sixteen wide column">
+            <div class="ui  pointing secondary menu">
+                <div style="cursor: pointer;" class="item active" data-tab="user"
+                >Party List
+                </div>
+                <div style=" position: absolute;right: 1.5rem;top: 18px;">
+                    <button class="ui green mini plus button right" onclick="showUserModal()">
+                        <i class="plus square outline icon"></i>
+                        Add Party
+                    </button>
+                </div>
+            </div>
+            <div class="ui tab " data-tab="user">
+
+                <div class="row" style="padding-left: 5px; padding-right: 5px">
+                    <div class="wide">
+
+                        <table class="ui unstackable tiny sortable celled very nowrap very compact table" id="UserTable"
+                               style="margin-top: 5px;width: 100%">
+                            <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>AccountNumber</th>
+                                <th>Description</th>
+                                <th>Added On</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="ui modal" id="myModalUser">
+                        <i class="close icon"></i>
+                        <div class="header">
+                            Add Party
+                        </div>
+                        <div class="content">
+
+                            <form class="ui tiny form" id="addForm">{% csrf_token %}
+                                <div class="two required fields">
+                                    <div class="eight wide field">
+                                        <label>Bank Name</label>
+                                        <input type="text" name="bankName" placeholder="Bank Name" id="bankName">
+                                    </div>
+                                    <div class="eight wide field">
+                                        <label>Account Number</label>
+                                        <input type="number" name="accountNumber" placeholder="Account Number"
+                                               id="accountNumber">
+                                    </div>
+
+                                </div>
+
+                                <div class="one fields">
+                                    <div class="sixteen wide field">
+                                        <label>Description</label>
+                                        <input type="text" name="description" placeholder="Description"
+                                               id="description">
+                                    </div>
+
+                                </div>
+
+
+                            </form>
+
+                            <div class="actions" style="padding-top: 20px; padding-bottom: 20px ;float: right">
+                                <div class="ui cancel button">Cancel</div>
+                                <button class="ui right labeled icon button green" onclick="addUser()">
+                                    Submit
+                                    <i class="checkmark icon"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ui basic modal custom" id="deleteUser">
+                    <div class="ui icon header">
+                        <i class="archive icon"></i>
+                        Bank Details will be Deleted
+                    </div>
+                    <div class="content">
+                        <p style="text-align: center">The Bank will be deleted, are you sure to delete this
+                            Bank?</p>
+                    </div>
+                    <div class="actions">
+                        <div class="ui red basic cancel inverted button">
+                            <i class="remove icon"></i>
+                            No
+                        </div>
+                        <input type="hidden" id="UserID">
+                        <div class="ui green ok inverted button" onclick="deleteUser()">
+                            <i class="checkmark icon"></i>
+                            Yes
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ui modal" id="userModal">
+                    <i class="close icon"></i>
+                    <div class="header">
+                        Edit Bank Details
+                    </div>
+                    <div class="content">
+
+                        <form class="ui tiny form" id="EditForm">{% csrf_token %}
+                            <div class="two required fields">
+                                <div class="eight wide field">
+                                    <label>Bank Name</label>
+                                    <input type="text" name="bankNameEdit" placeholder="Bank Name" id="bankNameEdit">
+                                </div>
+                                <div class="eight wide field">
+                                    <label>Account Number</label>
+                                    <input type="number" name="accountNumberEdit" placeholder="Account Number"
+                                           id="accountNumberEdit">
+                                </div>
+
+                            </div>
+                            <div class="one fields">
+                                <div class="sixteen wide field">
+                                    <label>Description</label>
+                                    <input type="text" name="descriptionEdit" placeholder="Description"
+                                           id="descriptionEdit">
+                                </div>
+
+                            </div>
+
+
+                            <input type="hidden" id="EditId">
+                        </form>
+
+                        <div class="actions" style="padding-top: 20px; padding-bottom: 20px ;float: right">
+                            <div class="ui cancel button">Cancel</div>
+                            <button class="ui right labeled icon button green" onclick="editUser()">
+                                Update
+                                <i class="checkmark icon"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+
+        var userTab;
+
+
+        function showUserModal() {
+            $('#myModalUser').modal('show');
+        }
+
+        function EditUser() {
+            $('')
+        }
+
+        function addUser() {
+            var bankName = $('#bankName').val();
+            var accountNumber = $('#accountNumber').val();
+            var description = $('#description').val();
+
+
+            if (bankName === '' || accountNumber === '') {
+                $('body')
+                    .toast({
+                        class: 'orange',
+                        message: '* fields are required.'
+                    })
+                ;
+            } else {
+
+                var csrfmiddlewaretoken = $("input[name='csrfmiddlewaretoken']").val();
+
+                data = new FormData();
+                data.append('bankName', bankName);
+                data.append('accountNumber', accountNumber);
+                data.append('description', description);
+
+
+                data.append('csrfmiddlewaretoken', csrfmiddlewaretoken);
+
+
+                $.ajax({
+                    type: 'post',
+                    url: '{% url "homeApp:add_bank_api" %}',
+                    data: data,
+                    contentType: false,
+                    cache: false,
+                    processData: false,
+
+
+                    success: function (response) {
+                        if (response.message === 'success') {
+                            $('body')
+                                .toast({
+                                    class: 'success',
+                                    message: 'New Bank Added Successfully.'
+                                })
+                            ;
+
+
+                            userTab.ajax.reload();
+                            $('#addForm').trigger('reset');
+                            $('#myModalUser').modal('toggle');
+                        } else {
+                            $('body')
+                                .toast({
+                                    class: 'error',
+                                    message: 'An error occurred !'
+                                })
+                            ;
+
+                        }
+
+                        return response;
+                    },
+                    error: function () {
+                        $('body')
+                            .toast({
+                                class: 'error',
+                                message: 'An error occurred !'
+                            })
+                        ;
+                    }
+                });
+
+
+            }
+
+        }
+
+
+        // user Details
+
+        userTab = $('#UserTable').DataTable({
+            dom: 'Blfrtip',
+            "scrollY": "350px",
+            "scrollX": true,
+            fixedColumns: {
+                left: 1,
+                right: 1
+            },
+            buttons: [{
+                extend: 'excel',
+                exportOptions: {
+                    columns: [0, 1, 2, 3]
+                }
+            }
+                {% comment %}      , {
+                          extend: 'print',
+                          exportOptions: {
+                               columns: [1, 2, 3, 4, 5, 6, 7, 8]
+                          }
+                      }{% endcomment %}
+            ],
+            "columnDefs": [
+                {"name": "name", "targets": 0, "orderable": true},
+                {"name": "accountNumber", "targets": 1, "orderable": true},
+                {"name": "description", "targets": 2, "orderable": true},
+                {"name": "datetime", "targets": 3, "orderable": true},
+                {"name": "action", "targets": 4, "orderable": false}
+
+            ],
+            aaSorting: [[0, 'asc']],
+            "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            "pageLength": 10,
+            "processing": true,
+            "serverSide": true,
+            "ajax": "{% url 'homeApp:BankListJson' %}"
+        });
+
+
+        function delUser(id) {
+            $('#deleteUser')
+                .modal('show')
+            ;
+            $('#UserID').val(id)
+        }
+
+        function deleteUser() {
+            var id = $('#UserID').val();
+            var formdata = new FormData();
+            formdata.append('userID', id);
+
+            $.ajax({
+                url: "{% url 'homeApp:delete_bank' %}",
+                type: "post",
+                data: formdata,
+                contentType: false,
+                cache: false,
+                processData: false,
+
+                success: function (response) {
+                    if (response.message === 'success') {
+                        $('body')
+                            .toast({
+                                class: 'success',
+                                message: 'Bank Detail Deleted Successfully.'
+                            })
+                        ;
+
+
+                        userTab.ajax.reload();
+                    } else {
+                        $('body')
+                            .toast({
+                                class: 'error',
+                                message: 'An error occurred !'
+                            })
+                        ;
+
+                    }
+
+                    return response;
+                },
+                error: function () {
+                    $('body')
+                        .toast({
+                            class: 'error',
+                            message: 'An error occurred !'
+                        })
+                    ;
+                }
+            });
+
+        }
+
+        function GetUserDetails(id) {
+            $('#userModal').modal('show');
+            $.ajax({
+                type: 'get',
+                url: '{% url "homeApp:get_bank_detail"%}?id=' + id,
+                success: function (response) {
+                    $('#EditId').val(response.data['ID']);
+                    $('#bankNameEdit').val(response.data['Name']);
+                    $('#accountNumberEdit').val(response.data['AccountNumber']);
+                    $('#descriptionEdit').val(response.data['Description']);
+
+
+                },
+                error: function () {
+                    $('body')
+                        .toast({
+                            class: 'error',
+                            message: 'An error occurred !'
+                        })
+                    ;
+                }
+            });
+        }
+
+        function editUser() {
+
+            var EditId = $('#EditId').val();
+            var bankName = $('#bankNameEdit').val();
+            var accountNumber = $('#accountNumberEdit').val();
+            var description = $('#descriptionEdit').val();
+
+
+            if (EditId === '' || bankName === '' || accountNumber === '') {
+                $('body')
+                    .toast({
+                        class: 'orange',
+                        message: '* fields are required.'
+                    })
+                ;
+            } else {
+
+                var csrfmiddlewaretoken = $("input[name='csrfmiddlewaretoken']").val();
+
+                data = new FormData();
+                data.append('bankName', bankName);
+                data.append('accountNumber', accountNumber);
+                data.append('description', description);
+                data.append('EditId', EditId);
+                data.append('csrfmiddlewaretoken', csrfmiddlewaretoken);
+
+                $.ajax({
+                    type: 'post',
+                    url: '{% url "homeApp:edit_bank_api" %}',
+                    data: data,
+                    contentType: false,
+                    cache: false,
+                    processData: false,
+
+
+                    success: function (response) {
+                        if (response.message === 'success') {
+                            $('body')
+                                .toast({
+                                    class: 'success',
+                                    message: 'Bank detail updated Successfully.'
+                                })
+                            ;
+
+
+                            userTab.ajax.reload();
+                            $('#EditForm').trigger('reset');
+                            $('#userModal').modal('toggle');
+                        } else {
+                            $('body')
+                                .toast({
+                                    class: 'error',
+                                    message: 'An error occurred !'
+                                })
+                            ;
+
+                        }
+
+                        return response;
+                    },
+                    error: function () {
+                        $('body')
+                            .toast({
+                                class: 'error',
+                                message: 'An error occurred !'
+                            })
+                        ;
+                    }
+                });
+
+
+            }
+        }
+
+
+    </script>
+
+{% endblock %}

@@ -182,16 +182,30 @@
                 <a class="item" href="{% url 'homeApp:party_group_list' %}">
                     <div><i class="user friends icon"></i>Party Group List</div>
                 </a>
+                <a class="item" href="{% url 'homeApp:party_list' %}">
+                    <div><i class="address book icon"></i>Party List</div>
+                </a>
 
             </div>
         </div>
         <div class="item">
             <div class="header">
-                Login/Logout
+                Banks
+            </div>
+            <div class="menu">
+                <a class="item" href="{% url 'homeApp:bank_list' %}">
+                    <div><i class="university icon"></i>Bank List</div>
+                </a>
+
+            </div>
+        </div>
+        <div class="item">
+            <div class="header">
+                Collections
             </div>
             <div class="menu">
                 <a class="item" href="#">
-                    <div><i class="user clock icon"></i>User Login/Logout</div>
+                    <div><i class="hand holding usd icon"></i>Collection List</div>
                 </a>
 
             </div>
@@ -204,10 +218,10 @@
             Profile
         </div>
         <div class="menu">
-            <a class="item" href="#">
+            <a class="item" href="{% url 'homeApp:my_profile' %}">
                 <div><i class="user icon"></i>My Profile</div>
             </a>
-            <a class="item" href="#">
+            <a class="item" href="{% url 'homeApp:logout' %}">
                 <div><i class="sign out alternate icon"></i>Logout</div>
             </a>
         </div>
@@ -252,7 +266,7 @@
                     <i class="wrench icon"></i>
                     Settings</a
                 >{% endcomment %}
-                <a href="#" class="item">
+                <a href="{% url 'homeApp:logout' %}" class="item">
                     <i class="sign out alternate icon"></i>
                     Logout
                 </a>
