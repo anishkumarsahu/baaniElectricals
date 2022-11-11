@@ -1,5 +1,6 @@
 {% load static %}
 {% load pwa %}
+{% load custom_has_group_tag %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,28 +8,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0,  user-scalable=0"/>
     <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
     {% block title %}
-        <title>Yelhoumee</title>
+        <title>Banni Electricals |Collection</title>
     {% endblock %}
 
     {% progressive_web_app_meta %}
 
     <link rel="icon" href="{% static 'sw/images/favicon.ico' %}" sizes="any">
     <link rel="apple-touch-icon" href="{% static 'sw/images/apple-touch-icon.png' %}">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
-            integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fomantic-ui/2.8.8/semantic.min.css"
-          integrity="sha512-pbLYRiE96XJxmJgF8oWBfa9MdKwuXhlV7vgs2LLlapHLXceztfcta0bdeOgA4reIf0WH67ThWzA684JwkM3zfQ=="
-          crossorigin="anonymous" referrerpolicy="no-referrer"/>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fomantic-ui/2.8.8/semantic.min.js"
-            integrity="sha512-t5mAtfZZmR2gl5LK7WEkJoyHCfyzoy10MlerMGhxsXl3J7uSSNTAW6FK/wvGBC8ua9AFazwMaC0LxsMTMiM5gg=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css"
+          href="https://cdnjs.cloudflare.com/ajax/libs/fomantic-ui/2.9.0/semantic.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fomantic-ui/2.9.0/semantic.min.js"></script>
     <script src="{% static 'sw/app.js' %}"></script>
 
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.12.1/css/dataTables.semanticui.min.css">
+    <script src="{% static 'sw/app.js' %}"></script>
     <link rel="stylesheet" type="text/css"
           href="https://cdn.datatables.net/fixedcolumns/4.1.0/css/fixedColumns.dataTables.min.css">
-    <script src="{% static 'sw/app.js' %}"></script>
 
     {% block css %}
 
@@ -123,7 +120,7 @@
         }
 
         .bgColor {
-            background-color: #232f3e !important;
+            background-color: #0e2d46 !important;
         }
 
         .logoImg {
@@ -138,8 +135,9 @@
             background: #3d3e3f;
             color: #4cebb8 !important;
         }
-        .dataTables_scroll{
-            position: inherit!important;
+
+        .dataTables_scroll {
+            position: inherit !important;
         }
     </style>
 
@@ -159,51 +157,29 @@
             </a>
         </div>
     </div>
-    <div class="item">
-        <div class="header">
-            Customer
-        </div>
-        <div class="menu">
-            <a class="item" href="{% url 'homeApp:customer_add' %}">
-                <div><i class="user icon"></i>Add Customer</div>
 
-            </a> <a class="item" href="{% url 'homeApp:customer_list' %}">
-            <div><i class="users icon"></i>Customer List</div>
-        </a>
-        </div>
-    </div>
+    {% if request.user|has_group:"Collection" %}
+        <div class="item">
+            <div class="header">
+                Collections
+            </div>
+            <div class="menu">
+                <a class="item" href="#">
+                    <div><i class="hand holding usd icon"></i>Collection List</div>
+                </a>
 
-    <div class="item">
-        <div class="header">
-            Sales
+            </div>
         </div>
-        <div class="menu">
-            <a class="item" href="{% url 'homeApp:sales_add' %}">
-                <div><i class="receipt icon"></i>New Sale</div>
-            </a>
-            <a class="item" href="{% url 'homeApp:sales_list' %}">
-                <div><i class="cart arrow down icon"></i>Sales List</div>
-            </a>
-        </div>
-    </div>
-    <div class="item">
-        <div class="header">
-            Installments
-        </div>
-        <div class="menu">
-            <a class="item" href="{% url 'homeApp:installment_list' %}">
-                <div><i class="hand holding usd icon"></i>Installment List</div>
-            </a>
-        </div>
-    </div>
+
+    {% endif %}
 
     <div class="item">
         <div class="header">
             Profile
         </div>
         <div class="menu">
-            <a class="item" href="{% url 'homeApp:my_profile' %}">
-                <div><i class="user circle icon"></i>My Profile</div>
+            <a class="item" href="{% url 'homeApp:my_profile_collection' %}">
+                <div><i class="user icon"></i>My Profile</div>
             </a>
             <a class="item" href="{% url 'homeApp:logout' %}">
                 <div><i class="sign out alternate icon"></i>Logout</div>
@@ -235,7 +211,7 @@
         <img class="logo logoImg" src="{% static 'sw/images/icon-192.png' %}">
         <a href="#" class="header item">
 
-            Yelhoumee
+            Banni Electricals
         </a>
     </div>
 
@@ -243,8 +219,13 @@
         <div class="ui dropdown item">
             <i class="user cirlce icon"></i>
             <div class="menu">
-                <a href="{% url 'homeApp:my_profile' %}" class="item">
-                    <i class="info circle icon"></i> Profile</a>
+                <a href="{% url 'homeApp:my_profile_collection' %}" class="item">
+                    <i class="info circle icon"></i> Profile</a
+                >
+                {% comment %}  <a href="#" class="item">
+                    <i class="wrench icon"></i>
+                    Settings</a
+                >{% endcomment %}
                 <a href="{% url 'homeApp:logout' %}" class="item">
                     <i class="sign out alternate icon"></i>
                     Logout
@@ -260,11 +241,6 @@
 
     <div class="main-content">
         {% block body %}
-            {#            <div class="ui segment">#}
-            {#                <div class="ui breadcrumb">#}
-            {#                    <div class="active section">Dashboard</div>#}
-            {#                </div>#}
-            {#            </div>#}
             <div class="ui  pointing secondary menu">
                 <div style="cursor: pointer;" class="item active" data-tab="user"
                 >Dashboard
@@ -272,6 +248,12 @@
 
             </div>
             <div class="ui tab  " data-tab="user" style="padding: 5px;">
+
+                {% comment %}        <div class="ui segment">
+                <div class="ui breadcrumb">
+                    <div class="active section">Dashboard</div>
+                </div>
+            </div>{% endcomment %}
                 <div class="ui grid stackable padded">
                     <div class="four wide computer eight wide tablet sixteen wide mobile column">
                         <div class="ui fluid card">
@@ -282,149 +264,162 @@
                                 <div class="header">
                                     <div class="ui red header" id="customerCount">
                                         0
+                                    </div>
+                                </div>
+                                <div class="meta">
+                                    Customers Added
+                                </div>
+                                <div class="description">
+                                    Total number of customers added by user.
                                 </div>
                             </div>
-                            <div class="meta">
-                                Customers Added
-                            </div>
-                            <div class="description">
-                                Total number of customers added by user.
-                            </div>
-                        </div>
-                        <div class="extra content">
-                            <div class="ui two buttons">
-                                <a class="ui red button" href="{% url 'homeApp:customer_list' %}">More Info</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="four wide computer eight wide tablet sixteen wide mobile column">
-                    <div class="ui fluid card">
-                        <div class="content">
-                            <div class="ui right floated header green">
-                                <i class="cart plus icon"></i>
-                            </div>
-                            <div class="header">
-                                <div class="ui header green" id="salesCount">
-                                    0
+                            <div class="extra content">
+                                <div class="ui two buttons">
+                                    <a class="ui red button" href="#">More Info</a>
                                 </div>
                             </div>
-                            <div class="meta">
-                                Sales Created
+                        </div>
+                    </div>
+                    <div class="four wide computer eight wide tablet sixteen wide mobile column">
+                        <div class="ui fluid card">
+                            <div class="content">
+                                <div class="ui right floated header green">
+                                    <i class="cart plus icon"></i>
+                                </div>
+                                <div class="header">
+                                    <div class="ui header green" id="salesCount">
+                                        0
+                                    </div>
+                                </div>
+                                <div class="meta">
+                                    Sales Created
+                                </div>
+                                <div class="description">
+                                    Total number of sales created by user.
+                                </div>
                             </div>
-                            <div class="description">
-                                Total number of sales created by user.
+                            <div class="extra content">
+                                <div class="ui two buttons">
+                                    <a class="ui green button" href="#">More Info</a>
+                                </div>
                             </div>
                         </div>
-                        <div class="extra content">
-                            <div class="ui two buttons">
-                                <a class="ui green button" href="{% url 'homeApp:sales_list' %}">More Info</a>
+                    </div>
+                    <div class="four wide computer eight wide tablet sixteen wide mobile column">
+                        <div class="ui fluid card">
+                            <div class="content">
+                                <div class="ui right floated header teal">
+                                    <i class="calendar plus icon"></i>
+                                </div>
+                                <div class="header">
+                                    <div class="ui teal header" id="todayInstallmentCount">0</div>
+                                </div>
+                                <div class="meta">
+                                    Today's Installment
+                                </div>
+                                <div class="description">
+                                    Number of installment collected by the user today.
+                                </div>
+                            </div>
+                            <div class="extra content">
+                                <div class="ui two buttons">
+                                    <a class="ui teal button" href="#">More
+                                        Info</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="four wide computer eight wide tablet sixteen wide mobile column">
+                        <div class="ui fluid card">
+                            <div class="content">
+                                <div class="ui right floated header purple">
+                                    <i class="hand holding usd icon"></i>
+                                </div>
+                                <div class="header">
+                                    <div class="ui purple header" id="collection">0</div>
+                                </div>
+                                <div class="meta">
+                                    Today's Collection
+                                </div>
+                                <div class="description">
+                                    Total amount collected on installments collections.
+                                </div>
+                            </div>
+                            <div class="extra content">
+                                <div class="ui two buttons">
+                                    <a class="ui purple button" href="#">More
+                                        Info</a>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="four wide computer eight wide tablet sixteen wide mobile column">
-                    <div class="ui fluid card">
-                        <div class="content">
-                            <div class="ui right floated header teal">
-                                <i class="calendar plus icon"></i>
-                            </div>
-                            <div class="header">
-                                <div class="ui teal header" id="todayInstallmentCount">0</div>
-                            </div>
-                            <div class="meta">
-                                Today's Installment
-                            </div>
-                            <div class="description">
-                                Number of installment collected by the user today.
-                            </div>
-                        </div>
-                        <div class="extra content">
-                            <div class="ui two buttons">
-                                <a class="ui teal button" href="{% url 'homeApp:installment_list' %}">More Info</a>
-                            </div>
-                        </div>
-                    </div>
+                <h5 class="ui top attached header">
+                    Daily Trending's
+                </h5>
+                <div class="ui attached segment">
+                    <table class="ui teal celled  tiny unstackable table" style="text-align: center">
+                        <thead>
+                        <tr>
+                            <th id="date3">Date3</th>
+                            <th id="date2">Date2</th>
+                            <th id="date1">Date1</th>
+                            <th id="date0">Date0</th>
+                            <th id="mtd">MTD</th>
+
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td id="amount3">0.0</td>
+                            <td id="amount2">0.0</td>
+                            <td id="amount1">0.0</td>
+                            <td id="amount0">0.0</td>
+                            <td id="mtdAmount">0.0</td>
+
+                        </tr>
+
+                        </tbody>
+                    </table>
                 </div>
-                <div class="four wide computer eight wide tablet sixteen wide mobile column">
-                    <div class="ui fluid card">
-                        <div class="content">
-                            <div class="ui right floated header purple">
-                                <i class="hand holding usd icon"></i>
-                            </div>
-                            <div class="header">
-                                <div class="ui purple header" id="collection">0</div>
-                            </div>
-                            <div class="meta">
-                                Today's Collection
-                            </div>
-                            <div class="description">
-                                Total amount collected on installments collections.
-                            </div>
-                        </div>
-                        <div class="extra content">
-                            <div class="ui two buttons">
-                                <a class="ui purple button" href="{% url 'homeApp:installment_list' %}">More Info</a>
-                            </div>
-                        </div>
-                    </div>
+                <h5 class="ui top attached header">
+                    Today's Installments
+                </h5>
+                <div class="ui attached segment">
+                    <table class="ui teal celled tiny unstackable table" style="text-align: center">
+                        <thead>
+                        <tr>
+                            <th>Staff Name</th>
+                            <th>Collection Amount</th>
+                            <th>Collectable Amount</th>
+                            <th>Performance (%)</th>
+
+                        </tr>
+                        </thead>
+                        <tbody id="staffCollection">
+                        <tr>
+                            <td>0.0</td>
+                            <td>0.0</td>
+                            <td>0.0</td>
+                            <td>0.0</td>
+                        </tr>
+
+                        </tbody>
+                    </table>
                 </div>
-
+                {% if request.user|has_group:"Admin" %}
+                    <div class="ui error message" style="min-height: 60px;">
+                        <i class="close icon"></i>
+                        <div class="header">
+                            License Reminder!
+                        </div>
+                        <p style="font-weight: bold">{{ message }}</p>
+                        <p style="color: crimson; font-weight: bold">{{ serverMessage }}</p>
+                    </div>
+                {% endif %}
             </div>
-            <h5 class="ui top attached header">
-                Daily Trending's
-            </h5>
-            <div class="ui attached segment">
-                <table class="ui teal celled tiny unstackable table" style="text-align: center">
-                    <thead>
-                    <tr>
-                        <th id="date3">Date3</th>
-                        <th id="date2">Date2</th>
-                        <th id="date1">Date1</th>
-                        <th id="mtd">MTD</th>
-
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        <td id="amount3">0.0</td>
-                        <td id="amount2">0.0</td>
-                        <td id="amount1">0.0</td>
-                        <td id="mtdAmount">0.0</td>
-
-                    </tr>
-
-                    </tbody>
-                </table>
-            </div>
-            <h5 class="ui top attached header">
-                Today's Installments
-            </h5>
-            <div class="ui attached segment">
-                <table class="ui teal celled tiny unstackable table" style="text-align: center">
-                    <thead>
-                    <tr>
-                        <th>Staff Name</th>
-                        <th>Collection Amount</th>
-                        <th>Collectable Amount</th>
-                        <th>Performance (%)</th>
-
-                    </tr>
-                    </thead>
-                    <tbody id="staffCollection">
-                    <tr>
-                        <td>0.0</td>
-                        <td>0.0</td>
-                        <td>0.0</td>
-                        <td>0.0</td>
-                    </tr>
-
-                    </tbody>
-                </table>
-            </div>
-            </div>
-
         {% endblock %}
+
     </div>
 
 
@@ -435,23 +430,10 @@
     </div>
 </div>
 
-{##}
-{#<script src="https://frontendfunn.github.io/semantic-ui-admin-dashboard-template/js/script.js"></script>#}
+
+<script src="https://frontendfunn.github.io/semantic-ui-admin-dashboard-template/js/script.js"></script>
 
 <script>
-    $(document).ready(function () {
-        $('.ui.dropdown').dropdown();
-        $('.sidebar-menu-toggler').on('click', function () {
-            var target = $(this).data('target');
-            $(target)
-                .sidebar({
-                    dinPage: true,
-                    transition: 'overlay',
-                    mobileTransition: 'overlay'
-                })
-                .sidebar('toggle');
-        });
-    });
     $('.menu .item').tab();
     $(window).on("load", function () {
         $(".preloader").fadeOut(50);
@@ -494,7 +476,9 @@
 
 <script>
     $.fn.DataTable.ext.pager.numbers_length = 4;
+
 </script>
+
 
 {% block js %}
     <script>
@@ -503,7 +487,7 @@
         function GetDetail() {
             $.ajax({
                 type: 'get',
-                url: '{% url "homeApp:get_collection_user_report_api"%}',
+                url: '#',
 
                 success: function (response) {
                     $('#customerCount').html(response.data['customerCount']);
@@ -529,16 +513,18 @@
         function GetLastThreeDaysCollectionDetail() {
             $.ajax({
                 type: 'get',
-                url: '{% url "homeApp:get_last_three_days_collection_report_for_user_api"%}',
+                url: '#',
 
                 success: function (response) {
                     console.log(response)
                     $('#date3').html(response.data['last_third_date']);
                     $('#date2').html(response.data['last_second_date']);
                     $('#date1').html(response.data['last_first_date']);
+                    $('#date0').html(response.data['today']);
                     $('#amount3').html(response.data['third_collection']);
                     $('#amount2').html(response.data['second_collection']);
                     $('#amount1').html(response.data['first_collection']);
+                    $('#amount0').html(response.data['today_collection']);
                     $('#mtdAmount').html(response.data['month_collection']);
 
 
@@ -560,7 +546,7 @@
         function GetStaffDailyCollectionDetail() {
             $.ajax({
                 type: 'get',
-                url: '{% url "homeApp:get_daily_collections_by_staff"%}',
+                url: '#',
 
                 success: function (response) {
                     $('#staffCollection').html('');
@@ -580,7 +566,6 @@
                 }
             });
         }
-
 
     </script>
 

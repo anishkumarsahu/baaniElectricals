@@ -11,13 +11,14 @@ urlpatterns = [
 
     # collection
     path('collection_home/', collection_home, name='collection_home'),
+    path('myProfile/', my_profile_collection, name='my_profile_collection'),
+    path('add_collection/', add_collection, name='add_collection'),
 
     #
     # # admin
     path('my_profile/', my_profile, name='my_profile'),
     path('admin_home/', admin_home, name='admin_home'),
     path('user_list/', user_list, name='user_list'),
-
     path('party_group_list/', party_group_list, name='party_group_list'),
     path('party_list/', party_list, name='party_list'),
     path('bank_list/', bank_list, name='bank_list'),
@@ -42,6 +43,13 @@ urlpatterns = [
     path('api/delete_bank/', delete_bank, name='delete_bank'),
     path('api/get_bank_detail/', get_bank_detail, name='get_bank_detail'),
     path('api/edit_bank_api/', edit_bank_api, name='edit_bank_api'),
+
+    # api party
+    path('api/add_party_api/', add_party_api, name='add_party_api'),
+    path('api/PartyListJson/', PartyListJson.as_view(), name='PartyListJson'),
+    path('api/get_party_detail/', get_party_detail, name='get_party_detail'),
+    path('api/edit_party_api/', edit_party_api, name='edit_party_api'),
+    path('api/delete_party/', delete_party, name='delete_party'),
 
     # # change password
     path('api/change_password_api/', change_password_api, name='change_password_api'),

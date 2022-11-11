@@ -16,15 +16,10 @@
     <link rel="icon" href="{% static 'sw/images/favicon.ico' %}" sizes="any">
     <link rel="apple-touch-icon" href="{% static 'sw/images/apple-touch-icon.png' %}">
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
-            integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fomantic-ui/2.8.8/semantic.min.css"
-          integrity="sha512-pbLYRiE96XJxmJgF8oWBfa9MdKwuXhlV7vgs2LLlapHLXceztfcta0bdeOgA4reIf0WH67ThWzA684JwkM3zfQ=="
-          crossorigin="anonymous" referrerpolicy="no-referrer"/>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fomantic-ui/2.8.8/semantic.min.js"
-            integrity="sha512-t5mAtfZZmR2gl5LK7WEkJoyHCfyzoy10MlerMGhxsXl3J7uSSNTAW6FK/wvGBC8ua9AFazwMaC0LxsMTMiM5gg=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css"
+          href="https://cdnjs.cloudflare.com/ajax/libs/fomantic-ui/2.9.0/semantic.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fomantic-ui/2.9.0/semantic.min.js"></script>
     <script src="{% static 'sw/app.js' %}"></script>
 
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.12.1/css/dataTables.semanticui.min.css">
@@ -140,8 +135,9 @@
             background: #3d3e3f;
             color: #4cebb8 !important;
         }
-         .dataTables_scroll{
-            position: inherit!important;
+
+        .dataTables_scroll {
+            position: inherit !important;
         }
     </style>
 
@@ -248,7 +244,7 @@
         <a href="#" class="sidebar-menu-toggler item" data-target="#sidebar">
             <i class="sidebar icon"></i>
         </a>
-         <img class="logo logoImg" src="{% static 'sw/images/icon-192.png' %}">
+        <img class="logo logoImg" src="{% static 'sw/images/icon-192.png' %}">
         <a href="#" class="header item">
 
             Banni Electricals
@@ -300,12 +296,12 @@
                             <div class="content">
                                 <div class="ui right floated header red">
                                     <i class="users icon"></i>
-                            </div>
-                            <div class="header">
-                                <div class="ui red header" id="customerCount">
-                                    0
                                 </div>
-                            </div>
+                                <div class="header">
+                                    <div class="ui red header" id="customerCount">
+                                        0
+                                    </div>
+                                </div>
                                 <div class="meta">
                                     Customers Added
                                 </div>
@@ -326,11 +322,11 @@
                                 <div class="ui right floated header green">
                                     <i class="cart plus icon"></i>
                                 </div>
-                            <div class="header">
-                                <div class="ui header green" id="salesCount">
-                                    0
+                                <div class="header">
+                                    <div class="ui header green" id="salesCount">
+                                        0
+                                    </div>
                                 </div>
-                            </div>
                                 <div class="meta">
                                     Sales Created
                                 </div>
@@ -351,9 +347,9 @@
                                 <div class="ui right floated header teal">
                                     <i class="calendar plus icon"></i>
                                 </div>
-                            <div class="header">
-                                <div class="ui teal header" id="todayInstallmentCount">0</div>
-                            </div>
+                                <div class="header">
+                                    <div class="ui teal header" id="todayInstallmentCount">0</div>
+                                </div>
                                 <div class="meta">
                                     Today's Installment
                                 </div>
@@ -374,10 +370,10 @@
                             <div class="content">
                                 <div class="ui right floated header purple">
                                     <i class="hand holding usd icon"></i>
-                            </div>
-                            <div class="header">
-                                <div class="ui purple header" id="collection">0</div>
-                            </div>
+                                </div>
+                                <div class="header">
+                                    <div class="ui purple header" id="collection">0</div>
+                                </div>
                                 <div class="meta">
                                     Today's Collection
                                 </div>
@@ -425,28 +421,28 @@
                 <h5 class="ui top attached header">
                     Today's Installments
                 </h5>
-            <div class="ui attached segment">
-                <table class="ui teal celled tiny unstackable table" style="text-align: center">
-                    <thead>
-                    <tr>
-                        <th>Staff Name</th>
-                        <th>Collection Amount</th>
-                        <th>Collectable Amount</th>
-                        <th>Performance (%)</th>
+                <div class="ui attached segment">
+                    <table class="ui teal celled tiny unstackable table" style="text-align: center">
+                        <thead>
+                        <tr>
+                            <th>Staff Name</th>
+                            <th>Collection Amount</th>
+                            <th>Collectable Amount</th>
+                            <th>Performance (%)</th>
 
-                    </tr>
-                    </thead>
-                    <tbody id="staffCollection">
-                    <tr>
-                        <td>0.0</td>
-                        <td>0.0</td>
-                        <td>0.0</td>
-                        <td>0.0</td>
-                    </tr>
+                        </tr>
+                        </thead>
+                        <tbody id="staffCollection">
+                        <tr>
+                            <td>0.0</td>
+                            <td>0.0</td>
+                            <td>0.0</td>
+                            <td>0.0</td>
+                        </tr>
 
-                    </tbody>
-                </table>
-            </div>
+                        </tbody>
+                    </table>
+                </div>
                 {% if request.user|has_group:"Admin" %}
                     <div class="ui error message" style="min-height: 60px;">
                         <i class="close icon"></i>

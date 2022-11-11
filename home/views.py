@@ -98,7 +98,11 @@ def bank_list(request):
 @check_group('Admin')
 @is_activated()
 def party_list(request):
-    return render(request, 'home/admin/PartyList.html')
+    party_groups = PartyGroup.objects.filter(isDeleted__exact=False).order_by('name')
+    context = {
+        'party_groups': party_groups
+    }
+    return render(request, 'home/admin/PartyList.html', context)
 
 
 def user_logout(request):
@@ -115,6 +119,14 @@ def my_profile(request):
     return render(request, 'home/admin/profileAdmin.html', context)
 
 
+def my_profile_collection(request):
+    instance = get_object_or_404(StaffUser, user_ID_id=request.user.pk)
+    context = {
+        'instance': instance
+    }
+    return render(request, 'home/collection/profile.html', context)
+
+
 @csrf_exempt
 def postLogin(request):
     if request.method == 'POST':
@@ -128,8 +140,8 @@ def postLogin(request):
             # login_or_logout(request, 'Login')
             if 'Admin' in request.user.groups.values_list('name', flat=True):
                 return JsonResponse({'message': 'success', 'data': '/home/'}, safe=False)
-            # elif 'Collection' in request.user.groups.values_list('name', flat=True):
-            #     return JsonResponse({'message': 'success', 'data': '/collection/'}, safe=False)
+            elif 'Collection' in request.user.groups.values_list('name', flat=True):
+                return JsonResponse({'message': 'success', 'data': '/home/'}, safe=False)
         else:
             return JsonResponse({'message': 'fail'}, safe=False)
 
@@ -147,6 +159,12 @@ def homepage(request):
         elif 'Collection' in request.user.groups.values_list('name', flat=True):
             return redirect('/collection_home/')
         else:
-
             return render(request, 'home/login.html')
 
+
+def add_collection(request):
+    instance = get_object_or_404(StaffUser, user_ID_id=request.user.pk)
+    context = {
+        'instance': instance
+    }
+    return render(request, 'home/collection/addCollection.html', context)

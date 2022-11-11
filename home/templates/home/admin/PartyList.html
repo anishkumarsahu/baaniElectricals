@@ -53,8 +53,9 @@
                             <thead>
                             <tr>
                                 <th>Name</th>
-                                <th>AccountNumber</th>
-                                <th>Description</th>
+                                <th>PhoneNumber</th>
+                                <th>PartyGroup</th>
+                                <th>Address</th>
                                 <th>Added On</th>
                                 <th>Actions</th>
                             </tr>
@@ -72,24 +73,35 @@
                         <div class="content">
 
                             <form class="ui tiny form" id="addForm">{% csrf_token %}
-                                <div class="two required fields">
-                                    <div class="eight wide field">
-                                        <label>Bank Name</label>
-                                        <input type="text" name="bankName" placeholder="Bank Name" id="bankName">
+                                <div class="three required fields">
+                                    <div class=" field">
+                                        <label>Party Name</label>
+                                        <input type="text" name="partyName" placeholder="Party Name" id="partyName">
                                     </div>
-                                    <div class="eight wide field">
-                                        <label>Account Number</label>
-                                        <input type="number" name="accountNumber" placeholder="Account Number"
-                                               id="accountNumber">
+                                    <div class=" field">
+                                        <label>Phone Number</label>
+                                        <input type="number" name="phoneNumber" placeholder="Phone Number"
+                                               id="phoneNumber">
+                                    </div>
+                                    <div class="field required">
+                                        <label>Party Group</label>
+                                        <select class="ui fluid dropdown" id="partyGroup">
+                                            <option value="" hidden>Party Group</option>
+                                            {% for group in party_groups %}
+                                                <option value="{{ group.id }}">{{ group.name|capfirst }}</option>
+                                            {% endfor %}
+
+
+                                        </select>
                                     </div>
 
                                 </div>
 
                                 <div class="one fields">
-                                    <div class="sixteen wide field">
-                                        <label>Description</label>
-                                        <input type="text" name="description" placeholder="Description"
-                                               id="description">
+                                    <div class="sixteen wide field required">
+                                        <label>Address</label>
+                                        <input type="text" name="address" placeholder="Address"
+                                               id="address">
                                     </div>
 
                                 </div>
@@ -111,11 +123,11 @@
                 <div class="ui basic modal custom" id="deleteUser">
                     <div class="ui icon header">
                         <i class="archive icon"></i>
-                        Bank Details will be Deleted
+                        Party Details will be Deleted
                     </div>
                     <div class="content">
-                        <p style="text-align: center">The Bank will be deleted, are you sure to delete this
-                            Bank?</p>
+                        <p style="text-align: center">The Party will be deleted, are you sure to delete this
+                            Party?</p>
                     </div>
                     <div class="actions">
                         <div class="ui red basic cancel inverted button">
@@ -133,28 +145,40 @@
                 <div class="ui modal" id="userModal">
                     <i class="close icon"></i>
                     <div class="header">
-                        Edit Bank Details
+                        Edit Party Details
                     </div>
                     <div class="content">
 
                         <form class="ui tiny form" id="EditForm">{% csrf_token %}
-                            <div class="two required fields">
-                                <div class="eight wide field">
-                                    <label>Bank Name</label>
-                                    <input type="text" name="bankNameEdit" placeholder="Bank Name" id="bankNameEdit">
+                            <div class="three required fields">
+                                <div class=" field">
+                                    <label>Party Name</label>
+                                    <input type="text" name="partyNameEdit" placeholder="Party Name" id="partyNameEdit">
                                 </div>
-                                <div class="eight wide field">
-                                    <label>Account Number</label>
-                                    <input type="number" name="accountNumberEdit" placeholder="Account Number"
-                                           id="accountNumberEdit">
+                                <div class=" field">
+                                    <label>Phone Number</label>
+                                    <input type="number" name="phoneNumberEdit" placeholder="Phone Number"
+                                           id="phoneNumberEdit">
+                                </div>
+                                <div class="field required">
+                                    <label>Party Group</label>
+                                    <select class="ui fluid dropdown" id="partyGroupEdit">
+                                        <option value="" hidden>Party Group</option>
+                                        {% for group in party_groups %}
+                                            <option value="{{ group.id }}">{{ group.name|capfirst }}</option>
+                                        {% endfor %}
+
+
+                                    </select>
                                 </div>
 
                             </div>
+
                             <div class="one fields">
-                                <div class="sixteen wide field">
-                                    <label>Description</label>
-                                    <input type="text" name="descriptionEdit" placeholder="Description"
-                                           id="descriptionEdit">
+                                <div class="sixteen wide field required">
+                                    <label>Address</label>
+                                    <input type="text" name="addressEdit" placeholder="Address"
+                                           id="addressEdit">
                                 </div>
 
                             </div>
@@ -194,12 +218,13 @@
         }
 
         function addUser() {
-            var bankName = $('#bankName').val();
-            var accountNumber = $('#accountNumber').val();
-            var description = $('#description').val();
+            var partyName = $('#partyName').val();
+            var phoneNumber = $('#phoneNumber').val();
+            var partyGroup = $('#partyGroup').val();
+            var address = $('#address').val();
 
 
-            if (bankName === '' || accountNumber === '') {
+            if (partyName === '' || phoneNumber === '' || partyGroup === '' || address === '') {
                 $('body')
                     .toast({
                         class: 'orange',
@@ -211,9 +236,10 @@
                 var csrfmiddlewaretoken = $("input[name='csrfmiddlewaretoken']").val();
 
                 data = new FormData();
-                data.append('bankName', bankName);
-                data.append('accountNumber', accountNumber);
-                data.append('description', description);
+                data.append('partyName', partyName);
+                data.append('phoneNumber', phoneNumber);
+                data.append('partyGroup', partyGroup);
+                data.append('address', address);
 
 
                 data.append('csrfmiddlewaretoken', csrfmiddlewaretoken);
@@ -221,7 +247,7 @@
 
                 $.ajax({
                     type: 'post',
-                    url: '{% url "homeApp:add_bank_api" %}',
+                    url: '{% url "homeApp:add_party_api" %}',
                     data: data,
                     contentType: false,
                     cache: false,
@@ -233,7 +259,7 @@
                             $('body')
                                 .toast({
                                     class: 'success',
-                                    message: 'New Bank Added Successfully.'
+                                    message: 'New Party Added Successfully.'
                                 })
                             ;
 
@@ -282,7 +308,7 @@
             buttons: [{
                 extend: 'excel',
                 exportOptions: {
-                    columns: [0, 1, 2, 3]
+                    columns: [0, 1, 2, 3, 4]
                 }
             }
                 {% comment %}      , {
@@ -294,10 +320,11 @@
             ],
             "columnDefs": [
                 {"name": "name", "targets": 0, "orderable": true},
-                {"name": "accountNumber", "targets": 1, "orderable": true},
-                {"name": "description", "targets": 2, "orderable": true},
-                {"name": "datetime", "targets": 3, "orderable": true},
-                {"name": "action", "targets": 4, "orderable": false}
+                {"name": "phone", "targets": 1, "orderable": true},
+                {"name": "partyGroupID.name", "targets": 2, "orderable": true},
+                {"name": "address", "targets": 3, "orderable": true},
+                {"name": "datetime", "targets": 4, "orderable": true},
+                {"name": "action", "targets": 5, "orderable": false}
 
             ],
             aaSorting: [[0, 'asc']],
@@ -305,7 +332,7 @@
             "pageLength": 10,
             "processing": true,
             "serverSide": true,
-            "ajax": "{% url 'homeApp:BankListJson' %}"
+            "ajax": "{% url 'homeApp:PartyListJson' %}"
         });
 
 
@@ -322,7 +349,7 @@
             formdata.append('userID', id);
 
             $.ajax({
-                url: "{% url 'homeApp:delete_bank' %}",
+                url: "{% url 'homeApp:delete_party' %}",
                 type: "post",
                 data: formdata,
                 contentType: false,
@@ -334,7 +361,7 @@
                         $('body')
                             .toast({
                                 class: 'success',
-                                message: 'Bank Detail Deleted Successfully.'
+                                message: 'Party Detail Deleted Successfully.'
                             })
                         ;
 
@@ -368,12 +395,13 @@
             $('#userModal').modal('show');
             $.ajax({
                 type: 'get',
-                url: '{% url "homeApp:get_bank_detail"%}?id=' + id,
+                url: '{% url "homeApp:get_party_detail"%}?id=' + id,
                 success: function (response) {
                     $('#EditId').val(response.data['ID']);
-                    $('#bankNameEdit').val(response.data['Name']);
-                    $('#accountNumberEdit').val(response.data['AccountNumber']);
-                    $('#descriptionEdit').val(response.data['Description']);
+                    $('#partyNameEdit').val(response.data['Name']);
+                    $('#phoneNumberEdit').val(response.data['PhoneNumber']);
+                    $('#addressEdit').val(response.data['Address']);
+                    $('#partyGroupEdit').val(response.data['PartyGroup']).change();
 
 
                 },
@@ -391,12 +419,13 @@
         function editUser() {
 
             var EditId = $('#EditId').val();
-            var bankName = $('#bankNameEdit').val();
-            var accountNumber = $('#accountNumberEdit').val();
-            var description = $('#descriptionEdit').val();
+            var partyName = $('#partyNameEdit').val();
+            var phoneNumber = $('#phoneNumberEdit').val();
+            var address = $('#addressEdit').val();
+            var partyGroup = $('#partyGroupEdit').val();
 
 
-            if (EditId === '' || bankName === '' || accountNumber === '') {
+            if (partyName === '' || phoneNumber === '' || address === '' || partyGroup === '') {
                 $('body')
                     .toast({
                         class: 'orange',
@@ -408,15 +437,16 @@
                 var csrfmiddlewaretoken = $("input[name='csrfmiddlewaretoken']").val();
 
                 data = new FormData();
-                data.append('bankName', bankName);
-                data.append('accountNumber', accountNumber);
-                data.append('description', description);
+                data.append('partyGroup', partyGroup);
+                data.append('address', address);
+                data.append('phoneNumber', phoneNumber);
+                data.append('partyName', partyName);
                 data.append('EditId', EditId);
                 data.append('csrfmiddlewaretoken', csrfmiddlewaretoken);
 
                 $.ajax({
                     type: 'post',
-                    url: '{% url "homeApp:edit_bank_api" %}',
+                    url: '{% url "homeApp:edit_party_api" %}',
                     data: data,
                     contentType: false,
                     cache: false,
@@ -428,7 +458,7 @@
                             $('body')
                                 .toast({
                                     class: 'success',
-                                    message: 'Bank detail updated Successfully.'
+                                    message: 'Party detail updated Successfully.'
                                 })
                             ;
 

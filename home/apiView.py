@@ -445,6 +445,122 @@ def delete_bank(request):
             return JsonResponse({'message': 'error'}, safe=False)
 
 
+# ----------------------------- Party ---------------------
+@transaction.atomic
+@csrf_exempt
+def add_party_api(request):
+    if request.method == 'POST':
+        try:
+            partyName = request.POST.get("partyName")
+            phoneNumber = request.POST.get("phoneNumber")
+            partyGroup = request.POST.get("partyGroup")
+            address = request.POST.get("address")
+
+            obj = Party()
+            obj.name = partyName
+            obj.phone = phoneNumber
+            obj.address = address
+            obj.partyGroupID_id = int(partyGroup)
+            obj.save()
+
+            return JsonResponse({'message': 'success'}, safe=False)
+        except:
+            return JsonResponse({'message': 'error'}, safe=False)
+
+
+class PartyListJson(BaseDatatableView):
+    order_columns = ['name', 'phone', 'partyGroupID.name', 'address', 'datetime']
+
+    def get_initial_queryset(self):
+        # if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+        return Party.objects.select_related().filter(isDeleted__exact=False)
+
+    def filter_queryset(self, qs):
+
+        search = self.request.GET.get('search[value]', None)
+        if search:
+            qs = qs.filter(
+                Q(name__icontains=search) | Q(phone__icontains=search) | Q(address__icontains=search)
+                | Q(partyGroupID__name__icontains=search) | Q(datetime__icontains=search)
+            )
+
+        return qs
+
+    def prepare_results(self, qs):
+        json_data = []
+        for item in qs:
+            action = '''<button  data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "GetUserDetails('{}')" class="ui circular facebook icon button green">
+                    <i class="pen icon"></i>
+                  </button>
+                  <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
+                    <i class="trash alternate icon"></i>
+                  </button></td>'''.format(item.pk, item.pk),
+
+            json_data.append([
+                escape(item.name),
+                escape(item.phone),
+                escape(item.partyGroupID.name),
+                escape(item.address),
+                escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
+                action,
+
+            ])
+
+        return json_data
+
+
+def get_party_detail(request):
+    id = request.GET.get('id')
+    instance = get_object_or_404(Party, id=id)
+    # instance = BankDetails.objects.get(companyID_id=company.pk)
+
+    data = {
+        'ID': instance.pk,
+        'Name': instance.name,
+        'PhoneNumber': instance.phone,
+        'Address': instance.address,
+        'PartyGroup': instance.partyGroupID.id,
+    }
+    return JsonResponse({'data': data}, safe=False)
+
+
+@transaction.atomic
+@csrf_exempt
+def edit_party_api(request):
+    if request.method == 'POST':
+        try:
+            Id = request.POST.get("EditId")
+            name = request.POST.get("partyName")
+            phoneNumber = request.POST.get("phoneNumber")
+            address = request.POST.get("address")
+            partyGroup = request.POST.get("partyGroup")
+            obj = Party.objects.select_related().get(id=int(Id))
+            obj.name = name
+            obj.phone = phoneNumber
+            obj.address = address
+            obj.partyGroupID_id = int(partyGroup)
+
+            obj.save()
+
+            return JsonResponse({'message': 'success'}, safe=False)
+        except:
+            return JsonResponse({'message': 'error'}, safe=False)
+
+
+@transaction.atomic
+@csrf_exempt
+def delete_party(request):
+    if request.method == 'POST':
+        try:
+            id = request.POST.get("userID")
+            obj = Party.objects.select_related().get(pk=int(id))
+            obj.isDeleted = True
+            obj.save()
+            return JsonResponse({'message': 'success'}, safe=False)
+        except:
+            return JsonResponse({'message': 'error'}, safe=False)
+
+
 @transaction.atomic
 def change_password_api(request):
     if request.method == 'POST':
