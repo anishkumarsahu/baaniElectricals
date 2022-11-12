@@ -1,7 +1,7 @@
 {% extends 'home/collection/indexCollection.html' %}
 {% load static %}
 {% block title %}
-    <title>Add Sale</title>
+    <title>Take Collection</title>
 {% endblock %}
 {% block css %}
     <style>
@@ -78,7 +78,7 @@
         <div class="sixteen wide column">
             <div class="ui  pointing secondary menu">
                 <div style="cursor: pointer;" class="item active" data-tab="user"
-                >Add New Sale
+                >Take New Collection
                 </div>
             </div>
             <div class="ui tab " data-tab="user">
@@ -87,62 +87,29 @@
                     <div class="content">
 
                         <form class="ui  small form " id="addForm">{% csrf_token %}
-                            <div class="one required fields ">
+                            <div class="one fields">
                                 <div class="sixteen wide field required">
-                                    <label>Delivery Photo with Customer</label>
-
-                                    <div class="ui" style="width: 100%; text-align: center">
-                                        <div class="ui icon header">
-                                            <div class="inline ">
-
-                                                <div class="avatar-upload">
-                                                    <div class="avatar-edit">
-                                                        <input type='file' id="photo" name="photo"
-                                                               accept=".png, .jpg, .jpeg"/>
-                                                        <label for="photo"><i class="edit icon"
-                                                                              style="font-size: 1rem;padding: 0.4rem"></i>
-                                                        </label>
-                                                    </div>
-                                                    <div class="avatar-preview">
-                                                        <div id="photoImg"
-                                                             style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/2/24/Circle-icons-image.svg');">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                </div>
-
-                            </div>
-
-
-                            <div class="two fields">
-                                <div class=" field required">
-                                    <label>Customer Name</label>
+                                    <label>Party Name</label>
                                     <select class="ui clearable search dropdown" id="customer">
-                                        <option value="">Search By Customer Name</option>
+                                        <option value="">Search By Party Name</option>
                                     </select>
                                 </div>
-                                <div class=" field required">
-                                    <label>Product Name</label>
-                                    <select class="ui dropdown clearable search fluid " id="product">
-                                        <option value="">Search By Product Name</option>
-                                    </select>
-                                </div>
-
 
                             </div>
                             <div class="two required fields ">
+                                <div class=" field required">
+                                    <label>Mode Of Payment</label>
+                                    <select class="ui dropdown search fluid " id="paymentMode">
+                                        <option value="">Select Mode Of Payment</option>
+                                        <option value="Cash">Cash</option>
+                                        <option value="Cheque">Cheque</option>
+                                        <option value="Online">Online</option>
+                                    </select>
+                                </div>
 
                                 <div class="eight wide field required">
                                     <label>Advance Paid (₹)</label>
                                     <input type="number" name="advance" id="advance" placeholder="Advance Amount Paid">
-                                </div>
-                                <div class="eight wide field required">
-                                    <label>Tenure (In Months)</label>
-                                    <input type="number" name="tenure" id="tenure" placeholder="Tenure (In Months)">
                                 </div>
 
 
@@ -302,7 +269,7 @@
 
                 $.ajax({
                     type: 'post',
-                    url: '{% url "homeApp:add_sales_api" %}',
+                    url: '#',
                     data: data,
                     contentType: false,
                     cache: false,
@@ -319,7 +286,7 @@
 
                             hideLoading();
 
-                            location.href = "{% url 'homeApp:sales_list' %}"
+                            location.href = "#"
 
                         } else {
                             $('body')
@@ -411,7 +378,7 @@
         function getProductList() {
             $.ajax({
                 type: 'get',
-                url: "{% url 'homeApp:list_product_api' %}",
+                url: "#",
 
                 success: function (response) {
 
@@ -442,7 +409,7 @@
         function getCustomerList() {
             $.ajax({
                 type: 'get',
-                url: "{% url 'homeApp:list_customer_api' %}",
+                url: "#",
 
                 success: function (response) {
 
