@@ -1,3 +1,5 @@
+import requests
+
 from django.contrib.auth import authenticate, login
 from django.db import transaction
 from django.db.models import Q, Sum, F
@@ -559,6 +561,218 @@ def delete_party(request):
             return JsonResponse({'message': 'success'}, safe=False)
         except:
             return JsonResponse({'message': 'error'}, safe=False)
+
+
+def list_party_api(request):
+    try:
+        o_list = []
+        if cache.get('PartyList'):
+            o_list = cache.get('PartyList')
+
+        else:
+            obj_list = Party.objects.select_related().filter(isDeleted__exact=False).order_by(
+                'name')
+
+            for obj in obj_list:
+                obj_dic = {
+                    'ID': obj.pk,
+                    'Name': obj.name,
+                    'Address': obj.address,
+                    'Phone': obj.phone,
+                    'Detail': obj.name + ' - ' + obj.address + ' @ ' + str(obj.pk),
+                    'DisplayDetail': obj.name + ' - ' + obj.address
+                }
+                o_list.append(obj_dic)
+            cache.set('PartyList', o_list, timeout=None)
+
+        return JsonResponse({'message': 'success', 'data': o_list}, safe=False)
+    except:
+        return JsonResponse({'message': 'error'}, safe=False)
+
+
+# ------------------------------Collection ----------------------------------------
+# ----------------------------- Party ---------------------
+@transaction.atomic
+@csrf_exempt
+def add_collection_by_staff_api(request):
+    if request.method == 'POST':
+        try:
+            party = request.POST.get("party")
+            paymentMode = request.POST.get("paymentMode")
+            amountPaid = request.POST.get("amountPaid")
+            bank = request.POST.get("bank")
+            detail = request.POST.get("detail")
+            remark = request.POST.get("remark")
+            lat = request.POST.get("lat")
+            lng = request.POST.get("lng")
+            c = str(party).split('@')
+            cus = Party.objects.select_related().get(pk=int(c[1]))
+            obj = Collection()
+            obj.partyID_id = cus.pk
+            obj.modeOfPayment = paymentMode
+            obj.paidAmount = float(amountPaid)
+            try:
+                obj.bankID_id = int(bank)
+            except:
+                pass
+            obj.detail = detail
+            obj.remark = remark
+            obj.latitude = lat
+            obj.longitude = lng
+            user = StaffUser.objects.get(user_ID_id=request.user.pk)
+            obj.collectedBy_id = user.pk
+            try:
+                r = requests.get(
+                    "https://revgeocode.search.hereapi.com/v1/revgeocode?at=" + lat + "%2C" + lng + "&lang=en-US&apikey=VtAAEVuyqdswCZr8X1BdBzM-4JTpeAdivmp4_3ILPs4")
+                data = r.json()
+                # print(data["items"][0]["address"]["label"])
+                # print(data["items"][0].address.label)
+                obj.collectionAddress = data["items"][0]["address"]["label"]
+            except:
+                pass
+
+            obj.save()
+
+            return JsonResponse({'message': 'success'}, safe=False)
+        except:
+            return JsonResponse({'message': 'error'}, safe=False)
+
+
+class CollectionByStaffListJson(BaseDatatableView):
+    order_columns = ['partyID.name', 'paidAmount', 'modeOfPayment', 'bankID.name', 'detail', 'remark',
+                     'collectionAddress', 'datetime']
+
+    def get_initial_queryset(self):
+        # user = StaffUser.objects.get(user_ID__id = self.request.pk)
+        # if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+        return Collection.objects.select_related().filter(isDeleted__exact=False,
+                                                          datetime__icontains=datetime.today().date(),
+                                                          collectedBy__user_ID_id=self.request.user.pk)
+
+    def filter_queryset(self, qs):
+        search = self.request.GET.get('search[value]', None)
+        if search:
+            qs = qs.filter(
+                Q(partyID__name__icontains=search) | Q(paidAmount__icontains=search) | Q(
+                    modeOfPayment__icontains=search)
+                | Q(bankID__name__icontains=search) | Q(detail__icontains=search) | Q(detail__icontains=search) | Q(
+                    remark__icontains=search)
+                | Q(datetime__icontains=search) | Q(collectionAddress__icontains=search)
+            )
+
+        return qs
+
+    def prepare_results(self, qs):
+        json_data = []
+        for item in qs:
+            # action = '''<button  data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "GetUserDetails('{}')" class="ui circular facebook icon button green">
+            #         <i class="pen icon"></i>
+            #       </button>
+            #       <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
+            #         <i class="trash alternate icon"></i>
+            #       </button>'''.format(item.pk, item.pk),
+            action = '''<div class="ui tiny label">
+  Denied
+</div>''',
+            try:
+                bank = item.bankID.name
+            except:
+                bank = '-'
+            json_data.append([
+                escape(item.partyID.name),
+                escape(item.paidAmount),
+                escape(item.modeOfPayment),
+                escape(bank),
+                escape(item.detail),
+                escape(item.remark),
+                escape(item.collectionAddress),
+                escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
+                action,
+
+            ])
+
+        return json_data
+
+
+class CollectionByAdminListJson(BaseDatatableView):
+    order_columns = ['partyID.name', 'paidAmount', 'modeOfPayment', 'bankID.name', 'detail', 'remark',
+                     'collectionAddress', 'collectedBy.name', 'datetime', 'isApproved', 'approvedBy.ane']
+
+    def get_initial_queryset(self):
+        try:
+            startDateV = self.request.GET.get("startDate")
+            endDateV = self.request.GET.get("endDate")
+            sDate = datetime.strptime(startDateV, '%d/%m/%Y')
+            eDate = datetime.strptime(endDateV, '%d/%m/%Y')
+            return Collection.objects.select_related().filter(isDeleted__exact=False, datetime__range=(
+            sDate.date(), eDate.date() + timedelta(days=1)))
+        except:
+            return Collection.objects.select_related().filter(isDeleted__exact=False,
+                                                              datetime__icontains=datetime.today().date())
+
+    def filter_queryset(self, qs):
+        search = self.request.GET.get('search[value]', None)
+        if search:
+            qs = qs.filter(
+                Q(partyID__name__icontains=search) | Q(paidAmount__icontains=search) | Q(
+                    modeOfPayment__icontains=search)
+                | Q(bankID__name__icontains=search) | Q(detail__icontains=search) | Q(detail__icontains=search) | Q(
+                    remark__icontains=search)
+                | Q(datetime__icontains=search) | Q(collectionAddress__icontains=search) | Q(
+                    collectedBy__name__icontains=search)
+                | Q(approvedBy__name__icontains=search) | Q(isApproved__icontains=search)
+            )
+
+        return qs
+
+    def prepare_results(self, qs):
+        json_data = []
+        for item in qs:
+            action = '''<button  data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "GetUserDetails('{}')" class="ui circular facebook icon button green">
+                    <i class="pen icon"></i>
+                  </button>
+                  <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
+                    <i class="trash alternate icon"></i>
+                  </button>'''.format(item.pk, item.pk),
+
+            try:
+                bank = item.bankID.name
+            except:
+                bank = '-'
+            try:
+                collectedBy = item.collectedBy.name
+            except:
+                collectedBy = '-'
+            try:
+                approvedBy = item.approvedBy.name
+            except:
+                approvedBy = '-'
+            if item.isApproved == True:
+                isApproved = '''<div class="ui tiny green label">
+                  Yes
+                </div>'''
+            else:
+                isApproved = '''<div class="ui tiny red label">
+                  No
+                </div>'''
+
+            json_data.append([
+                escape(item.partyID.name),
+                escape(item.paidAmount),
+                escape(item.modeOfPayment),
+                escape(bank),
+                escape(item.detail),
+                escape(item.remark),
+                escape(item.collectionAddress),
+                collectedBy,
+                escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
+                isApproved,
+                approvedBy,
+                action,
+
+            ])
+
+        return json_data
 
 
 @transaction.atomic

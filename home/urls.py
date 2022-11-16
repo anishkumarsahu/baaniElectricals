@@ -13,6 +13,8 @@ urlpatterns = [
     path('collection_home/', collection_home, name='collection_home'),
     path('myProfile/', my_profile_collection, name='my_profile_collection'),
     path('add_collection/', add_collection, name='add_collection'),
+    path('my_collection/', my_collection, name='my_collection'),
+    path('api/CollectionByStaffListJson/', CollectionByStaffListJson.as_view(), name='CollectionByStaffListJson'),
 
     #
     # # admin
@@ -22,6 +24,9 @@ urlpatterns = [
     path('party_group_list/', party_group_list, name='party_group_list'),
     path('party_list/', party_list, name='party_list'),
     path('bank_list/', bank_list, name='bank_list'),
+    path('take_collection/', take_collection, name='take_collection'),
+    path('collection_list/', collection_list, name='collection_list'),
+    path('api/CollectionByAdminListJson/', CollectionByAdminListJson.as_view(), name='CollectionByAdminListJson'),
 
     # # api Staff
     path('api/add_staff_api/', add_staff_api, name='add_staff_api'),
@@ -50,6 +55,10 @@ urlpatterns = [
     path('api/get_party_detail/', get_party_detail, name='get_party_detail'),
     path('api/edit_party_api/', edit_party_api, name='edit_party_api'),
     path('api/delete_party/', delete_party, name='delete_party'),
+    path('api/list_party_api/', list_party_api, name='list_party_api'),
+
+    # Collection
+    path('api/add_collection_by_staff_api/', add_collection_by_staff_api, name='add_collection_by_staff_api'),
 
     # # change password
     path('api/change_password_api/', change_password_api, name='change_password_api'),

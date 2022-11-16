@@ -100,6 +100,8 @@ class Collection(models.Model):
     partyID = models.ForeignKey(Party, blank=True, null=True, on_delete=models.CASCADE)
     modeOfPayment = models.CharField(max_length=200, default='Cash')
     paidAmount = models.FloatField(default=0.0)
+    bankID = models.ForeignKey(Bank, blank=True, null=True, on_delete=models.CASCADE)
+    detail = models.CharField(max_length=500, blank=True, null=True)
     remark = models.CharField(max_length=500, blank=True, null=True)
     collectionAddress = models.TextField(blank=True, null=True)
     collectedBy = models.ForeignKey(StaffUser, blank=True, null=True, on_delete=models.CASCADE,
@@ -119,3 +121,19 @@ class Collection(models.Model):
 
     class Meta:
         verbose_name_plural = 'f) Collection List'
+
+
+class GeolocationPackage(models.Model):
+    name = models.CharField(max_length=200, blank=True, null=True)
+    balance = models.FloatField(default=0)
+    used = models.FloatField(default=0)
+    description = models.TextField(blank=True, null=True)
+    datetime = models.DateTimeField(auto_now_add=True, auto_now=False)
+    lastUpdatedOn = models.DateTimeField(auto_now_add=False, auto_now=True)
+    isDeleted = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name_plural = 'g) Geolocation Package List'

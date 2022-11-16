@@ -49,20 +49,16 @@ def loginPage(request):
 
 # @check_group('Both')
 def admin_home(request):
-    # try:
-    # val = Validity.objects.last()
-    # message = "Your App License is Valid till {}".format(val.expiryDate.strftime('%d-%m-%Y'))
-    # server = EcomValidity.objects.last()
-    # serverMessage = "Your Server is Valid till {}".format(server.expiryDate.strftime('%d-%m-%Y'))
-    # # except:
-    # #     message = "You are using a trial version."
-    # #     serverMessage = "You are using a trial version."
-    #
-    # context = {
-    #     'message': message,
-    #     'serverMessage': serverMessage
-    # }
-    return render(request, 'home/admin/index.html', )
+    try:
+        val = Validity.objects.last()
+        message = "Your App License is Valid till {}".format(val.expiryDate.strftime('%d-%m-%Y'))
+    except:
+        message = "You are using a trial version."
+
+    context = {
+        'message': message,
+    }
+    return render(request, 'home/admin/index.html', context)
 
 
 @check_group('Collection')
@@ -163,8 +159,29 @@ def homepage(request):
 
 
 def add_collection(request):
-    instance = get_object_or_404(StaffUser, user_ID_id=request.user.pk)
+    instance = Bank.objects.filter(isDeleted__exact=False).order_by('name')
     context = {
         'instance': instance
     }
     return render(request, 'home/collection/addCollection.html', context)
+
+
+def my_collection(request):
+    context = {
+    }
+    return render(request, 'home/collection/collectionListByStaff.html', context)
+
+
+# admin
+def collection_list(request):
+    context = {
+    }
+    return render(request, 'home/admin/collectionListByAdmin.html', context)
+
+
+def take_collection(request):
+    instance = Bank.objects.filter(isDeleted__exact=False).order_by('name')
+    context = {
+        'instance': instance
+    }
+    return render(request, 'home/admin/takeCollection.html', context)

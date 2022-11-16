@@ -50,3 +50,10 @@ class CollectionAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Collection, CollectionAdmin)
+
+
+class GeolocationPackageAdmin(admin.ModelAdmin):
+    list_display = ['name', 'balance', 'used', 'description', 'datetime', 'lastUpdatedOn', 'isDeleted']
+
+
+admin.site.register(GeolocationPackage, GeolocationPackageAdmin)

@@ -200,8 +200,11 @@
                 Collections
             </div>
             <div class="menu">
-                <a class="item" href="#">
-                    <div><i class="hand holding usd icon"></i>Collection List</div>
+                <a class="item" href="{% url 'homeApp:take_collection' %}">
+                    <div><i class="hand holding usd icon"></i>Take Collection</div>
+                </a>
+                <a class="item" href="{% url 'homeApp:collection_list' %}">
+                    <div><i class="book icon"></i>Collection List</div>
                 </a>
 
             </div>
@@ -285,11 +288,15 @@
             </div>
             <div class="ui tab  " data-tab="user" style="padding: 5px;">
 
-                {% comment %}        <div class="ui segment">
-                <div class="ui breadcrumb">
-                    <div class="active section">Dashboard</div>
-                </div>
-            </div>{% endcomment %}
+                {% if request.user|has_group:"Admin" %}
+                    <div class="ui error mini message">
+                        <i class="close icon"></i>
+                        <div class="header">
+                            License Reminder!
+                        </div>
+                        <p style="font-weight: bold">{{ message }}</p>
+                    </div>
+                {% endif %}
                 <div class="ui grid stackable padded">
                     <div class="four wide computer eight wide tablet sixteen wide mobile column">
                         <div class="ui fluid card">
@@ -303,15 +310,15 @@
                                     </div>
                                 </div>
                                 <div class="meta">
-                                    Customers Added
+                                    Total Parties
                                 </div>
                                 <div class="description">
-                                    Total number of customers added by user.
+                                    Total number of Parties.
                                 </div>
                             </div>
                             <div class="extra content">
                                 <div class="ui two buttons">
-                                    <a class="ui red button" href="#">More Info</a>
+                                    <a class="ui red button" href="{% url 'homeApp:party_list' %}">More Info</a>
                                 </div>
                             </div>
                         </div>
@@ -320,7 +327,7 @@
                         <div class="ui fluid card">
                             <div class="content">
                                 <div class="ui right floated header green">
-                                    <i class="cart plus icon"></i>
+                                    <i class="user tie icon"></i>
                                 </div>
                                 <div class="header">
                                     <div class="ui header green" id="salesCount">
@@ -328,15 +335,15 @@
                                     </div>
                                 </div>
                                 <div class="meta">
-                                    Sales Created
+                                    Total Users
                                 </div>
                                 <div class="description">
-                                    Total number of sales created by user.
+                                    Total number of Staff users.
                                 </div>
                             </div>
                             <div class="extra content">
                                 <div class="ui two buttons">
-                                    <a class="ui green button" href="#">More Info</a>
+                                    <a class="ui green button" href="{% url 'homeApp:user_list' %}">More Info</a>
                                 </div>
                             </div>
                         </div>
@@ -345,16 +352,16 @@
                         <div class="ui fluid card">
                             <div class="content">
                                 <div class="ui right floated header teal">
-                                    <i class="calendar plus icon"></i>
+                                    <i class="map marker alternate icon"></i>
                                 </div>
                                 <div class="header">
                                     <div class="ui teal header" id="todayInstallmentCount">0</div>
                                 </div>
                                 <div class="meta">
-                                    Today's Installment
+                                    Geolocation Service
                                 </div>
                                 <div class="description">
-                                    Number of installment collected by the user today.
+                                    Number of location service used.
                                 </div>
                             </div>
                             <div class="extra content">
@@ -378,81 +385,20 @@
                                     Today's Collection
                                 </div>
                                 <div class="description">
-                                    Total amount collected on installments collections.
+                                    Total amount of collections.
                                 </div>
                             </div>
                             <div class="extra content">
                                 <div class="ui two buttons">
-                                    <a class="ui purple button" href="#">More
+                                    <a class="ui purple button" href="{% url 'homeApp:collection_list' %}">More
                                         Info</a>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <h5 class="ui top attached header">
-                    Daily Trending's
-                </h5>
-                <div class="ui attached segment">
-                    <table class="ui teal celled  tiny unstackable table" style="text-align: center">
-                        <thead>
-                        <tr>
-                            <th id="date3">Date3</th>
-                            <th id="date2">Date2</th>
-                            <th id="date1">Date1</th>
-                            <th id="date0">Date0</th>
-                            <th id="mtd">MTD</th>
 
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr>
-                            <td id="amount3">0.0</td>
-                            <td id="amount2">0.0</td>
-                            <td id="amount1">0.0</td>
-                            <td id="amount0">0.0</td>
-                            <td id="mtdAmount">0.0</td>
 
-                        </tr>
-
-                        </tbody>
-                    </table>
-                </div>
-                <h5 class="ui top attached header">
-                    Today's Installments
-                </h5>
-                <div class="ui attached segment">
-                    <table class="ui teal celled tiny unstackable table" style="text-align: center">
-                        <thead>
-                        <tr>
-                            <th>Staff Name</th>
-                            <th>Collection Amount</th>
-                            <th>Collectable Amount</th>
-                            <th>Performance (%)</th>
-
-                        </tr>
-                        </thead>
-                        <tbody id="staffCollection">
-                        <tr>
-                            <td>0.0</td>
-                            <td>0.0</td>
-                            <td>0.0</td>
-                            <td>0.0</td>
-                        </tr>
-
-                        </tbody>
-                    </table>
-                </div>
-                {% if request.user|has_group:"Admin" %}
-                    <div class="ui error message" style="min-height: 60px;">
-                        <i class="close icon"></i>
-                        <div class="header">
-                            License Reminder!
-                        </div>
-                        <p style="font-weight: bold">{{ message }}</p>
-                        <p style="color: crimson; font-weight: bold">{{ serverMessage }}</p>
-                    </div>
-                {% endif %}
             </div>
         {% endblock %}
 
@@ -518,6 +464,14 @@
 
 {% block js %}
     <script>
+        $('.message .close')
+            .on('click', function () {
+                $(this)
+                    .closest('.message')
+                    .transition('fade')
+                ;
+            })
+        ;
         $(GetDetail());
 
         function GetDetail() {
