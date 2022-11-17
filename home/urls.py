@@ -24,8 +24,12 @@ urlpatterns = [
     path('party_group_list/', party_group_list, name='party_group_list'),
     path('party_list/', party_list, name='party_list'),
     path('bank_list/', bank_list, name='bank_list'),
+
+    # Admin Collection
     path('take_collection/', take_collection, name='take_collection'),
     path('collection_list/', collection_list, name='collection_list'),
+    path('api/delete_collection/', delete_collection, name='delete_collection'),
+    path('api/approve_collection/', approve_collection, name='approve_collection'),
     path('api/CollectionByAdminListJson/', CollectionByAdminListJson.as_view(), name='CollectionByAdminListJson'),
 
     # # api Staff
@@ -59,8 +63,12 @@ urlpatterns = [
 
     # Collection
     path('api/add_collection_by_staff_api/', add_collection_by_staff_api, name='add_collection_by_staff_api'),
+    path('api/add_collection_by_admin_api/', add_collection_by_admin_api, name='add_collection_by_admin_api'),
 
     # # change password
     path('api/change_password_api/', change_password_api, name='change_password_api'),
+
+    path('api/get_admin_dashboard_report_api/', get_admin_dashboard_report_api, name='get_admin_dashboard_report_api'),
+    path('api/get_staff_dashboard_report_api/', get_staff_dashboard_report_api, name='get_staff_dashboard_report_api'),
 
 ]

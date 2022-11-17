@@ -238,7 +238,7 @@
 
                 $.ajax({
                     type: 'post',
-                    url: '{% url 'homeApp:add_collection_by_staff_api' %}',
+                    url: '{% url 'homeApp:add_collection_by_admin_api' %}',
                     data: data,
                     contentType: false,
                     cache: false,
@@ -255,7 +255,7 @@
 
                             hideLoading();
 
-                            location.href = "{% url 'homeApp:my_collection' %}"
+                            location.href = "{% url 'homeApp:collection_list' %}"
 
                         } else {
                             $('body')

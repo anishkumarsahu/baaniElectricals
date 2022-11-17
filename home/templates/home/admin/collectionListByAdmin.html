@@ -126,10 +126,11 @@
                 <div class="ui basic modal custom" id="deleteUser">
                     <div class="ui icon header">
                         <i class="archive icon"></i>
-                        User Details will be Deleted
+                        Collection Details will be Deleted
                     </div>
                     <div class="content">
-                        <p style="text-align: center">The User will be deleted, are you sure to delete this User?</p>
+                        <p style="text-align: center">The Collection will be deleted, are you sure to delete this
+                            Collection?</p>
                     </div>
                     <div class="actions">
                         <div class="ui red basic cancel inverted button">
@@ -150,12 +151,20 @@
     </div>
 
     <div class="ui mini modal" id="imgModal">
-        <i class="close icon"></i>
-        <div class="header">Image Viewer</div>
-        <div class="image content aligned center">
-            <img class="image" id="imageLoad">
-            <div class="description">
-                <p></p>
+        <div class="header">
+            Approve Collection
+        </div>
+        <div class="content">
+            <p>Are you sure you want to approve this collection?</p>
+        </div>
+        <input type="hidden" id="approveCollectionID">
+        <div class="actions">
+            <div class="ui negative button">
+                No
+            </div>
+            <div class="ui green right labeled icon button" onclick="confirmApproval()">
+                Yes
+                <i class="checkmark icon"></i>
             </div>
         </div>
     </div>
@@ -260,7 +269,7 @@
             formdata.append('userID', id);
 
             $.ajax({
-                url: "#",
+                url: "{% url 'homeApp:delete_collection' %}",
                 type: "post",
                 data: formdata,
                 contentType: false,
@@ -272,7 +281,7 @@
                         $('body')
                             .toast({
                                 class: 'success',
-                                message: 'User Detail Deleted Successfully.'
+                                message: 'Collection Detail Deleted Successfully.'
                             })
                         ;
 
@@ -309,9 +318,58 @@
 
         }
 
-        function showImgModal(img) {
-            $('#imgModal').modal('show')
-            $("#imageLoad").attr({"src": "" + img});
+        function showConfirmationModal(id) {
+            $('#imgModal').modal('show');
+            $('#approveCollectionID').val('' + id);
+        }
+
+
+        function confirmApproval() {
+            var id = $('#approveCollectionID').val();
+            var formdata = new FormData();
+            formdata.append('userID', id);
+
+            $.ajax({
+                url: "{% url 'homeApp:approve_collection' %}",
+                type: "post",
+                data: formdata,
+                contentType: false,
+                cache: false,
+                processData: false,
+
+                success: function (response) {
+                    if (response.message === 'success') {
+                        $('body')
+                            .toast({
+                                class: 'success',
+                                message: 'Collection Detail Updated Successfully.'
+                            })
+                        ;
+
+                        $('#imgModal').modal('hide');
+                        userTab.ajax.reload();
+                    } else {
+                        $('body')
+                            .toast({
+                                class: 'error',
+                                message: 'An error occurred !'
+                            })
+                        ;
+
+                    }
+
+                    return response;
+                },
+                error: function () {
+                    $('body')
+                        .toast({
+                            class: 'error',
+                            message: 'An error occurred !'
+                        })
+                    ;
+                }
+            });
+
         }
 
     </script>

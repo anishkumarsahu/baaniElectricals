@@ -477,74 +477,15 @@
         function GetDetail() {
             $.ajax({
                 type: 'get',
-                url: '#',
+                url: '{% url "homeApp:get_admin_dashboard_report_api" %}',
 
                 success: function (response) {
-                    $('#customerCount').html(response.data['customerCount']);
-                    $('#salesCount').html(response.data['salesCount']);
-                    $('#todayInstallmentCount').html(response.data['todayInstallmentCount']);
+                    $('#customerCount').html(response.data['partyCount']);
+                    $('#salesCount').html(response.data['staffCount']);
+                    $('#todayInstallmentCount').html(response.data['locationCount']);
                     $('#collection').html(response.data['collection']);
 
 
-                },
-                error: function () {
-                    $('body')
-                        .toast({
-                            class: 'error',
-                            message: 'An error occurred !'
-                        })
-                    ;
-                }
-            });
-        }
-
-        $(GetLastThreeDaysCollectionDetail());
-
-        function GetLastThreeDaysCollectionDetail() {
-            $.ajax({
-                type: 'get',
-                url: '#',
-
-                success: function (response) {
-                    console.log(response)
-                    $('#date3').html(response.data['last_third_date']);
-                    $('#date2').html(response.data['last_second_date']);
-                    $('#date1').html(response.data['last_first_date']);
-                    $('#date0').html(response.data['today']);
-                    $('#amount3').html(response.data['third_collection']);
-                    $('#amount2').html(response.data['second_collection']);
-                    $('#amount1').html(response.data['first_collection']);
-                    $('#amount0').html(response.data['today_collection']);
-                    $('#mtdAmount').html(response.data['month_collection']);
-
-
-                },
-                error: function () {
-                    $('body')
-                        .toast({
-                            class: 'error',
-                            message: 'An error occurred !'
-                        })
-                    ;
-                }
-            });
-        }
-
-
-        $(GetStaffDailyCollectionDetail());
-
-        function GetStaffDailyCollectionDetail() {
-            $.ajax({
-                type: 'get',
-                url: '#',
-
-                success: function (response) {
-                    $('#staffCollection').html('');
-                    var j;
-                    for (j = 0; j < response.data.length; j++) {
-                        $('#staffCollection').append(' <tr><td >' + response.data[j]['Staff'] + '</td><td >' + response.data[j]['Collection'] + '</td><td >' + response.data[j]['Collectable'] + '</td><td >' + response.data[j]['Percent'] + '</td></tr>');
-
-                    }
                 },
                 error: function () {
                     $('body')

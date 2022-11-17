@@ -47,7 +47,7 @@ def loginPage(request):
     #     return redirect('/admin_home/')
 
 
-# @check_group('Both')
+@check_group('Admin')
 def admin_home(request):
     try:
         val = Validity.objects.last()

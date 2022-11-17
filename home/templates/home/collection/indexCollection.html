@@ -270,15 +270,15 @@
                                     </div>
                                 </div>
                                 <div class="meta">
-                                    Customers Added
+                                    Parties Assigned
                                 </div>
                                 <div class="description">
-                                    Total number of customers added by user.
+                                    Total parties assigned.
                                 </div>
                             </div>
                             <div class="extra content">
                                 <div class="ui two buttons">
-                                    <a class="ui red button" href="#">More Info</a>
+                                    <a class="ui red disabled button" href="#">More Info</a>
                                 </div>
                             </div>
                         </div>
@@ -287,7 +287,7 @@
                         <div class="ui fluid card">
                             <div class="content">
                                 <div class="ui right floated header green">
-                                    <i class="cart plus icon"></i>
+                                    <i class="coins icon"></i>
                                 </div>
                                 <div class="header">
                                     <div class="ui header green" id="salesCount">
@@ -295,15 +295,15 @@
                                     </div>
                                 </div>
                                 <div class="meta">
-                                    Sales Created
+                                    Lifetime Collections
                                 </div>
                                 <div class="description">
-                                    Total number of sales created by user.
+                                    Total lifetime amount collected.
                                 </div>
                             </div>
                             <div class="extra content">
                                 <div class="ui two buttons">
-                                    <a class="ui green button" href="#">More Info</a>
+                                    <a class="ui green disabled button" href="#">More Info</a>
                                 </div>
                             </div>
                         </div>
@@ -312,21 +312,21 @@
                         <div class="ui fluid card">
                             <div class="content">
                                 <div class="ui right floated header teal">
-                                    <i class="calendar plus icon"></i>
+                                    <i class="tasks icon"></i>
                                 </div>
                                 <div class="header">
                                     <div class="ui teal header" id="todayInstallmentCount">0</div>
                                 </div>
                                 <div class="meta">
-                                    Today's Installment
+                                    Collection Count
                                 </div>
                                 <div class="description">
-                                    Number of installment collected by the user today.
+                                    Number of today's Collections.
                                 </div>
                             </div>
                             <div class="extra content">
                                 <div class="ui two buttons">
-                                    <a class="ui teal button" href="#">More
+                                    <a class="ui teal button" href="{% url 'homeApp:my_collection' %}">More
                                         Info</a>
                                 </div>
                             </div>
@@ -345,81 +345,19 @@
                                     Today's Collection
                                 </div>
                                 <div class="description">
-                                    Total amount collected on installments collections.
+                                    Total amount collected .
                                 </div>
                             </div>
                             <div class="extra content">
                                 <div class="ui two buttons">
-                                    <a class="ui purple button" href="#">More
+                                    <a class="ui purple button" href="{% url 'homeApp:my_collection' %}">More
                                         Info</a>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <h5 class="ui top attached header">
-                    Daily Trending's
-                </h5>
-                <div class="ui attached segment">
-                    <table class="ui teal celled  tiny unstackable table" style="text-align: center">
-                        <thead>
-                        <tr>
-                            <th id="date3">Date3</th>
-                            <th id="date2">Date2</th>
-                            <th id="date1">Date1</th>
-                            <th id="date0">Date0</th>
-                            <th id="mtd">MTD</th>
 
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr>
-                            <td id="amount3">0.0</td>
-                            <td id="amount2">0.0</td>
-                            <td id="amount1">0.0</td>
-                            <td id="amount0">0.0</td>
-                            <td id="mtdAmount">0.0</td>
-
-                        </tr>
-
-                        </tbody>
-                    </table>
-                </div>
-                <h5 class="ui top attached header">
-                    Today's Installments
-                </h5>
-                <div class="ui attached segment">
-                    <table class="ui teal celled tiny unstackable table" style="text-align: center">
-                        <thead>
-                        <tr>
-                            <th>Staff Name</th>
-                            <th>Collection Amount</th>
-                            <th>Collectable Amount</th>
-                            <th>Performance (%)</th>
-
-                        </tr>
-                        </thead>
-                        <tbody id="staffCollection">
-                        <tr>
-                            <td>0.0</td>
-                            <td>0.0</td>
-                            <td>0.0</td>
-                            <td>0.0</td>
-                        </tr>
-
-                        </tbody>
-                    </table>
-                </div>
-                {% if request.user|has_group:"Admin" %}
-                    <div class="ui error message" style="min-height: 60px;">
-                        <i class="close icon"></i>
-                        <div class="header">
-                            License Reminder!
-                        </div>
-                        <p style="font-weight: bold">{{ message }}</p>
-                        <p style="color: crimson; font-weight: bold">{{ serverMessage }}</p>
-                    </div>
-                {% endif %}
             </div>
         {% endblock %}
 
@@ -490,12 +428,12 @@
         function GetDetail() {
             $.ajax({
                 type: 'get',
-                url: '#',
+                url: '{% url "homeApp:get_staff_dashboard_report_api" %}',
 
                 success: function (response) {
-                    $('#customerCount').html(response.data['customerCount']);
-                    $('#salesCount').html(response.data['salesCount']);
-                    $('#todayInstallmentCount').html(response.data['todayInstallmentCount']);
+                    $('#customerCount').html(response.data['partyCount']);
+                    $('#salesCount').html(response.data['collection_total']);
+                    $('#todayInstallmentCount').html(response.data['collection_totalCount']);
                     $('#collection').html(response.data['collection']);
 
 
@@ -511,64 +449,6 @@
             });
         }
 
-        $(GetLastThreeDaysCollectionDetail());
-
-        function GetLastThreeDaysCollectionDetail() {
-            $.ajax({
-                type: 'get',
-                url: '#',
-
-                success: function (response) {
-                    console.log(response)
-                    $('#date3').html(response.data['last_third_date']);
-                    $('#date2').html(response.data['last_second_date']);
-                    $('#date1').html(response.data['last_first_date']);
-                    $('#date0').html(response.data['today']);
-                    $('#amount3').html(response.data['third_collection']);
-                    $('#amount2').html(response.data['second_collection']);
-                    $('#amount1').html(response.data['first_collection']);
-                    $('#amount0').html(response.data['today_collection']);
-                    $('#mtdAmount').html(response.data['month_collection']);
-
-
-                },
-                error: function () {
-                    $('body')
-                        .toast({
-                            class: 'error',
-                            message: 'An error occurred !'
-                        })
-                    ;
-                }
-            });
-        }
-
-
-        $(GetStaffDailyCollectionDetail());
-
-        function GetStaffDailyCollectionDetail() {
-            $.ajax({
-                type: 'get',
-                url: '#',
-
-                success: function (response) {
-                    $('#staffCollection').html('');
-                    var j;
-                    for (j = 0; j < response.data.length; j++) {
-                        $('#staffCollection').append(' <tr><td >' + response.data[j]['Staff'] + '</td><td >' + response.data[j]['Collection'] + '</td><td >' + response.data[j]['Collectable'] + '</td><td >' + response.data[j]['Percent'] + '</td></tr>');
-
-                    }
-                },
-                error: function () {
-                    $('body')
-                        .toast({
-                            class: 'error',
-                            message: 'An error occurred !'
-                        })
-                    ;
-                }
-            });
-        }
 
     </script>
 

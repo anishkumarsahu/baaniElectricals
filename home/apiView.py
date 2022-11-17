@@ -17,7 +17,20 @@ from django.utils.html import escape
 from django.core.cache import cache
 
 
-#
+def deduct_location_balance(lat, lng):
+    location = GeolocationPackage.objects.filter(isDeleted__exact=False).last()
+    if location.used < location.balance:
+
+        r = requests.get(
+            "https://revgeocode.search.hereapi.com/v1/revgeocode?at=" + lat + "%2C" + lng + "&lang=en-US&apikey=VtAAEVuyqdswCZr8X1BdBzM-4JTpeAdivmp4_3ILPs4")
+        data = r.json()
+        location.used = (location.used + 1)
+        location.save()
+        return data["items"][0]["address"]["label"]
+    else:
+        return ""
+
+
 #
 @transaction.atomic
 @csrf_exempt
@@ -622,14 +635,53 @@ def add_collection_by_staff_api(request):
             user = StaffUser.objects.get(user_ID_id=request.user.pk)
             obj.collectedBy_id = user.pk
             try:
-                r = requests.get(
-                    "https://revgeocode.search.hereapi.com/v1/revgeocode?at=" + lat + "%2C" + lng + "&lang=en-US&apikey=VtAAEVuyqdswCZr8X1BdBzM-4JTpeAdivmp4_3ILPs4")
-                data = r.json()
-                # print(data["items"][0]["address"]["label"])
-                # print(data["items"][0].address.label)
-                obj.collectionAddress = data["items"][0]["address"]["label"]
+                obj.collectionAddress = deduct_location_balance(lat, lng)
+                # r = requests.get(
+                #     "https://revgeocode.search.hereapi.com/v1/revgeocode?at=" + lat + "%2C" + lng + "&lang=en-US&apikey=VtAAEVuyqdswCZr8X1BdBzM-4JTpeAdivmp4_3ILPs4")
+                # data = r.json()
+                # obj.collectionAddress = data["items"][0]["address"]["label"]
             except:
                 pass
+
+            obj.save()
+
+            return JsonResponse({'message': 'success'}, safe=False)
+        except:
+            return JsonResponse({'message': 'error'}, safe=False)
+
+
+@transaction.atomic
+@csrf_exempt
+def add_collection_by_admin_api(request):
+    if request.method == 'POST':
+        try:
+            party = request.POST.get("party")
+            paymentMode = request.POST.get("paymentMode")
+            amountPaid = request.POST.get("amountPaid")
+            bank = request.POST.get("bank")
+            detail = request.POST.get("detail")
+            remark = request.POST.get("remark")
+            lat = request.POST.get("lat")
+            lng = request.POST.get("lng")
+            c = str(party).split('@')
+            cus = Party.objects.select_related().get(pk=int(c[1]))
+            obj = Collection()
+            obj.partyID_id = cus.pk
+            obj.modeOfPayment = paymentMode
+            obj.paidAmount = float(amountPaid)
+            try:
+                obj.bankID_id = int(bank)
+            except:
+                pass
+            obj.detail = detail
+            obj.remark = remark
+            obj.latitude = lat
+            obj.longitude = lng
+            user = StaffUser.objects.get(user_ID_id=request.user.pk)
+            obj.collectedBy_id = user.pk
+            obj.isApproved = True
+            obj.approvedBy_id = user.pk
+            obj.collectionAddress = "From Shop."
 
             obj.save()
 
@@ -728,7 +780,7 @@ class CollectionByAdminListJson(BaseDatatableView):
     def prepare_results(self, qs):
         json_data = []
         for item in qs:
-            action = '''<button  data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "GetUserDetails('{}')" class="ui circular facebook icon button green">
+            action = '''<button  data-inverted="" data-tooltip="Make Approval" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button green">
                     <i class="pen icon"></i>
                   </button>
                   <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
@@ -776,6 +828,36 @@ class CollectionByAdminListJson(BaseDatatableView):
 
 
 @transaction.atomic
+@csrf_exempt
+def delete_collection(request):
+    if request.method == 'POST':
+        try:
+            id = request.POST.get("userID")
+            obj = Collection.objects.select_related().get(pk=int(id))
+            obj.isDeleted = True
+            obj.save()
+            return JsonResponse({'message': 'success'}, safe=False)
+        except:
+            return JsonResponse({'message': 'error'}, safe=False)
+
+
+@transaction.atomic
+@csrf_exempt
+def approve_collection(request):
+    if request.method == 'POST':
+        try:
+            id = request.POST.get("userID")
+            obj = Collection.objects.select_related().get(pk=int(id))
+            user = StaffUser.objects.get(user_ID__id=request.user.pk)
+            obj.isApproved = True
+            obj.approvedBy_id = user.pk
+            obj.save()
+            return JsonResponse({'message': 'success'}, safe=False)
+        except:
+            return JsonResponse({'message': 'error'}, safe=False)
+
+
+@transaction.atomic
 def change_password_api(request):
     if request.method == 'POST':
         try:
@@ -795,3 +877,51 @@ def change_password_api(request):
 
         except:
             return JsonResponse({'message': 'error'}, safe=False)
+
+
+def get_admin_dashboard_report_api(request):
+    party = Party.objects.select_related().filter(isDeleted__exact=False)
+    staff = StaffUser.objects.select_related().filter(isDeleted__exact=False)
+    location = GeolocationPackage.objects.filter(isDeleted__exact=False).last()
+    collection = Collection.objects.select_related().filter(isDeleted__exact=False,
+                                                            datetime__icontains=datetime.today().date(),
+                                                            )
+
+    c_total = 0.0
+    for c in collection:
+        c_total = c_total + c.paidAmount
+
+    data = {
+        'partyCount': party.count(),
+        'staffCount': staff.count(),
+        'locationCount': str(int(location.used)) + '/' + str(int(location.balance)),
+        'collection': c_total
+    }
+    return JsonResponse({'data': data}, safe=False)
+
+
+def get_staff_dashboard_report_api(request):
+    user = StaffUser.objects.get(user_ID__id=request.user.pk)
+    party = Party.objects.select_related().filter(isDeleted__exact=False, partyGroupID__id=user.partyGroupID_id)
+    collection_total = Collection.objects.select_related().filter(isDeleted__exact=False,
+                                                                  collectedBy__user_ID_id=request.user.pk)
+    collection = Collection.objects.select_related().filter(isDeleted__exact=False,
+                                                            datetime__icontains=datetime.today().date(),
+                                                            collectedBy__user_ID_id=request.user.pk
+                                                            )
+
+    c_total = 0.0
+    for c in collection_total:
+        c_total = c_total + c.paidAmount
+
+    d_total = 0.0
+    for d in collection:
+        d_total = d_total + d.paidAmount
+
+    data = {
+        'partyCount': party.count(),
+        'collection_totalCount': collection.count(),
+        'collection_total': c_total,
+        'collection': d_total
+    }
+    return JsonResponse({'data': data}, safe=False)
