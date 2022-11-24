@@ -137,3 +137,13 @@ class GeolocationPackage(models.Model):
 
     class Meta:
         verbose_name_plural = 'g) Geolocation Package List'
+
+
+class WhatsappMessage(models.Model):
+    instanceID = models.CharField(max_length=300, blank=True, null=True)
+    apiKey = models.CharField(max_length=300, blank=True, null=True)
+    balance = models.FloatField(default=0)
+    used = models.FloatField(default=0)
+    datetime = models.DateTimeField(auto_now_add=True, auto_now=False)
+    lastUpdatedOn = models.DateTimeField(auto_now_add=False, auto_now=True)
+    isDeleted = models.BooleanField(default=False)

@@ -155,6 +155,7 @@ def homepage(request):
         elif 'Collection' in request.user.groups.values_list('name', flat=True):
             return redirect('/collection_home/')
         else:
+
             return render(request, 'home/login.html')
 
 

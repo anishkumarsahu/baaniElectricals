@@ -71,4 +71,7 @@ urlpatterns = [
     path('api/get_admin_dashboard_report_api/', get_admin_dashboard_report_api, name='get_admin_dashboard_report_api'),
     path('api/get_staff_dashboard_report_api/', get_staff_dashboard_report_api, name='get_staff_dashboard_report_api'),
 
+    #
+    path('api/generate_collection_report/', generate_collection_report, name='generate_collection_report'),
+
 ]

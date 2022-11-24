@@ -57,3 +57,10 @@ class GeolocationPackageAdmin(admin.ModelAdmin):
 
 
 admin.site.register(GeolocationPackage, GeolocationPackageAdmin)
+
+
+class MessageAdmin(admin.ModelAdmin):
+    list_display = ['instanceID', 'apiKey', 'balance', 'used', 'datetime', 'lastUpdatedOn', 'isDeleted']
+
+
+admin.site.register(WhatsappMessage, MessageAdmin)

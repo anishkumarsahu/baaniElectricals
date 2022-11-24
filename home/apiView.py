@@ -3,8 +3,9 @@ import requests
 from django.contrib.auth import authenticate, login
 from django.db import transaction
 from django.db.models import Q, Sum, F
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
 from django.utils.crypto import get_random_string
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import Group
@@ -15,6 +16,7 @@ from home.models import *
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.utils.html import escape
 from django.core.cache import cache
+from weasyprint import CSS, HTML
 
 
 def deduct_location_balance(lat, lng):
@@ -29,6 +31,16 @@ def deduct_location_balance(lat, lng):
         return data["items"][0]["address"]["label"]
     else:
         return ""
+
+
+def send_whatsapp_message(number, message):
+    msg = WhatsappMessage.objects.filter(isDeleted__exact=False).last()
+    if msg.used < msg.balance:
+        r = requests.get(
+            "https://betablaster.in/api/send.php?number=91" + number + "&type=text&message=" + message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey)
+        data = r.json()
+        msg.used = (msg.used + 1)
+        msg.save()
 
 
 #
@@ -684,6 +696,11 @@ def add_collection_by_admin_api(request):
             obj.collectionAddress = "From Shop."
 
             obj.save()
+            try:
+                msg = "Thank you for paying Rs. {}".format(obj.paidAmount)
+                send_whatsapp_message(obj.partyID.phone, msg)
+            except:
+                pass
 
             return JsonResponse({'message': 'success'}, safe=False)
         except:
@@ -852,6 +869,11 @@ def approve_collection(request):
             obj.isApproved = True
             obj.approvedBy_id = user.pk
             obj.save()
+            try:
+                msg = "Thank you for paying Rs. {}".format(obj.paidAmount)
+                send_whatsapp_message(obj.partyID.phone, msg)
+            except:
+                pass
             return JsonResponse({'message': 'success'}, safe=False)
         except:
             return JsonResponse({'message': 'error'}, safe=False)
@@ -925,3 +947,22 @@ def get_staff_dashboard_report_api(request):
         'collection': d_total
     }
     return JsonResponse({'data': data}, safe=False)
+
+
+def generate_collection_report(request):
+    date = datetime.today().date()
+    col = Collection.objects.select_related().filter(datetime__icontains=datetime.today().date(),
+                                                     isApproved__exact=True,
+                                                     isDeleted__exact=False, )
+
+    context = {
+        'date': date,
+        'col': col,
+    }
+
+    response = HttpResponse(content_type="application/pdf")
+    response['Content-Disposition'] = "report.pdf"
+    html = render_to_string("home/admin/collectionReportPDF.html", context)
+
+    HTML(string=html).write_pdf(response, stylesheets=[CSS(string='@page { size: A5; margin: .3cm ; }')])
+    return response
