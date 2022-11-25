@@ -491,7 +491,7 @@ def add_party_api(request):
             obj.address = address
             obj.partyGroupID_id = int(partyGroup)
             obj.save()
-
+            cache.delete('PartyList')
             return JsonResponse({'message': 'success'}, safe=False)
         except:
             return JsonResponse({'message': 'error'}, safe=False)
@@ -570,7 +570,7 @@ def edit_party_api(request):
             obj.partyGroupID_id = int(partyGroup)
 
             obj.save()
-
+            cache.delete('PartyList')
             return JsonResponse({'message': 'success'}, safe=False)
         except:
             return JsonResponse({'message': 'error'}, safe=False)
@@ -585,6 +585,7 @@ def delete_party(request):
             obj = Party.objects.select_related().get(pk=int(id))
             obj.isDeleted = True
             obj.save()
+            cache.delete('PartyList')
             return JsonResponse({'message': 'success'}, safe=False)
         except:
             return JsonResponse({'message': 'error'}, safe=False)
