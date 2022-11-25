@@ -36,8 +36,10 @@ def deduct_location_balance(lat, lng):
 def send_whatsapp_message(number, message):
     msg = WhatsappMessage.objects.filter(isDeleted__exact=False).last()
     if msg.used < msg.balance:
+
         r = requests.get(
-            "https://betablaster.in/api/send.php?number=91" + number + "&type=text&message=" + message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey)
+            "https://betablaster.in/api/send.php?number=91" + number + "&type=text&message=" + message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
+            verify=False)
         data = r.json()
         msg.used = (msg.used + 1)
         msg.save()
