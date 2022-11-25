@@ -2,9 +2,61 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Baani Electricals</title>
+    <style>
+        @page {
+            size: A5;
+            margin: .3cm;
+        }
+
+
+    </style>
+    <style>
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td, th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 5px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+    </style>
 </head>
 <body>
+<div class="container">
+    <div class="row">
+        <span style="font-size: 10px;">Date: {{ date }}</span>
+    </div>
+
+    <p style="font-size: 10px; margin: 2px;">Collection Details</p>
+
+
+    <table style="font-size: 10px">
+        <tr>
+            <th>PartyName</th>
+            <th>Amount(₹)</th>
+            <th>Type</th>
+            <th>CollectedBy</th>
+        </tr>
+        {% for foo in col %}
+
+            <tr>
+                <td>{{ foo.partyID.name }}</td>
+                <td>{{ foo.paidAmount }}</td>
+                <td>{{ foo.modeOfPayment }}</td>
+                <td>{{ foo.collectedBy.name }}</td>
+            </tr>
+        {% endfor %}
+
+    </table>
+</div>
 
 </body>
 </html>

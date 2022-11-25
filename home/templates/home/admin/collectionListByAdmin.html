@@ -65,7 +65,7 @@
                                                         <div class="ui input left icon">
                                                             <input class="" type="text" placeholder="Start Date"
                                                                    style="width:100%;"
-                                                                   id="startDateF">
+                                                                   id="startDateF" onchange="ChangeDate()">
                                                         </div>
                                                     </div>
                                                 </div>
@@ -86,9 +86,11 @@
                                                                 <i class="funnel dollar icon"></i>
                                                                 Search
                                                             </button>
-                                                            <button style="float: right;"
-                                                                    class="positive tiny ui button">Download Report
-                                                            </button>
+                                                            <a id="reportUrl"
+                                                               href="{% url 'homeApp:generate_collection_report' %}"
+                                                               style="float: right;"
+                                                               class="teal tiny ui button">Download Report
+                                                            </a>
 
                                                         </div>
                                                     </div>
@@ -376,6 +378,12 @@
 
         }
 
+        $(ChangeDate());
+
+        function ChangeDate() {
+            var startDateF = $('#startDateF').val();
+            $("#reportUrl").attr("href", "{% url 'homeApp:generate_collection_report' %}?cDate=" + startDateF);
+        }
     </script>
 
 {% endblock %}

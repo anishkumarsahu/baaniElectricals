@@ -952,13 +952,14 @@ def get_staff_dashboard_report_api(request):
 
 
 def generate_collection_report(request):
-    date = datetime.today().date()
-    col = Collection.objects.select_related().filter(datetime__icontains=datetime.today().date(),
+    cDate = request.GET.get('cDate')
+    colDate = datetime.strptime(cDate, '%d/%m/%Y')
+    col = Collection.objects.select_related().filter(datetime__icontains=colDate.date(),
                                                      isApproved__exact=True,
-                                                     isDeleted__exact=False, )
+                                                     isDeleted__exact=False)
 
     context = {
-        'date': date,
+        'date': colDate,
         'col': col,
     }
 

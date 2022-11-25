@@ -340,39 +340,8 @@
             // Don't do anything if the permission was denied.
         });
 
-        $(getProductList());
         $(getCustomerList());
 
-        function getProductList() {
-            $.ajax({
-                type: 'get',
-                url: "",
-
-                success: function (response) {
-
-                    $('#product').html('');
-                    $('#product').append('<option value="">Search By Product</option>');
-                    var j;
-                    for (j = 0; j < response.data.length; j++) {
-
-                        $('#product').append('<option value="' + response.data[j]['Detail'] + '" >' + response.data[j]['DisplayDetail'] + '</option>');
-
-                    }
-
-                },
-
-                error: function () {
-                    $('body')
-                        .toast({
-                            class: 'error',
-                            message: 'An error occurred !'
-                        })
-                    ;
-                }
-            });
-
-
-        }
 
         function getCustomerList() {
             $.ajax({
