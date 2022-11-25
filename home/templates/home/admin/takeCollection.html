@@ -332,11 +332,11 @@
         $(getLocation());
         navigator.permissions.query({name: 'geolocation'}).then(function (result) {
             console.log(result);
-            if (result.state === 'granted') {
+     {% comment %}       if (result.state === 'granted') {
                 $('#saveBtn').prop('disabled', false);
             } else {
                 $('#saveBtn').prop('disabled', true);
-            }
+            }{% endcomment %}
             // Don't do anything if the permission was denied.
         });
 
