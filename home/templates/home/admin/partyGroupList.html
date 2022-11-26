@@ -93,8 +93,12 @@
 
                             <div class="actions" style="padding-top: 20px; padding-bottom: 20px ;float: right">
                                 <div class="ui cancel button">Cancel</div>
-                                <button class="ui right labeled icon button green" onclick="addUser()">
+                                <button class="ui right labeled icon button green saveBtn" onclick="addUser()">
                                     Submit
+                                    <i class="checkmark icon"></i>
+                                </button>
+                                <button style="display: none" class="ui right labeled icon button teal saveBtnLoad">
+                                    Saving ....
                                     <i class="checkmark icon"></i>
                                 </button>
                             </div>
@@ -154,8 +158,12 @@
 
                         <div class="actions" style="padding-top: 20px; padding-bottom: 20px ;float: right">
                             <div class="ui cancel button">Cancel</div>
-                            <button class="ui right labeled icon button green" onclick="editUser()">
+                            <button class="ui right labeled icon button green saveBtn" onclick="editUser()">
                                 Update
+                                <i class="checkmark icon"></i>
+                            </button>
+                            <button style="display: none" class="ui right labeled icon button teal saveBtnLoad">
+                                Saving ....
                                 <i class="checkmark icon"></i>
                             </button>
                         </div>
@@ -183,6 +191,7 @@
         }
 
         function addUser() {
+            showLoading();
             var groupName = $('#groupName').val();
             var description = $('#description').val();
 
@@ -194,6 +203,7 @@
                         message: '* fields are required.'
                     })
                 ;
+                hideLoading();
             } else {
 
                 var csrfmiddlewaretoken = $("input[name='csrfmiddlewaretoken']").val();
@@ -228,6 +238,7 @@
                             userTab.ajax.reload();
                             $('#addForm').trigger('reset');
                             $('#myModalUser').modal('toggle');
+                            hideLoading();
                         } else {
                             $('body')
                                 .toast({
@@ -235,6 +246,7 @@
                                     message: 'An error occurred !'
                                 })
                             ;
+                            hideLoading();
 
                         }
 
@@ -247,6 +259,7 @@
                                 message: 'An error occurred !'
                             })
                         ;
+                        hideLoading();
                     }
                 });
 
@@ -374,6 +387,7 @@
         }
 
         function editUser() {
+            showLoading();
 
             var EditId = $('#EditId').val();
             var groupName = $('#groupNameEdit').val();
@@ -387,6 +401,7 @@
                         message: '* fields are required.'
                     })
                 ;
+                hideLoading();
             } else {
 
                 var csrfmiddlewaretoken = $("input[name='csrfmiddlewaretoken']").val();
@@ -419,6 +434,7 @@
                             userTab.ajax.reload();
                             $('#EditForm').trigger('reset');
                             $('#userModal').modal('toggle');
+                            hideLoading();
                         } else {
                             $('body')
                                 .toast({
@@ -426,6 +442,7 @@
                                     message: 'An error occurred !'
                                 })
                             ;
+                            hideLoading();
 
                         }
 
@@ -438,6 +455,7 @@
                                 message: 'An error occurred !'
                             })
                         ;
+                        hideLoading();
                     }
                 });
 

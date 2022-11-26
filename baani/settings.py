@@ -147,7 +147,7 @@ MEDIA_ROOT = os.path.join(os.path.dirname(BASE_DIR), "media_cdn")
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-PWA_APP_NAME = 'Baani Electricals'
+PWA_APP_NAME = 'BSSAC'
 PWA_APP_DESCRIPTION = "In-house management Application."
 PWA_APP_THEME_COLOR = '#272E38'
 PWA_APP_DISPLAY = 'standalone'

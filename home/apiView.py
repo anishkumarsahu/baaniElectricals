@@ -38,7 +38,7 @@ def send_whatsapp_message(number, message):
     if msg.used < msg.balance:
 
         r = requests.get(
-            "https://betablaster.in/api/send.php?number=91" + number + "&type=text&message=" + message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
+            "https://server.betablaster.in/api/send.php?number=91" + number + "&type=text&message=" + message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
             verify=False)
         data = r.json()
         msg.used = (msg.used + 1)

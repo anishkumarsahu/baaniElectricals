@@ -168,10 +168,15 @@
             <div class="ui negative button">
                 No
             </div>
-            <div class="ui green right labeled icon button" onclick="confirmApproval()">
+            <button class="ui green right labeled icon button saveBtn" onclick="confirmApproval()">
                 Yes
                 <i class="checkmark icon"></i>
-            </div>
+            </button>
+            <button style="display: none;" class="ui teal right labeled icon button saveBtnLoad">
+                Saving ....
+                <i class="checkmark icon"></i>
+            </button>
+
         </div>
     </div>
 {% endblock %}
@@ -270,6 +275,7 @@
         }
 
         function deleteUser() {
+            showLoading();
             var id = $('#UserID').val();
             var formdata = new FormData();
             formdata.append('userID', id);
@@ -293,6 +299,7 @@
 
 
                         userTab.ajax.reload();
+                        hideLoading();
                     } else {
                         $('body')
                             .toast({
@@ -300,7 +307,7 @@
                                 message: 'An error occurred !'
                             })
                         ;
-
+                        hideLoading();
                     }
 
                     return response;
@@ -312,6 +319,7 @@
                             message: 'An error occurred !'
                         })
                     ;
+                    hideLoading()
                 }
             });
 
@@ -331,6 +339,7 @@
 
 
         function confirmApproval() {
+            showLoading();
             var id = $('#approveCollectionID').val();
             var formdata = new FormData();
             formdata.append('userID', id);
@@ -354,6 +363,7 @@
 
                         $('#imgModal').modal('hide');
                         userTab.ajax.reload();
+                        hideLoading();
                     } else {
                         $('body')
                             .toast({
@@ -361,7 +371,7 @@
                                 message: 'An error occurred !'
                             })
                         ;
-
+                        hideLoading();
                     }
 
                     return response;
@@ -373,7 +383,9 @@
                             message: 'An error occurred !'
                         })
                     ;
+                    hideLoading();
                 }
+
             });
 
         }
