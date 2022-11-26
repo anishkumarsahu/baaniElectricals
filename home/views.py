@@ -174,6 +174,7 @@ def my_collection(request):
 
 
 # admin
+@is_activated()
 def collection_list(request):
     context = {
     }

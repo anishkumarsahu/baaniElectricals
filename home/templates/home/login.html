@@ -28,9 +28,9 @@
 
     <style>
         body {
-            background: rgba(71, 255, 163, 0.53);
-            background: -webkit-linear-gradient(0deg, rgba(71, 255, 163, 0.62) 0%, rgba(71, 172, 255, 0.64) 100%);
-            background: linear-gradient(0deg, rgba(71, 255, 163, 0.64) 0%, rgba(71, 172, 255, 0.68) 100%);
+            background: rgba(71, 255, 163, 0.50);
+            background: -webkit-linear-gradient(0deg, rgba(71, 255, 163, 0.5) 0%, rgba(71, 172, 255, 0.5) 100%);
+            background: linear-gradient(0deg, rgba(71, 255, 163, 0.5) 0%, rgba(71, 172, 255, 0.5) 100%);
         }
 
         fieldset {
@@ -38,7 +38,7 @@
         }
 
         .container {
-            padding-top: 100px;
+            padding-top: 4rem;
         }
 
         .ui.grid {
@@ -123,7 +123,7 @@
 
         .credit {
             text-align: center;
-            font-size: 18px;
+            font-size: 15px;
             padding-top: 20px;
         }
     </style>
@@ -131,13 +131,13 @@
 <body>
 <div class="container">
     <div class="ui equal width center aligned padded grid">
-        <div class="ui raised segment" style="background-color: transparent">
-            <div class="ui two column centered grid" style="background-color: transparent">
+        <div class="ui raised segment" style="background-color: transparent;">
+            <div class="ui two column centered grid" style="background-color: transparent;padding: 1rem">
                 <div class="column_1" style="width: 350px; padding: 05px">
                     <img class="ui centered medium circular image" src="{% static 'sw/images/icon-192.png' %}"
                          style="width: 100px;height: 100px;margin-top: 30px" alt="Logo">
                     <br>
-                    <p class="hd">Banni Electricals</p>
+                    <p class="hd">Baani Electricals</p>
 
                 </div>
                 <div class="column_2" style="width: 350px; padding: 05px">
@@ -162,7 +162,7 @@
         </div>
     </div>
 </div>
-<p class="credit" style="margin-top: 50px;">Developed by <a href="http://www.zivainfotech.com" target="_blank">Ziva Infotech</a></p>
+<p class="credit" style="">Developed by <a href="http://zivainfotech.com" target="_blank">Ziva Infotech</a></p>
 <script>
     function UserLogin() {
         var username = $('#userName').val();
