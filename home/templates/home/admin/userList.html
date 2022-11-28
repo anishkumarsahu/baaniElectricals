@@ -280,8 +280,12 @@
 
                             <div class="actions" style="padding-top: 20px; padding-bottom: 20px ;float: right">
                                 <div class="ui cancel button">Cancel</div>
-                                <button class="ui right labeled icon button green" onclick="addUser()">
+                                <button class="ui right labeled icon button green saveBtn" onclick="addUser()">
                                     Submit
+                                    <i class="checkmark icon"></i>
+                                </button>
+                                <button style="display: none" class="ui right labeled icon button green saveBtnLoad" >
+                                    Saving ...
                                     <i class="checkmark icon"></i>
                                 </button>
                             </div>
@@ -456,10 +460,14 @@
 
                         <div class="actions" style="padding-top: 20px; padding-bottom: 20px ;float: right">
                             <div class="ui cancel button">Cancel</div>
-                            <button class="ui right labeled icon button green" onclick="editUser()">
+                            <button class="ui right labeled icon button green saveBtn" onclick="editUser()">
                                 Update
                                 <i class="checkmark icon"></i>
                             </button>
+                            <button style="display: none" class="ui right labeled icon button green saveBtnLoad" >
+                                    Saving ...
+                                    <i class="checkmark icon"></i>
+                                </button>
                         </div>
                     </div>
                 </div>
@@ -548,7 +556,7 @@
         }
 
         function addUser() {
-            //for User
+            showLoading();
             var imageUpload = document.getElementById("imageUpload").files[0];
             var imageUploadID = document.getElementById("imageUploadID").files[0];
             var CompanyUserName = $('#CompanyUserName').val();
@@ -570,6 +578,7 @@
                         message: 'User Name, Phone Number, Photo, Address ... are required !. Also ensure that password is matched'
                     })
                 ;
+                hideLoading();
             } else {
 
                 var csrfmiddlewaretoken = $("input[name='csrfmiddlewaretoken']").val();
@@ -597,6 +606,7 @@
                             message: 'Password not matched!'
                         })
                     ;
+                    hideLoading();
                 } else {
 
 
@@ -622,6 +632,7 @@
                                 userTab.ajax.reload();
                                 $('#addForm').trigger('reset');
                                 $('#myModalUser').modal('toggle');
+                                hideLoading();
                             } else {
                                 $('body')
                                     .toast({
@@ -629,6 +640,7 @@
                                         message: 'An error occurred !'
                                     })
                                 ;
+                                hideLoading();
 
                             }
 
@@ -641,6 +653,7 @@
                                     message: 'An error occurred !'
                                 })
                             ;
+                            hideLoading();
                         }
                     });
                 }
@@ -785,7 +798,7 @@
         }
 
         function editUser() {
-            //for User
+           showLoading();
             var imageUpload = document.getElementById("imageUploadEdit").files[0];
             var imageUploadID = document.getElementById("imageUploadIDEdit").files[0];
             var EditUserId = $('#EditUserId').val();
@@ -808,6 +821,7 @@
                         message: 'User Name, Phone Number, Photo, Address ... are required !. Also ensure that password is matched'
                     })
                 ;
+                hideLoading();
             } else {
 
                 var csrfmiddlewaretoken = $("input[name='csrfmiddlewaretoken']").val();
@@ -836,6 +850,7 @@
                             message: 'Password not matched!'
                         })
                     ;
+                    hideLoading();
                 } else {
 
 
@@ -861,6 +876,7 @@
                                 userTab.ajax.reload();
                                 $('#EditForm').trigger('reset');
                                 $('#userModal').modal('toggle');
+                                hideLoading();
                             } else {
                                 $('body')
                                     .toast({
@@ -868,6 +884,7 @@
                                         message: 'An error occurred !'
                                     })
                                 ;
+                                hideLoading();
 
                             }
 
@@ -880,6 +897,7 @@
                                     message: 'An error occurred !'
                                 })
                             ;
+                            hideLoading();
                         }
                     });
                 }

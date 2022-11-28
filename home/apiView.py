@@ -801,7 +801,7 @@ class CollectionByAdminListJson(BaseDatatableView):
         json_data = []
         for item in qs:
             action = '''<button  data-inverted="" data-tooltip="Make Approval" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button green">
-                    <i class="pen icon"></i>
+                   <i class="whatsapp icon"></i>
                   </button>
                   <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
                     <i class="trash alternate icon"></i>

@@ -79,8 +79,12 @@
 
                             <div class="actions" style="padding-top: 20px; padding-bottom: 20px ;float: right">
                                 <div class="ui cancel button">Cancel</div>
-                                <button class="ui right labeled icon button green" onclick="changePassword()">
+                                <button class="ui right labeled icon button green saveBtn" onclick="changePassword()">
                                     Submit
+                                    <i class="checkmark icon"></i>
+                                </button>
+                                <button style="display: none" class="ui right labeled icon button green saveBtnLoad" >
+                                    Saving ...
                                     <i class="checkmark icon"></i>
                                 </button>
                             </div>
@@ -96,6 +100,7 @@
             $('#myModalUser').modal('show');
         }
              function changePassword() {
+            showLoading();
             var pass = $('#newPassword').val();
             var passc = $('#confirmPassword').val();
 
@@ -107,6 +112,7 @@
                         message: '* fields are required.'
                     })
                 ;
+                 hideLoading();
 
             }
 
@@ -118,6 +124,7 @@
                         message: 'Password not matched.'
                     })
                 ;
+                      hideLoading();
                 }
                 else if (pass.length < 8) {
                       $('body')
@@ -126,6 +133,7 @@
                         message: 'Password should be at least 8 characters long.'
                     })
                 ;
+                      hideLoading();
 
                 }
                 else {
@@ -159,6 +167,7 @@
 
                             $('#addForm').trigger('reset');
                             $('#myModalUser').modal('toggle');
+                            hideLoading();
                         } else {
                             $('body')
                                 .toast({
@@ -166,6 +175,7 @@
                                     message: 'An error occurred !'
                                 })
                             ;
+                            hideLoading();
 
                         }
 
@@ -178,6 +188,7 @@
                                 message: 'An error occurred !'
                             })
                         ;
+                        hideLoading();
 
 
             }
