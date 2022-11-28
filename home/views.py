@@ -95,8 +95,10 @@ def bank_list(request):
 @is_activated()
 def party_list(request):
     party_groups = PartyGroup.objects.filter(isDeleted__exact=False).order_by('name')
+    staffs = StaffUser.objects.filter(isDeleted__exact=False).order_by('name')
     context = {
-        'party_groups': party_groups
+        'party_groups': party_groups,
+        'staffs': staffs
     }
     return render(request, 'home/admin/PartyList.html', context)
 

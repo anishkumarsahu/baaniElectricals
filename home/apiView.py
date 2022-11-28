@@ -483,12 +483,14 @@ def add_party_api(request):
             partyName = request.POST.get("partyName")
             phoneNumber = request.POST.get("phoneNumber")
             partyGroup = request.POST.get("partyGroup")
-            address = request.POST.get("address")
+            # address = request.POST.get("address")
+            staffID = request.POST.get("staffID")
 
             obj = Party()
             obj.name = partyName
             obj.phone = phoneNumber
-            obj.address = address
+            obj.assignTo_id = int(staffID)
+            # obj.address = address
             obj.partyGroupID_id = int(partyGroup)
             obj.save()
             cache.delete('PartyList')
@@ -498,7 +500,7 @@ def add_party_api(request):
 
 
 class PartyListJson(BaseDatatableView):
-    order_columns = ['name', 'phone', 'partyGroupID.name', 'address', 'datetime']
+    order_columns = ['name', 'phone', 'partyGroupID.name', 'assignTo.name', 'datetime']
 
     def get_initial_queryset(self):
         # if 'Admin' in self.request.user.groups.values_list('name', flat=True):
@@ -510,7 +512,8 @@ class PartyListJson(BaseDatatableView):
         if search:
             qs = qs.filter(
                 Q(name__icontains=search) | Q(phone__icontains=search) | Q(address__icontains=search)
-                | Q(partyGroupID__name__icontains=search) | Q(datetime__icontains=search)
+                | Q(partyGroupID__name__icontains=search) | Q(assignTo__name__icontains=search) | Q(
+                    datetime__icontains=search)
             )
 
         return qs
@@ -529,7 +532,7 @@ class PartyListJson(BaseDatatableView):
                 escape(item.name),
                 escape(item.phone),
                 escape(item.partyGroupID.name),
-                escape(item.address),
+                escape(item.assignTo.name),
                 escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
                 action,
 
@@ -549,6 +552,7 @@ def get_party_detail(request):
         'PhoneNumber': instance.phone,
         'Address': instance.address,
         'PartyGroup': instance.partyGroupID.id,
+        'AssignTo': instance.assignTo.id,
     }
     return JsonResponse({'data': data}, safe=False)
 
@@ -561,13 +565,15 @@ def edit_party_api(request):
             Id = request.POST.get("EditId")
             name = request.POST.get("partyName")
             phoneNumber = request.POST.get("phoneNumber")
-            address = request.POST.get("address")
+            # address = request.POST.get("address")
             partyGroup = request.POST.get("partyGroup")
+            staffID = request.POST.get("staffID")
             obj = Party.objects.select_related().get(id=int(Id))
             obj.name = name
             obj.phone = phoneNumber
-            obj.address = address
+            # obj.address = address
             obj.partyGroupID_id = int(partyGroup)
+            obj.assignTo_id = int(staffID)
 
             obj.save()
             cache.delete('PartyList')
@@ -605,10 +611,10 @@ def list_party_api(request):
                 obj_dic = {
                     'ID': obj.pk,
                     'Name': obj.name,
-                    'Address': obj.address,
+                    'PartyGroup': obj.partyGroupID.name,
                     'Phone': obj.phone,
-                    'Detail': obj.name + ' - ' + obj.address + ' @ ' + str(obj.pk),
-                    'DisplayDetail': obj.name + ' - ' + obj.address
+                    'Detail': obj.name + ' - ' + obj.partyGroupID.name + ' @ ' + str(obj.pk),
+                    'DisplayDetail': obj.name + ' - ' + obj.partyGroupID.name
                 }
                 o_list.append(obj_dic)
             cache.set('PartyList', o_list, timeout=None)

@@ -35,7 +35,7 @@ admin.site.register(Bank, BankAdmin)
 
 
 class PartyAdmin(admin.ModelAdmin):
-    list_display = ['name', 'phone', 'address', 'partyGroupID', 'datetime', 'lastUpdatedOn', 'isDeleted']
+    list_display = ['name', 'phone', 'address', 'partyGroupID', 'assignTo', 'datetime', 'lastUpdatedOn', 'isDeleted']
 
 
 admin.site.register(Party, PartyAdmin)

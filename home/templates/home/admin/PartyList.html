@@ -54,8 +54,8 @@
                             <tr>
                                 <th>Name</th>
                                 <th>PhoneNumber</th>
-                                <th>PartyGroup</th>
-                                <th>Address</th>
+                                <th>PartyGroup/Station</th>
+                                <th>AssignedTo/Staff</th>
                                 <th>Added On</th>
                                 <th>Actions</th>
                             </tr>
@@ -73,7 +73,7 @@
                         <div class="content">
 
                             <form class="ui tiny form" id="addForm">{% csrf_token %}
-                                <div class="three required fields">
+                                <div class="two required fields">
                                     <div class=" field">
                                         <label>Party Name</label>
                                         <input type="text" name="partyName" placeholder="Party Name" id="partyName">
@@ -83,25 +83,37 @@
                                         <input type="number" name="phoneNumber" placeholder="Phone Number"
                                                id="phoneNumber">
                                     </div>
+
+
+                                </div>
+
+                                <div class="two fields">
+                                    {% comment %}<div class="sixteen wide field required">
+                                        <label>Address</label>
+                                        <input type="text" name="address" placeholder="Address"
+                                               id="address">
+                                    </div>{% endcomment %}
                                     <div class="field required">
-                                        <label>Party Group</label>
-                                        <select class="ui fluid dropdown" id="partyGroup">
-                                            <option value="" hidden>Party Group</option>
+                                        <label>Party Group/Station</label>
+                                        <select class="ui fluid search dropdown" id="partyGroup">
+                                            <option value="" hidden>Party Group/Station/Address</option>
                                             {% for group in party_groups %}
                                                 <option value="{{ group.id }}">{{ group.name|capfirst }}</option>
                                             {% endfor %}
 
-
                                         </select>
                                     </div>
+                                    <div class="field required">
+                                        <label>Assign To (Staff)</label>
+                                        <select class="ui fluid search dropdown" id="staffID">
+                                            <option value="" hidden>Assign To</option>
+                                            {% for staff in staffs %}
+                                                <option value="{{ staff.id }}">{{ staff.name|capfirst }}
+                                                    - {{ staff.partyGroupID.name|capfirst }}  </option>
+                                            {% endfor %}
 
-                                </div>
 
-                                <div class="one fields">
-                                    <div class="sixteen wide field required">
-                                        <label>Address</label>
-                                        <input type="text" name="address" placeholder="Address"
-                                               id="address">
+                                        </select>
                                     </div>
 
                                 </div>
@@ -154,7 +166,7 @@
                     <div class="content">
 
                         <form class="ui tiny form" id="EditForm">{% csrf_token %}
-                            <div class="three required fields">
+                            <div class="two required fields">
                                 <div class=" field">
                                     <label>Party Name</label>
                                     <input type="text" name="partyNameEdit" placeholder="Party Name" id="partyNameEdit">
@@ -164,7 +176,7 @@
                                     <input type="number" name="phoneNumberEdit" placeholder="Phone Number"
                                            id="phoneNumberEdit">
                                 </div>
-                                <div class="field required">
+                                {% comment %}   <div class="field required">
                                     <label>Party Group</label>
                                     <select class="ui fluid dropdown" id="partyGroupEdit">
                                         <option value="" hidden>Party Group</option>
@@ -174,15 +186,37 @@
 
 
                                     </select>
-                                </div>
+                                </div>{% endcomment %}
 
                             </div>
 
-                            <div class="one fields">
-                                <div class="sixteen wide field required">
+                            <div class="two fields">
+                                {% comment %}      <div class="sixteen wide field required">
                                     <label>Address</label>
                                     <input type="text" name="addressEdit" placeholder="Address"
                                            id="addressEdit">
+                                </div>{% endcomment %}
+                                <div class="field required">
+                                    <label>Party Group/Station</label>
+                                    <select class="ui fluid search dropdown" id="partyGroupEdit">
+                                        <option value="" hidden>Party Group/Station/Address</option>
+                                        {% for group in party_groups %}
+                                            <option value="{{ group.id }}">{{ group.name|capfirst }}</option>
+                                        {% endfor %}
+
+                                    </select>
+                                </div>
+                                <div class="field required">
+                                    <label>Assign To (Staff)</label>
+                                    <select class="ui fluid search dropdown" id="staffIDEdit">
+                                        <option value="" hidden>Assign To</option>
+                                        {% for staff in staffs %}
+                                            <option value="{{ staff.id }}">{{ staff.name|capfirst }}
+                                                - {{ staff.partyGroupID.name|capfirst }}  </option>
+                                        {% endfor %}
+
+
+                                    </select>
                                 </div>
 
                             </div>
@@ -230,10 +264,11 @@
             var partyName = $('#partyName').val();
             var phoneNumber = $('#phoneNumber').val();
             var partyGroup = $('#partyGroup').val();
-            var address = $('#address').val();
+            var staffID = $('#staffID').val();
+            {#var address = $('#address').val();#}
 
 
-            if (partyName === '' || phoneNumber === '' || partyGroup === '' || address === '') {
+            if (partyName === '' || phoneNumber === '' || partyGroup === '' || staffID === '') {
                 $('body')
                     .toast({
                         class: 'orange',
@@ -249,7 +284,8 @@
                 data.append('partyName', partyName);
                 data.append('phoneNumber', phoneNumber);
                 data.append('partyGroup', partyGroup);
-                data.append('address', address);
+                data.append('staffID', staffID);
+                {#data.append('address', address);#}
 
 
                 data.append('csrfmiddlewaretoken', csrfmiddlewaretoken);
@@ -335,7 +371,7 @@
                 {"name": "name", "targets": 0, "orderable": true},
                 {"name": "phone", "targets": 1, "orderable": true},
                 {"name": "partyGroupID.name", "targets": 2, "orderable": true},
-                {"name": "address", "targets": 3, "orderable": true},
+                {"name": "assignTo.name", "targets": 3, "orderable": true},
                 {"name": "datetime", "targets": 4, "orderable": true},
                 {"name": "action", "targets": 5, "orderable": false}
 
@@ -415,6 +451,7 @@
                     $('#phoneNumberEdit').val(response.data['PhoneNumber']);
                     $('#addressEdit').val(response.data['Address']);
                     $('#partyGroupEdit').val(response.data['PartyGroup']).change();
+                    $('#staffIDEdit').val(response.data['AssignTo']).change();
 
 
                 },
@@ -434,11 +471,12 @@
             var EditId = $('#EditId').val();
             var partyName = $('#partyNameEdit').val();
             var phoneNumber = $('#phoneNumberEdit').val();
-            var address = $('#addressEdit').val();
+            {#var address = $('#addressEdit').val();#}
             var partyGroup = $('#partyGroupEdit').val();
+            var staffID = $('#staffIDEdit').val();
 
 
-            if (partyName === '' || phoneNumber === '' || address === '' || partyGroup === '') {
+            if (partyName === '' || phoneNumber === '' || staffID === '' || partyGroup === '') {
                 $('body')
                     .toast({
                         class: 'orange',
@@ -452,9 +490,10 @@
 
                 data = new FormData();
                 data.append('partyGroup', partyGroup);
-                data.append('address', address);
+                {#data.append('address', address);#}
                 data.append('phoneNumber', phoneNumber);
                 data.append('partyName', partyName);
+                data.append('staffID', staffID);
                 data.append('EditId', EditId);
                 data.append('csrfmiddlewaretoken', csrfmiddlewaretoken);
 

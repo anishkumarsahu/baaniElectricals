@@ -114,8 +114,8 @@
 
 
                             </div>
-                            <div class="two required fields " id="notCashBlock" style="display: none">
-                                <div class=" field required">
+                            <div class="two required fields ">
+                                <div class=" field required" id="bankDiv" style="display: none">
                                     <label>Bank </label>
                                     <select class="ui dropdown search fluid " id="bank">
                                         <option value="">Select Bank</option>
@@ -129,7 +129,7 @@
                                 </div>
 
 
-                                <div class="eight wide field required">
+                                <div class="eight wide field required" id="detailDiv" style="display: none">
                                     <label>Detail</label>
                                     <input type="text" name="detail" id="detail" placeholder="Detail">
 
@@ -196,12 +196,16 @@
     <script>
         function isCash() {
             var mode = $('#paymentMode').val();
-            if (mode != 'Cash') {
-                $('#notCashBlock').css('display', "");
-
-
+            console.log(mode);
+            if (mode === 'Cash') {
+                $('#bankDiv').css('display', "none");
+                $('#detailDiv').css('display', "none");
+            } else if (mode === 'Cheque') {
+                $('#bankDiv').css('display', "none");
+                $('#detailDiv').css('display', "");
             } else {
-                $('#notCashBlock').css('display', "none");
+                $('#bankDiv').css('display', "");
+                $('#detailDiv').css('display', "");
             }
         }
 
