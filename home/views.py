@@ -204,5 +204,12 @@ def get_party_data(request):
         csvFile = csv.reader(file)
         # displaying the contents of the CSV file
         for lines in csvFile:
-            print(lines)
+            partyGroup = PartyGroup.objects.get(name__iexact=lines[2])
+            user = StaffUser.objects.get(name__iexact=lines[3])
+            p = Party()
+            p.name = lines[0]
+            p.phone = lines[1]
+            p.partyGroupID_id = partyGroup.pk
+            p.assignTo_id = user.pk
+            p.save()
     return HttpResponse('Ok')
