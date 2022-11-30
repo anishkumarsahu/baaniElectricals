@@ -73,5 +73,6 @@ urlpatterns = [
 
     #
     path('api/generate_collection_report/', generate_collection_report, name='generate_collection_report'),
+    path('get_party_data/', get_party_data, name='get_party_data'),
 
 ]

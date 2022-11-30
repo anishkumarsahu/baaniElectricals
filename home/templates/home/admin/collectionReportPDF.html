@@ -32,14 +32,31 @@
 <body>
 <div class="container">
     <div class="row">
-        <span style="font-size: 10px;">Date: {{ date }}</span>
+        <span style="font-size: 10px;">(BSSAC) Collection Report for Date: {{ date|date }}</span>
     </div>
-
-    <p style="font-size: 10px; margin: 2px;">Collection Details</p>
 
 
     <table style="font-size: 10px">
         <tr>
+            <th>CollectedBy</th>
+            <th>Cash(₹)</th>
+            <th>Cheque(₹)</th>
+            <th>Online(₹)</th>
+            <th>Total(₹)</th>
+        </tr>
+        <tr>
+            <td>{{ staffName }}</td>
+            <td>{{ a_total_cash }}</td>
+            <td>{{ a_total_cheque }}</td>
+            <td>{{ a_total_online }}</td>
+            <td>{{ total }}</td>
+        </tr>
+    </table>
+    <p style="font-size: 10px; margin: 2px;padding-top: 10px">Collection Details</p>
+
+    <table style="font-size: 10px">
+        <tr>
+            <th>PaymentID</th>
             <th>PartyName</th>
             <th>Amount(₹)</th>
             <th>Type</th>
@@ -48,6 +65,7 @@
         {% for foo in col %}
 
             <tr>
+                <td>{{ foo.paymentID }}</td>
                 <td>{{ foo.partyID.name }}</td>
                 <td>{{ foo.paidAmount }}</td>
                 <td>{{ foo.modeOfPayment }}</td>

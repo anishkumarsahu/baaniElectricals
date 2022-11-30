@@ -1,7 +1,8 @@
 import calendar
+import os
 from datetime import datetime, timedelta
 from functools import wraps
-
+import csv
 # import xlwt
 from activation.models import *
 from activation.views import is_activated
@@ -163,8 +164,10 @@ def homepage(request):
 
 def add_collection(request):
     instance = Bank.objects.filter(isDeleted__exact=False).order_by('name')
+    parties = Party.objects.filter(isDeleted__exact=False, assignTo__user_ID_id__exact=request.user.pk).order_by('name')
     context = {
-        'instance': instance
+        'instance': instance,
+        'parties': parties
     }
     return render(request, 'home/collection/addCollection.html', context)
 
@@ -178,7 +181,9 @@ def my_collection(request):
 # admin
 @is_activated()
 def collection_list(request):
+    staffs = StaffUser.objects.filter(isDeleted__exact=False).order_by('name')
     context = {
+        'staffs': staffs
     }
     return render(request, 'home/admin/collectionListByAdmin.html', context)
 
@@ -189,3 +194,15 @@ def take_collection(request):
         'instance': instance
     }
     return render(request, 'home/admin/takeCollection.html', context)
+
+
+def get_party_data(request):
+    module_dir = os.path.dirname(__file__)  # get current directory
+    file_path = os.path.join(module_dir, 'parties.csv')
+    with open(file_path, mode='r') as file:
+        # reading the CSV file
+        csvFile = csv.reader(file)
+        # displaying the contents of the CSV file
+        for lines in csvFile:
+            print(lines)
+    return HttpResponse('Ok')

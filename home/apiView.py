@@ -36,7 +36,6 @@ def deduct_location_balance(lat, lng):
 def send_whatsapp_message(number, message):
     msg = WhatsappMessage.objects.filter(isDeleted__exact=False).last()
     if msg.used < msg.balance:
-
         r = requests.get(
             "https://server.betablaster.in/api/send.php?number=91" + number + "&type=text&message=" + message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
             verify=False)
@@ -665,6 +664,8 @@ def add_collection_by_staff_api(request):
                 pass
 
             obj.save()
+            obj.paymentID = str(obj.pk).zfill(8)
+            obj.save()
 
             return JsonResponse({'message': 'success'}, safe=False)
         except:
@@ -705,8 +706,11 @@ def add_collection_by_admin_api(request):
             obj.collectionAddress = "From Shop."
 
             obj.save()
+            obj.paymentID = str(obj.pk).zfill(8)
+            obj.save()
             try:
-                msg = "Thank you for paying Rs. {}".format(obj.paidAmount)
+                msg = "Sir, Our Executive has collected the payment of {} Rs.{}/- from you, Kindly confirm the same. If you have any query Please feel free contact on this no. 7005607770. Thanks, BSS".format(
+                    obj.modeOfPayment, obj.paidAmount)
                 send_whatsapp_message(obj.partyID.phone, msg)
             except:
                 pass
@@ -717,8 +721,9 @@ def add_collection_by_admin_api(request):
 
 
 class CollectionByStaffListJson(BaseDatatableView):
-    order_columns = ['partyID.name', 'paidAmount', 'modeOfPayment', 'bankID.name', 'detail', 'remark',
-                     'collectionAddress', 'datetime']
+    order_columns = ['paymentID', 'partyID.name', 'paidAmount', 'modeOfPayment', 'datetime', 'bankID.name', 'detail',
+                     'remark',
+                     ]
 
     def get_initial_queryset(self):
         # user = StaffUser.objects.get(user_ID__id = self.request.pk)
@@ -731,7 +736,8 @@ class CollectionByStaffListJson(BaseDatatableView):
         search = self.request.GET.get('search[value]', None)
         if search:
             qs = qs.filter(
-                Q(partyID__name__icontains=search) | Q(paidAmount__icontains=search) | Q(
+                Q(paymentID__icontains=search) | Q(partyID__name__icontains=search) | Q(
+                    paidAmount__icontains=search) | Q(
                     modeOfPayment__icontains=search)
                 | Q(bankID__name__icontains=search) | Q(detail__icontains=search) | Q(detail__icontains=search) | Q(
                     remark__icontains=search)
@@ -757,14 +763,15 @@ class CollectionByStaffListJson(BaseDatatableView):
             except:
                 bank = '-'
             json_data.append([
+                escape(item.paymentID),
                 escape(item.partyID.name),
                 escape(item.paidAmount),
                 escape(item.modeOfPayment),
+                escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
                 escape(bank),
                 escape(item.detail),
                 escape(item.remark),
-                escape(item.collectionAddress),
-                escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
+
                 action,
 
             ])
@@ -773,17 +780,23 @@ class CollectionByStaffListJson(BaseDatatableView):
 
 
 class CollectionByAdminListJson(BaseDatatableView):
-    order_columns = ['partyID.name', 'paidAmount', 'modeOfPayment', 'bankID.name', 'detail', 'remark',
-                     'collectionAddress', 'collectedBy.name', 'datetime', 'isApproved', 'approvedBy.ane']
+    order_columns = ['paymentID', 'partyID.name', 'paidAmount', 'modeOfPayment', 'collectedBy.name', 'datetime',
+                     'isApproved', 'approvedBy.name', 'bankID.name', 'detail', 'collectionAddress', 'remark'
+                     ]
 
     def get_initial_queryset(self):
         try:
             startDateV = self.request.GET.get("startDate")
             endDateV = self.request.GET.get("endDate")
+            staffID = self.request.GET.get("staffID")
             sDate = datetime.strptime(startDateV, '%d/%m/%Y')
             eDate = datetime.strptime(endDateV, '%d/%m/%Y')
-            return Collection.objects.select_related().filter(isDeleted__exact=False, datetime__range=(
-            sDate.date(), eDate.date() + timedelta(days=1)))
+            if staffID == 'All':
+                return Collection.objects.select_related().filter(isDeleted__exact=False, datetime__range=(
+                    sDate.date(), eDate.date() + timedelta(days=1)))
+            else:
+                return Collection.objects.select_related().filter(isDeleted__exact=False, datetime__range=(
+                    sDate.date(), eDate.date() + timedelta(days=1)), collectedBy_id=int(staffID))
         except:
             return Collection.objects.select_related().filter(isDeleted__exact=False,
                                                               datetime__icontains=datetime.today().date())
@@ -792,7 +805,8 @@ class CollectionByAdminListJson(BaseDatatableView):
         search = self.request.GET.get('search[value]', None)
         if search:
             qs = qs.filter(
-                Q(partyID__name__icontains=search) | Q(paidAmount__icontains=search) | Q(
+                Q(paymentID__icontains=search) | Q(partyID__name__icontains=search) | Q(
+                    paidAmount__icontains=search) | Q(
                     modeOfPayment__icontains=search)
                 | Q(bankID__name__icontains=search) | Q(detail__icontains=search) | Q(detail__icontains=search) | Q(
                     remark__icontains=search)
@@ -835,17 +849,18 @@ class CollectionByAdminListJson(BaseDatatableView):
                 </div>'''
 
             json_data.append([
+                escape(item.paymentID),
                 escape(item.partyID.name),
                 escape(item.paidAmount),
                 escape(item.modeOfPayment),
-                escape(bank),
-                escape(item.detail),
-                escape(item.remark),
-                escape(item.collectionAddress),
                 collectedBy,
                 escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
                 isApproved,
                 approvedBy,
+                escape(bank),
+                escape(item.detail),
+                escape(item.collectionAddress),
+                escape(item.remark),
                 action,
 
             ])
@@ -879,7 +894,9 @@ def approve_collection(request):
             obj.approvedBy_id = user.pk
             obj.save()
             try:
-                msg = "Thank you for paying Rs. {}".format(obj.paidAmount)
+                msg = "Sir, Our Executive has collected the payment of {} Rs.{}/- from you, Kindly confirm the same. If you have any query Please feel free contact on this no. 7005607770. Thanks, BSS".format(
+                    obj.modeOfPayment, obj.paidAmount)
+
                 send_whatsapp_message(obj.partyID.phone, msg)
             except:
                 pass
@@ -960,14 +977,39 @@ def get_staff_dashboard_report_api(request):
 
 def generate_collection_report(request):
     cDate = request.GET.get('cDate')
+    staffID = request.GET.get('staffID')
     colDate = datetime.strptime(cDate, '%d/%m/%Y')
-    col = Collection.objects.select_related().filter(datetime__icontains=colDate.date(),
-                                                     isApproved__exact=True,
-                                                     isDeleted__exact=False)
+    a_total_cash = 0.0
+    a_total_cheque = 0.0
+    a_total_online = 0.0
+    if staffID == 'All':
+        col = Collection.objects.select_related().filter(datetime__icontains=colDate.date(),
+                                                         isApproved__exact=True,
+                                                         isDeleted__exact=False).order_by('collectedBy__name')
+        staffName = 'All'
+    else:
+        col = Collection.objects.select_related().filter(datetime__icontains=colDate.date(),
+                                                         isApproved__exact=True,
+                                                         isDeleted__exact=False, collectedBy_id=int(staffID)).order_by(
+            'collectedBy__name')
+        user = StaffUser.objects.get(pk=int(staffID))
+        staffName = user.name + ' - ' + user.partyGroupID.name
 
+    for a in col:
+        if a.modeOfPayment == 'Cash':
+            a_total_cash = a_total_cash + a.paidAmount
+        if a.modeOfPayment == 'Cheque':
+            a_total_cheque = a_total_cheque + a.paidAmount
+        if a.modeOfPayment == 'Online':
+            a_total_online = a_total_online + a.paidAmount
     context = {
         'date': colDate,
         'col': col,
+        'staffName': staffName,
+        'a_total_cash': a_total_cash,
+        'a_total_cheque': a_total_cheque,
+        'a_total_online': a_total_online,
+        'total': a_total_cash + a_total_cheque + a_total_online
     }
 
     response = HttpResponse(content_type="application/pdf")

@@ -53,14 +53,14 @@
                                style="margin-top: 5px;width: 100%">
                             <thead>
                             <tr>
+                                <th>PaymentID</th>
                                 <th>Party Name</th>
                                 <th>Amount</th>
                                 <th>Collection Mode</th>
+                                <th>Added On</th>
                                 <th>Bank</th>
                                 <th>Detail</th>
                                 <th>Remark</th>
-                                <th>Location</th>
-                                <th>Added On</th>
                                 <th>Action</th>
                             </tr>
                             </thead>
@@ -171,18 +171,18 @@
                       }{% endcomment %}
             ],
             "columnDefs": [
-                {"name": "partyID.name", "targets": 0, "orderable": false},
-                {"name": "paidAmount", "targets": 1, "orderable": true},
-                {"name": "modeOfPayment", "targets": 2, "orderable": true},
-                {"name": "bankID.name", "targets": 3, "orderable": true},
-                {"name": "detail", "targets": 4, "orderable": true},
-                {"name": "remark", "targets": 5, "orderable": true},
-                {"name": "collectionAddress", "targets": 6, "orderable": true},
-                {"name": "datetime", "targets": 7, "orderable": true},
+                {"name": "paymentID", "targets": 0, "orderable": false},
+                {"name": "partyID.name", "targets": 1, "orderable": false},
+                {"name": "paidAmount", "targets": 2, "orderable": true},
+                {"name": "modeOfPayment", "targets": 3, "orderable": true},
+                {"name": "datetime", "targets": 4, "orderable": true},
+                {"name": "bankID.name", "targets": 5, "orderable": true},
+                {"name": "detail", "targets": 6, "orderable": true},
+                {"name": "remark", "targets": 7, "orderable": true},
                 {"name": "action", "targets": 8, "orderable": false},
 
             ],
-            aaSorting: [[7, 'desc']],
+            aaSorting: [[4, 'desc']],
             "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
             "pageLength": 10,
             "processing": true,

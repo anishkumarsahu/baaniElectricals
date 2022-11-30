@@ -99,6 +99,7 @@ class Party(models.Model):
 
 class Collection(models.Model):
     partyID = models.ForeignKey(Party, blank=True, null=True, on_delete=models.CASCADE)
+    paymentID = models.CharField(max_length=200, blank=True, null=True)
     modeOfPayment = models.CharField(max_length=200, default='Cash')
     paidAmount = models.FloatField(default=0.0)
     bankID = models.ForeignKey(Bank, blank=True, null=True, on_delete=models.CASCADE)

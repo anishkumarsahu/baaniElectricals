@@ -89,8 +89,30 @@
                         <form class="ui  small form " id="addForm">{% csrf_token %}
                             <div class="one fields">
                                 <div class="sixteen wide field required">
+                                    <label>Party Assigned To</label>
+                                    <select class="ui search dropdown" id="partyAssign" onchange="partyAssignType()">
+                                        <option value="Me">Me</option>
+                                        <option value="All">All</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="one fields" id="partyMe">
+                                <div class="sixteen wide field required">
                                     <label>Party Name</label>
-                                    <select class="ui clearable search dropdown" id="party">
+                                    <select class="ui clearable search dropdown" id="partyMeAll">
+                                        <option value="">Search By Party Name</option>
+                                        {% for party in parties %}
+                                            <option value="{{ party.name }} - {{ party.partyGroupID.name }} @ {{ party.pk }}">{{ party.name }}
+                                                - {{ party.partyGroupID.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                            </div>
+                            <div class="one fields" id="partyAll" style="display: none">
+                                <div class="sixteen wide field required">
+                                    <label>Party Name</label>
+                                    <select class="ui clearable search dropdown" id="partyAllAll">
                                         <option value="">Search By Party Name</option>
                                     </select>
                                 </div>
@@ -114,8 +136,8 @@
 
 
                             </div>
-                            <div class="two required fields " id="notCashBlock" style="display: none">
-                                <div class=" field required">
+                            <div class="two required fields ">
+                                <div class=" field required" id="bankDiv" style="display: none">
                                     <label>Bank </label>
                                     <select class="ui dropdown search fluid " id="bank">
                                         <option value="">Select Bank</option>
@@ -129,7 +151,7 @@
                                 </div>
 
 
-                                <div class="eight wide field required">
+                                <div class="eight wide field required" id="detailDiv" style="display: none">
                                     <label>Detail</label>
                                     <input type="text" name="detail" id="detail" placeholder="Detail">
 
@@ -194,20 +216,37 @@
     </script>
 
     <script>
+
+        function partyAssignType() {
+            var partyAssign = $('#partyAssign').val();
+            if (partyAssign === 'Me') {
+                $('#partyAll').css('display', "none");
+                $('#partyMe').css('display', "");
+            } else {
+                $('#partyAll').css('display', "");
+                $('#partyMe').css('display', "none");
+            }
+
+
+        }
+
         function isCash() {
             var mode = $('#paymentMode').val();
-            if (mode != 'Cash') {
-                $('#notCashBlock').css('display', "");
-
-
+            console.log(mode);
+            if (mode === 'Cash') {
+                $('#bankDiv').css('display', "none");
+                $('#detailDiv').css('display', "none");
+            } else if (mode === 'Cheque') {
+                $('#bankDiv').css('display', "none");
+                $('#detailDiv').css('display', "");
             } else {
-                $('#notCashBlock').css('display', "none");
+                $('#bankDiv').css('display', "");
+                $('#detailDiv').css('display', "");
             }
         }
 
         function salesSave() {
             showLoading();
-            var party = $('#party').val();
             var paymentMode = $('#paymentMode').val();
             var amountPaid = $('#amountPaid').val();
             var bank = $('#bank').val();
@@ -215,6 +254,12 @@
             var remark = $('#remark').val();
             var lat = $('#lat').val();
             var lng = $('#lng').val();
+            var partyAssign = $('#partyAssign').val();
+            if (partyAssign === 'Me') {
+                var party = $('#partyMeAll').val();
+            } else {
+                var party = $('#partyAllAll').val();
+            }
 
             if (party === '' || paymentMode === '' || amountPaid === ''
             ) {
@@ -349,12 +394,12 @@
 
                 success: function (response) {
 
-                    $('#party').html('');
-                    $('#party').append(' <option value="">Search By Party Name</option>');
+                    $('#partyAllAll').html('');
+                    $('#partyAllAll').append(' <option value="">Search By Party Name</option>');
                     var j;
                     for (j = 0; j < response.data.length; j++) {
 
-                        $('#party').append('<option value="' + response.data[j]['Detail'] + '" >' + response.data[j]['DisplayDetail'] + '</option>');
+                        $('#partyAllAll').append('<option value="' + response.data[j]['Detail'] + '" >' + response.data[j]['DisplayDetail'] + '</option>');
 
                     }
 
