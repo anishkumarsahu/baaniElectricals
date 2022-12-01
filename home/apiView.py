@@ -71,7 +71,10 @@ def add_staff_api(request):
             staff.group = UserGroup
             staff.isActive = UserStatus
             staff.userPassword = UserPwd
-            staff.partyGroupID_id = int(PartyGroup)
+            try:
+                staff.partyGroupID_id = int(PartyGroup)
+            except:
+                pass
             staff.save()
             username = 'USER' + get_random_string(length=3, allowed_chars='1234567890')
             while User.objects.select_related().filter(username__exact=username).count() > 0:
@@ -105,7 +108,7 @@ def add_staff_api(request):
 
 #
 class StaffUserListJson(BaseDatatableView):
-    order_columns = ['photo', 'name', 'username', 'userPassword', 'group', 'partyGroupID.name', 'phone', 'address',
+    order_columns = ['photo', 'name', 'username', 'userPassword', 'group',  'phone', 'address',
                      'isActive', 'datetime']
 
     def get_initial_queryset(self):
@@ -117,7 +120,7 @@ class StaffUserListJson(BaseDatatableView):
         search = self.request.GET.get('search[value]', None)
         if search:
             qs = qs.filter(
-                Q(name__icontains=search) | Q(username__icontains=search) | Q(partyGroupID__name__icontains=search)
+                Q(name__icontains=search) | Q(username__icontains=search)
                 | Q(group__icontains=search) | Q(phone__icontains=search)
                 | Q(address__icontains=search) | Q(isActive__icontains=search)
                 | Q(datetime__icontains=search)
@@ -143,7 +146,6 @@ class StaffUserListJson(BaseDatatableView):
                 escape(item.username),
                 escape(item.userPassword),
                 escape(item.group),
-                escape(item.partyGroupID.name),
                 escape(item.phone),
                 escape(item.address),
                 escape(item.isActive),
@@ -177,7 +179,10 @@ def get_staff_user_detail(request):
     id = request.GET.get('id')
     C_User = get_object_or_404(StaffUser, id=id)
     # instance = BankDetails.objects.get(companyID_id=company.pk)
-
+    try:
+        party = C_User.partyGroupID.id
+    except:
+        party = 'N/A'
     data = {
         'ID': C_User.pk,
         'UserName': C_User.name,
@@ -186,7 +191,7 @@ def get_staff_user_detail(request):
         'UserEmail': C_User.email,
         'UserPassword': C_User.userPassword,
         'UserGroup': C_User.group,
-        'PartyGroup': C_User.partyGroupID.id,
+        'PartyGroup': party,
         'IsActive': C_User.isActive,
         'ImgUrl': C_User.photo.medium.url,
         'IDUrl': C_User.idProof.medium.url
@@ -226,7 +231,10 @@ def edit_staff_api(request):
             staff.email = UserEmail
             staff.address = UserAddress
             staff.group = UserGroup
-            staff.partyGroupID_id = PartyGroup
+            try:
+                staff.partyGroupID_id = int(PartyGroup)
+            except:
+                pass
             staff.isActive = UserStatus
             staff.userPassword = UserPwd
             staff.save()
@@ -488,9 +496,15 @@ def add_party_api(request):
             obj = Party()
             obj.name = partyName
             obj.phone = phoneNumber
-            obj.assignTo_id = int(staffID)
+            try:
+                obj.assignTo_id = int(staffID)
+            except:
+                pass
             # obj.address = address
-            obj.partyGroupID_id = int(partyGroup)
+            try:
+                obj.partyGroupID_id = int(partyGroup)
+            except:
+                pass
             obj.save()
             cache.delete('PartyList')
             return JsonResponse({'message': 'success'}, safe=False)
@@ -526,12 +540,19 @@ class PartyListJson(BaseDatatableView):
                   <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
                     <i class="trash alternate icon"></i>
                   </button></td>'''.format(item.pk, item.pk),
-
+            try:
+                party = item.partyGroupID.name
+            except:
+                party = 'N/A'
+            try:
+                usr = item.assignTo.name
+            except:
+                usr = 'N/A'
             json_data.append([
                 escape(item.name),
                 escape(item.phone),
-                escape(item.partyGroupID.name),
-                escape(item.assignTo.name),
+                party,
+                usr,
                 escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
                 action,
 
@@ -545,13 +566,22 @@ def get_party_detail(request):
     instance = get_object_or_404(Party, id=id)
     # instance = BankDetails.objects.get(companyID_id=company.pk)
 
+    try:
+        party = instance.partyGroupID.pk
+    except:
+        party = 'N/A'
+
+    try:
+        usr = instance.assignTo.pk
+    except:
+        usr = 'N/A'
     data = {
         'ID': instance.pk,
         'Name': instance.name,
         'PhoneNumber': instance.phone,
         'Address': instance.address,
-        'PartyGroup': instance.partyGroupID.id,
-        'AssignTo': instance.assignTo.id,
+        'PartyGroup': party,
+        'AssignTo': usr,
     }
     return JsonResponse({'data': data}, safe=False)
 
@@ -571,9 +601,14 @@ def edit_party_api(request):
             obj.name = name
             obj.phone = phoneNumber
             # obj.address = address
-            obj.partyGroupID_id = int(partyGroup)
-            obj.assignTo_id = int(staffID)
-
+            try:
+                obj.partyGroupID_id = int(partyGroup)
+            except:
+                pass
+            try:
+                obj.assignTo_id = int(staffID)
+            except:
+                pass
             obj.save()
             cache.delete('PartyList')
             return JsonResponse({'message': 'success'}, safe=False)
@@ -607,13 +642,17 @@ def list_party_api(request):
                 'name')
 
             for obj in obj_list:
+                try:
+                    party = obj.partyGroupID.name
+                except:
+                    party = 'N/A'
                 obj_dic = {
                     'ID': obj.pk,
                     'Name': obj.name,
-                    'PartyGroup': obj.partyGroupID.name,
+                    'PartyGroup': party,
                     'Phone': obj.phone,
-                    'Detail': obj.name + ' - ' + obj.partyGroupID.name + ' @ ' + str(obj.pk),
-                    'DisplayDetail': obj.name + ' - ' + obj.partyGroupID.name
+                    'Detail': obj.name + ' - ' + party + ' @ ' + str(obj.pk),
+                    'DisplayDetail': obj.name + ' - ' + party
                 }
                 o_list.append(obj_dic)
             cache.set('PartyList', o_list, timeout=None)

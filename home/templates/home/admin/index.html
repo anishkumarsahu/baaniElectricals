@@ -458,7 +458,26 @@
 
 <script>
     $.fn.DataTable.ext.pager.numbers_length = 4;
+$(document).ready(function(){
+  // initialize the form an fields
+  $('.ui.form')
+  .form({
+    fields: {
+      fileInput:{
+        identifier: 'name',
+        rules: [
+          {
+            type : 'empty'
+          }
+        ]
+      }
+    }
+  });
+});
 
+function myOwnReset(){
+  $('.ui.form').form('reset');
+}
 </script>
 
 

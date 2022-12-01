@@ -51,8 +51,8 @@ class StaffUser(models.Model):
     username = models.CharField(max_length=200, blank=True, null=True)
     userPassword = models.CharField(max_length=200, blank=True, null=True)
     group = models.CharField(max_length=200, blank=True, null=True)
-    partyGroupID = models.ForeignKey(PartyGroup, blank=True, null=True, on_delete=models.CASCADE)
-    user_ID = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE)
+    partyGroupID = models.ForeignKey(PartyGroup, blank=True, null=True, on_delete=models.SET_NULL)
+    user_ID = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     isActive = models.CharField(max_length=200, blank=True, null=True)
     datetime = models.DateTimeField(auto_now_add=True, auto_now=False)
     lastUpdatedOn = models.DateTimeField(auto_now_add=False, auto_now=True)
@@ -84,8 +84,8 @@ class Party(models.Model):
     name = models.CharField(max_length=200, blank=True, null=True)
     phone = models.CharField(max_length=200, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
-    partyGroupID = models.ForeignKey(PartyGroup, blank=True, null=True, on_delete=models.CASCADE)
-    assignTo = models.ForeignKey(StaffUser, blank=True, null=True, on_delete=models.CASCADE)
+    partyGroupID = models.ForeignKey(PartyGroup, blank=True, null=True, on_delete=models.SET_NULL)
+    assignTo = models.ForeignKey(StaffUser, blank=True, null=True, on_delete=models.SET_NULL)
     datetime = models.DateTimeField(auto_now_add=True, auto_now=False)
     lastUpdatedOn = models.DateTimeField(auto_now_add=False, auto_now=True)
     isDeleted = models.BooleanField(default=False)
@@ -98,21 +98,21 @@ class Party(models.Model):
 
 
 class Collection(models.Model):
-    partyID = models.ForeignKey(Party, blank=True, null=True, on_delete=models.CASCADE)
+    partyID = models.ForeignKey(Party, blank=True, null=True, on_delete=models.SET_NULL)
     paymentID = models.CharField(max_length=200, blank=True, null=True)
     modeOfPayment = models.CharField(max_length=200, default='Cash')
     paidAmount = models.FloatField(default=0.0)
-    bankID = models.ForeignKey(Bank, blank=True, null=True, on_delete=models.CASCADE)
+    bankID = models.ForeignKey(Bank, blank=True, null=True, on_delete=models.SET_NULL)
     detail = models.CharField(max_length=500, blank=True, null=True)
     remark = models.CharField(max_length=500, blank=True, null=True)
     collectionAddress = models.TextField(blank=True, null=True)
-    collectedBy = models.ForeignKey(StaffUser, blank=True, null=True, on_delete=models.CASCADE,
+    collectedBy = models.ForeignKey(StaffUser, blank=True, null=True, on_delete=models.SET_NULL,
                                     related_name='CollectedBy')
     approvedOn = models.DateTimeField(blank=True, null=True)
     latitude = models.CharField(max_length=200, default='0.0')
     longitude = models.CharField(max_length=200, default='0.0')
     isApproved = models.BooleanField(default=False)
-    approvedBy = models.ForeignKey(StaffUser, blank=True, null=True, on_delete=models.CASCADE,
+    approvedBy = models.ForeignKey(StaffUser, blank=True, null=True, on_delete=models.SET_NULL,
                                    related_name='ApprovedBy')
     datetime = models.DateTimeField(auto_now_add=True, auto_now=False)
     lastUpdatedOn = models.DateTimeField(auto_now_add=False, auto_now=True)

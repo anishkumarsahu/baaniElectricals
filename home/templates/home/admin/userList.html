@@ -121,7 +121,6 @@
                                 <th>Username</th>
                                 <th>Password</th>
                                 <th>Group</th>
-                                <th>PartyGroup</th>
                                 <th>PhoneNo.</th>
                                 <th>Address</th>
                                 <th>IsActive?</th>
@@ -242,7 +241,7 @@
                                     </div>
                                     <div class="field required">
                                         <label>Party Group</label>
-                                        <select class="ui fluid dropdown" id="PartyGroup">
+                                        <select class="ui fluid clearable search dropdown" id="PartyGroup">
                                             <option value="" hidden>Party Group</option>
                                             {% for group in party_groups %}
                                                 <option value="{{ group.id }}">{{ group.name|capfirst }}</option>
@@ -549,6 +548,7 @@
 
         function showUserModal() {
             $('#myModalUser').modal('show');
+            myOwnReset();
         }
 
         function EditUser() {
@@ -571,7 +571,7 @@
 
 
             if (CompanyUserName === '' || UserPhoneNo === '' || imageUpload === undefined || imageUploadID === undefined ||
-                UserAddress === '' || UserPwd === '' || ConfirmPwd === '' || UserGroup === '' || UserStatus === '' || PartyGroup === '') {
+                UserAddress === '' || UserPwd === '' || ConfirmPwd === '' || UserGroup === '' || UserStatus === '') {
                 $('body')
                     .toast({
                         class: 'orange',
@@ -676,7 +676,7 @@
             buttons: [{
                 extend: 'excel',
                 exportOptions: {
-                    columns: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+                    columns: [1, 2, 3, 4, 5, 6, 7, 8]
                 }
             }
                 {% comment %}      , {
@@ -692,14 +692,13 @@
                 {"name": "username", "targets": 2, "orderable": true},
                 {"name": "userPassword", "targets": 3, "orderable": true},
                 {"name": "group", "targets": 4, "orderable": true},
-                {"name": "partyGroupID.name", "targets": 5, "orderable": true},
-                {"name": "phone", "targets": 6, "orderable": true},
-                {"name": "address", "targets": 7, "orderable": true},
-                {"name": "isActive", "targets": 8, "orderable": true},
-                {"name": "datetime", "targets": 9, "orderable": true},
-                {"name": "action", "targets": 10, "orderable": false}
+                {"name": "phone", "targets": 5, "orderable": true},
+                {"name": "address", "targets": 6, "orderable": true},
+                {"name": "isActive", "targets": 7, "orderable": true},
+                {"name": "datetime", "targets": 8, "orderable": true},
+                {"name": "action", "targets": 9, "orderable": false}
             ],
-            aaSorting: [[9, 'desc']],
+            aaSorting: [[8, 'desc']],
             "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
             "pageLength": 10,
             "processing": true,
@@ -764,6 +763,7 @@
         }
 
         function GetUserDetails(id) {
+            myOwnReset();
             $('#userModal').modal('show');
             $.ajax({
                 type: 'get',
@@ -906,7 +906,25 @@
 
         }
 
+$(document).ready(function(){
+  $('.ui.form')
+  .form({
+    fields: {
+      fileInput:{
+        identifier: 'name',
+        rules: [
+          {
+            type : 'empty'
+          }
+        ]
+      }
+    }
+  });
+});
 
+function myOwnReset(){
+  $('.ui.form').form('reset');
+}
     </script>
 
 {% endblock %}

@@ -95,7 +95,7 @@
                                     </div>{% endcomment %}
                                     <div class="field required">
                                         <label>Party Group/Station</label>
-                                        <select class="ui fluid search dropdown" id="partyGroup">
+                                        <select class="ui fluid search clearable dropdown" id="partyGroup">
                                             <option value="" hidden>Party Group/Station/Address</option>
                                             {% for group in party_groups %}
                                                 <option value="{{ group.id }}">{{ group.name|capfirst }}</option>
@@ -105,7 +105,7 @@
                                     </div>
                                     <div class="field required">
                                         <label>Assign To (Staff)</label>
-                                        <select class="ui fluid search dropdown" id="staffID">
+                                        <select class="ui fluid search clearable dropdown" id="staffID">
                                             <option value="" hidden>Assign To</option>
                                             {% for staff in staffs %}
                                                 <option value="{{ staff.id }}">{{ staff.name|capfirst }}
@@ -198,7 +198,7 @@
                                 </div>{% endcomment %}
                                 <div class="field required">
                                     <label>Party Group/Station</label>
-                                    <select class="ui fluid search dropdown" id="partyGroupEdit">
+                                    <select class="ui fluid search clearable dropdown" id="partyGroupEdit">
                                         <option value="" hidden>Party Group/Station/Address</option>
                                         {% for group in party_groups %}
                                             <option value="{{ group.id }}">{{ group.name|capfirst }}</option>
@@ -208,7 +208,7 @@
                                 </div>
                                 <div class="field required">
                                     <label>Assign To (Staff)</label>
-                                    <select class="ui fluid search dropdown" id="staffIDEdit">
+                                    <select class="ui fluid search clearable dropdown" id="staffIDEdit">
                                         <option value="" hidden>Assign To</option>
                                         {% for staff in staffs %}
                                             <option value="{{ staff.id }}">{{ staff.name|capfirst }}
@@ -253,6 +253,7 @@
 
         function showUserModal() {
             $('#myModalUser').modal('show');
+            myOwnReset();
         }
 
         function EditUser() {
@@ -268,7 +269,7 @@
             {#var address = $('#address').val();#}
 
 
-            if (partyName === '' || phoneNumber === '' || partyGroup === '' || staffID === '') {
+            if (partyName === '' || phoneNumber === '') {
                 $('body')
                     .toast({
                         class: 'orange',
@@ -441,11 +442,13 @@
         }
 
         function GetUserDetails(id) {
+            myOwnReset();
             $('#userModal').modal('show');
             $.ajax({
                 type: 'get',
                 url: '{% url "homeApp:get_party_detail"%}?id=' + id,
                 success: function (response) {
+                    console.log(response)
                     $('#EditId').val(response.data['ID']);
                     $('#partyNameEdit').val(response.data['Name']);
                     $('#phoneNumberEdit').val(response.data['PhoneNumber']);
@@ -476,7 +479,7 @@
             var staffID = $('#staffIDEdit').val();
 
 
-            if (partyName === '' || phoneNumber === '' || staffID === '' || partyGroup === '') {
+            if (partyName === '' || phoneNumber === '') {
                 $('body')
                     .toast({
                         class: 'orange',

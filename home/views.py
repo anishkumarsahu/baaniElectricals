@@ -198,18 +198,27 @@ def take_collection(request):
 
 def get_party_data(request):
     module_dir = os.path.dirname(__file__)  # get current directory
-    file_path = os.path.join(module_dir, 'parties.csv')
+    file_path = os.path.join(module_dir, 'PartiesCSV.csv')
     with open(file_path, mode='r') as file:
         # reading the CSV file
         csvFile = csv.reader(file)
         # displaying the contents of the CSV file
         for lines in csvFile:
-            partyGroup = PartyGroup.objects.get(name__iexact=lines[2])
-            user = StaffUser.objects.get(name__iexact=lines[3])
+            try:
+                partyGroup = PartyGroup.objects.get(name__iexact=lines[2])
+                party = partyGroup.pk
+            except:
+                party = None
+
+            try:
+                user = StaffUser.objects.get(name__iexact=lines[3])
+                usr = user.pk
+            except:
+                usr = None
             p = Party()
             p.name = lines[0]
             p.phone = lines[1]
-            p.partyGroupID_id = partyGroup.pk
-            p.assignTo_id = user.pk
+            p.partyGroupID_id = party
+            p.assignTo_id = usr
             p.save()
     return HttpResponse('Ok')
