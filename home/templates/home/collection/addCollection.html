@@ -89,30 +89,51 @@
                         <form class="ui  small form " id="addForm">{% csrf_token %}
                             <div class="one fields">
                                 <div class="sixteen wide field required">
-                                    <label>Party Assigned To</label>
+                                    <label>Filter Parties By</label>
                                     <select class="ui search dropdown" id="partyAssign" onchange="partyAssignType()">
-                                        <option value="Me">Me</option>
                                         <option value="All">All</option>
+                                        <option value="Executive">Executive</option>
+                                        <option value="Station">Station</option>
                                     </select>
                                 </div>
                             </div>
-                            <div class="one fields" id="partyMe">
+                            <div class="one fields" id="ExecutiveList" style="display: none">
                                 <div class="sixteen wide field required">
-                                    <label>Party Name</label>
-                                    <select class="ui clearable search dropdown" id="partyMeAll">
-                                        <option value="">Search By Party Name</option>
-                                        {% for party in parties %}
-                                            <option value="{{ party.name }} - {{ party.partyGroupID.name }} @ {{ party.pk }}">{{ party.name }}
-                                                - {{ party.partyGroupID.name }}</option>
+                                    <label>Select Executive</label>
+                                    <select class="ui clearable search dropdown" id="executive" onchange="getPartyListByStationOrStaff('e')">
+                                        <option value="">Search By Executive</option>
+                                        {% for obj in staffs %}
+                                            <option value="{{ obj.pk }}">{{ obj.name|capfirst }}</option>
                                         {% endfor %}
                                     </select>
                                 </div>
 
                             </div>
-                            <div class="one fields" id="partyAll" style="display: none">
+                           <div class="one fields" id="StationList" style="display: none">
+                                <div class="sixteen wide field required">
+                                    <label>Select Station</label>
+                                    <select class="ui clearable search dropdown" id="station" onchange="getPartyListByStationOrStaff('s')">
+                                        <option value="">Search By Station</option>
+                                        {% for obj in p_groups %}
+                                            <option value="{{ obj.pk }}">{{ obj.name|capfirst }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                            </div>
+                            <div class="one fields" id="partyAll" >
                                 <div class="sixteen wide field required">
                                     <label>Party Name</label>
                                     <select class="ui clearable search dropdown" id="partyAllAll">
+                                        <option value="">Search By Party Name</option>
+                                    </select>
+                                </div>
+
+                            </div>
+                         <div class="one fields" id="partyFilter" style="display: none;">
+                                <div class="sixteen wide field required">
+                                    <label>Party Name</label>
+                                    <select class="ui clearable search dropdown" id="partyAllFilter">
                                         <option value="">Search By Party Name</option>
                                     </select>
                                 </div>
@@ -124,14 +145,15 @@
                                     <select class="ui dropdown search fluid " id="paymentMode" onchange="isCash()">
                                         <option value="">Select Mode Of Payment</option>
                                         <option value="Cash">Cash</option>
+                                       <option value="Cheque CC">Cheque CC</option>
                                         <option value="Cheque">Cheque</option>
                                         <option value="Online">Online</option>
                                     </select>
                                 </div>
 
                                 <div class="eight wide field required">
-                                    <label>Amount Paid (₹)</label>
-                                    <input type="number" name="amountPaid" id="amountPaid" placeholder="Amount Paid">
+                                    <label>Amount Paid (₹ <a class="ui violet label" id="money">0.0</a> )</label>
+                                    <input type="number" name="amountPaid" id="amountPaid" placeholder="Amount Paid" onkeyup="toIndianCurrency()">
                                 </div>
 
 
@@ -219,12 +241,21 @@
 
         function partyAssignType() {
             var partyAssign = $('#partyAssign').val();
-            if (partyAssign === 'Me') {
-                $('#partyAll').css('display', "none");
-                $('#partyMe').css('display', "");
-            } else {
+            if (partyAssign === 'All') {
                 $('#partyAll').css('display', "");
-                $('#partyMe').css('display', "none");
+                $('#ExecutiveList').css('display', "none");
+                $('#StationList').css('display', "none");
+                $('#partyFilter').css('display', "none");
+            } else if (partyAssign === 'Executive') {
+                $('#partyAll').css('display', "none");
+                $('#ExecutiveList').css('display', "");
+                $('#StationList').css('display', "none");
+                 $('#partyFilter').css('display', "");
+            }else if (partyAssign === 'Station') {
+                $('#partyAll').css('display', "none");
+                $('#ExecutiveList').css('display', "none");
+                $('#StationList').css('display', "");
+                 $('#partyFilter').css('display', "");
             }
 
 
@@ -233,7 +264,7 @@
         function isCash() {
             var mode = $('#paymentMode').val();
             console.log(mode);
-            if (mode === 'Cash') {
+            if (mode === 'Cash' || mode === 'Cheque CC') {
                 $('#bankDiv').css('display', "none");
                 $('#detailDiv').css('display', "none");
             } else if (mode === 'Cheque') {
@@ -255,10 +286,10 @@
             var lat = $('#lat').val();
             var lng = $('#lng').val();
             var partyAssign = $('#partyAssign').val();
-            if (partyAssign === 'Me') {
-                var party = $('#partyMeAll').val();
-            } else {
+            if (partyAssign === 'All') {
                 var party = $('#partyAllAll').val();
+            } else {
+                var party = $('#partyAllFilter').val();
             }
 
             if (party === '' || paymentMode === '' || amountPaid === ''
@@ -417,5 +448,79 @@
 
 
         }
+
+
+        function getPartyListByStationOrStaff(ch) {
+            if(ch === 'e'){
+              var executive = $('#executive').val();
+              var station = 'All'
+            $.ajax({
+                type: 'get',
+                url: "{% url 'homeApp:list_party_by_executive_or_station_api' %}?executive=" + executive + "&station=" + station,
+                success: function (response) {
+
+                    $('#partyAllFilter').html('');
+                    $('#partyAllFilter').append(' <option value="">Search By Party Name</option>');
+                    var j;
+                    for (j = 0; j < response.data.length; j++) {
+
+                        $('#partyAllFilter').append('<option value="' + response.data[j]['Detail'] + '" >' + response.data[j]['DisplayDetail'] + '</option>');
+
+                    }
+
+                },
+
+                error: function () {
+                    $('body')
+                        .toast({
+                            class: 'error',
+                            message: 'An error occurred !'
+                        })
+                    ;
+                }
+            });
+
+
+
+            }
+            if(ch === 's'){
+              var executive = 'All'
+              var station = $('#station').val();
+            $.ajax({
+                type: 'get',
+                url: "{% url 'homeApp:list_party_by_executive_or_station_api' %}?executive=" + executive + "&station=" + station,
+                success: function (response) {
+
+                    $('#partyAllFilter').html('');
+                    $('#partyAllFilter').append(' <option value="">Search By Party Name</option>');
+                    var j;
+                    for (j = 0; j < response.data.length; j++) {
+
+                        $('#partyAllFilter').append('<option value="' + response.data[j]['Detail'] + '" >' + response.data[j]['DisplayDetail'] + '</option>');
+
+                    }
+
+                },
+
+                error: function () {
+                    $('body')
+                        .toast({
+                            class: 'error',
+                            message: 'An error occurred !'
+                        })
+                    ;
+                }
+            });
+
+
+
+            }
+
+        }
+                const toIndianCurrency = () => {
+            let  num = $('#amountPaid').val();
+   const curr = num.replace(/(\d)(?=(\d\d)+\d$)/g, "$1,")
+$('#money').html(curr);
+};
     </script>
 {% endblock %}

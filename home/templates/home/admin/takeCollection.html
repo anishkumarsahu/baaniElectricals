@@ -102,14 +102,17 @@
                                     <select class="ui dropdown search fluid " id="paymentMode" onchange="isCash()">
                                         <option value="">Select Mode Of Payment</option>
                                         <option value="Cash">Cash</option>
+                                        <option value="Cheque CC">Cheque CC</option>
                                         <option value="Cheque">Cheque</option>
                                         <option value="Online">Online</option>
                                     </select>
                                 </div>
 
                                 <div class="eight wide field required">
-                                    <label>Amount Paid (₹)</label>
-                                    <input type="number" name="amountPaid" id="amountPaid" placeholder="Amount Paid">
+                                    <label>Amount Paid (₹ <a class="ui violet label" id="money">0.0</a> )</label>
+                                    <input type="number" name="amountPaid" id="amountPaid" placeholder="Amount Paid" onkeyup="toIndianCurrency()">
+
+
                                 </div>
 
 
@@ -197,7 +200,7 @@
         function isCash() {
             var mode = $('#paymentMode').val();
             console.log(mode);
-            if (mode === 'Cash') {
+            if (mode === 'Cash' || mode === 'Cheque CC') {
                 $('#bankDiv').css('display', "none");
                 $('#detailDiv').css('display', "none");
             } else if (mode === 'Cheque') {
@@ -377,5 +380,11 @@
 
 
         }
+
+        const toIndianCurrency = () => {
+            let  num = $('#amountPaid').val();
+   const curr = num.replace(/(\d)(?=(\d\d)+\d$)/g, "$1,")
+$('#money').html(curr);
+};
     </script>
 {% endblock %}

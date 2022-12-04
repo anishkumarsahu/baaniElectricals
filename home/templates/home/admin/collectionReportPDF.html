@@ -1,3 +1,4 @@
+{% load custom_has_group_tag %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -40,16 +41,18 @@
         <tr>
             <th>CollectedBy</th>
             <th>Cash(₹)</th>
+            <th>Cheque CC(₹)</th>
             <th>Cheque(₹)</th>
             <th>Online(₹)</th>
             <th>Total(₹)</th>
         </tr>
         <tr>
             <td>{{ staffName }}</td>
-            <td>{{ a_total_cash }}</td>
-            <td>{{ a_total_cheque }}</td>
-            <td>{{ a_total_online }}</td>
-            <td>{{ total }}</td>
+            <td>{{ a_total_cash|convert }}</td>
+            <td>{{ a_total_cheque_cc|convert }}</td>
+            <td>{{ a_total_cheque|convert }}</td>
+            <td>{{ a_total_online|convert }}</td>
+            <td>{{ total|convert }}</td>
         </tr>
     </table>
     <p style="font-size: 10px; margin: 2px;padding-top: 10px">Collection Details</p>
@@ -67,7 +70,7 @@
             <tr>
                 <td>{{ foo.paymentID }}</td>
                 <td>{{ foo.partyID.name }}</td>
-                <td>{{ foo.paidAmount }}</td>
+                <td>{{ foo.paidAmount|convert }}</td>
                 <td>{{ foo.modeOfPayment }}</td>
                 <td>{{ foo.collectedBy.name }}</td>
             </tr>

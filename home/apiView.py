@@ -17,8 +17,12 @@ from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.utils.html import escape
 from django.core.cache import cache
 from weasyprint import CSS, HTML
+import locale
 
-
+def formatINR(number):
+    s, *d = str(number).partition(".")
+    r = ",".join([s[x-2:x] for x in range(-3, -len(s), -2)][::-1] + [s[-3:]])
+    return "".join([r] + d)
 def deduct_location_balance(lat, lng):
     location = GeolocationPackage.objects.filter(isDeleted__exact=False).last()
     if location.used < location.balance:
@@ -57,7 +61,7 @@ def add_staff_api(request):
             UserGroup = request.POST.get("UserGroup")
             UserStatus = request.POST.get("UserStatus")
             UserPwd = request.POST.get("UserPwd")
-            PartyGroup = request.POST.get("PartyGroup")
+            # PartyGroup = request.POST.get("PartyGroup")
             imageUpload = request.FILES["imageUpload"]
             imageUploadID = request.FILES["imageUploadID"]
 
@@ -71,10 +75,10 @@ def add_staff_api(request):
             staff.group = UserGroup
             staff.isActive = UserStatus
             staff.userPassword = UserPwd
-            try:
-                staff.partyGroupID_id = int(PartyGroup)
-            except:
-                pass
+            # try:
+            #     staff.partyGroupID_id = int(PartyGroup)
+            # except:
+            #     pass
             staff.save()
             username = 'USER' + get_random_string(length=3, allowed_chars='1234567890')
             while User.objects.select_related().filter(username__exact=username).count() > 0:
@@ -213,7 +217,7 @@ def edit_staff_api(request):
             UserGroup = request.POST.get("UserGroup")
             UserStatus = request.POST.get("UserStatus")
             UserPwd = request.POST.get("UserPwd")
-            PartyGroup = request.POST.get("PartyGroup")
+            # PartyGroup = request.POST.get("PartyGroup")
 
             staff = StaffUser.objects.select_related().get(pk=int(EditUserId))
             try:
@@ -231,10 +235,11 @@ def edit_staff_api(request):
             staff.email = UserEmail
             staff.address = UserAddress
             staff.group = UserGroup
-            try:
-                staff.partyGroupID_id = int(PartyGroup)
-            except:
-                pass
+            # try:
+            #     staff.partyGroupID_id = int
+            #     (PartyGroup)
+            # except:
+            #     pass
             staff.isActive = UserStatus
             staff.userPassword = UserPwd
             staff.save()
@@ -661,6 +666,37 @@ def list_party_api(request):
     except:
         return JsonResponse({'message': 'error'}, safe=False)
 
+def list_party_by_executive_or_station_api(request):
+    try:
+        executive = request.GET.get('executive')
+        station = request.GET.get('station')
+        o_list =[]
+        if executive != 'All' and station == 'All':
+            obj_list = Party.objects.select_related().filter(isDeleted__exact=False, assignTo__id = int(executive)).order_by(
+            'name')
+        if executive == 'All' and station != 'All':
+            obj_list = Party.objects.select_related().filter(isDeleted__exact=False,
+                                                             partyGroupID__id=int(station)).order_by(
+                'name')
+        for obj in obj_list:
+            try:
+                party = obj.partyGroupID.name
+            except:
+                party = 'N/A'
+            obj_dic = {
+                'ID': obj.pk,
+                'Name': obj.name,
+                'PartyGroup': party,
+                'Phone': obj.phone,
+                'Detail': obj.name + ' - ' + party + ' @ ' + str(obj.pk),
+                'DisplayDetail': obj.name + ' - ' + party
+            }
+            o_list.append(obj_dic)
+
+        return JsonResponse({'message': 'success', 'data': o_list}, safe=False)
+    except:
+        return JsonResponse({'message': 'error'}, safe=False)
+
 
 # ------------------------------Collection ----------------------------------------
 # ----------------------------- Party ---------------------
@@ -804,7 +840,7 @@ class CollectionByStaffListJson(BaseDatatableView):
             json_data.append([
                 escape(item.paymentID),
                 escape(item.partyID.name),
-                escape(item.paidAmount),
+                formatINR(item.paidAmount),
                 escape(item.modeOfPayment),
                 escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
                 escape(bank),
@@ -890,7 +926,7 @@ class CollectionByAdminListJson(BaseDatatableView):
             json_data.append([
                 escape(item.paymentID),
                 escape(item.partyID.name),
-                escape(item.paidAmount),
+                formatINR(item.paidAmount),
                 escape(item.modeOfPayment),
                 collectedBy,
                 escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
@@ -979,10 +1015,10 @@ def get_admin_dashboard_report_api(request):
         c_total = c_total + c.paidAmount
 
     data = {
-        'partyCount': party.count(),
+        'partyCount': formatINR(party.count()),
         'staffCount': staff.count(),
         'locationCount': str(int(location.used)) + '/' + str(int(location.balance)),
-        'collection': c_total
+        'collection': formatINR(c_total)
     }
     return JsonResponse({'data': data}, safe=False)
 
@@ -1006,10 +1042,10 @@ def get_staff_dashboard_report_api(request):
         d_total = d_total + d.paidAmount
 
     data = {
-        'partyCount': party.count(),
+        'partyCount': formatINR(party.count()),
         'collection_totalCount': collection.count(),
-        'collection_total': c_total,
-        'collection': d_total
+        'collection_total': formatINR(c_total),
+        'collection': formatINR(d_total)
     }
     return JsonResponse({'data': data}, safe=False)
 
@@ -1021,6 +1057,7 @@ def generate_collection_report(request):
     a_total_cash = 0.0
     a_total_cheque = 0.0
     a_total_online = 0.0
+    a_total_cheque_cc = 0.0
     if staffID == 'All':
         col = Collection.objects.select_related().filter(datetime__icontains=colDate.date(),
                                                          isApproved__exact=True,
@@ -1041,6 +1078,8 @@ def generate_collection_report(request):
             a_total_cheque = a_total_cheque + a.paidAmount
         if a.modeOfPayment == 'Online':
             a_total_online = a_total_online + a.paidAmount
+        if a.modeOfPayment == 'Cheque CC':
+            a_total_cheque_cc = a_total_cheque_cc + a.paidAmount
     context = {
         'date': colDate,
         'col': col,
@@ -1048,7 +1087,8 @@ def generate_collection_report(request):
         'a_total_cash': a_total_cash,
         'a_total_cheque': a_total_cheque,
         'a_total_online': a_total_online,
-        'total': a_total_cash + a_total_cheque + a_total_online
+        'a_total_cheque_cc': a_total_cheque_cc,
+        'total': a_total_cash + a_total_cheque + a_total_online + a_total_cheque_cc
     }
 
     response = HttpResponse(content_type="application/pdf")

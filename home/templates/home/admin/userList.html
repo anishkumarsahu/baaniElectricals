@@ -227,7 +227,7 @@
 
                                     </div>
                                 </div>
-                                <div class="three fields">
+                                <div class="two fields">
                                     <div class="field required">
                                         <label>Group</label>
                                         <select class="ui fluid dropdown" id="UserGroup">
@@ -239,7 +239,7 @@
 
                                         </select>
                                     </div>
-                                    <div class="field required">
+                                  {% comment %}  <div class="field required">
                                         <label>Party Group</label>
                                         <select class="ui fluid clearable search dropdown" id="PartyGroup">
                                             <option value="" hidden>Party Group</option>
@@ -249,7 +249,7 @@
 
 
                                         </select>
-                                    </div>
+                                    </div>{% endcomment %}
 
                                     <div class="field required">
                                         <label>Is-Active</label>
@@ -407,7 +407,7 @@
 
                                 </div>
                             </div>
-                            <div class="three fields">
+                            <div class="two fields">
                                 <div class="field required">
                                     <label>Group</label>
                                     <select class="ui fluid dropdown" id="UserGroupEdit">
@@ -419,7 +419,7 @@
 
                                     </select>
                                 </div>
-                                <div class="field required">
+                               {% comment %} <div class="field required">
                                     <label>Party Group</label>
                                     <select class="ui fluid dropdown" id="PartyGroupEdit">
                                         <option value="" hidden>Party Group</option>
@@ -429,7 +429,7 @@
 
 
                                     </select>
-                                </div>
+                                </div>{% endcomment %}
 
                                 <div class="field required">
                                     <label>Is-Active</label>
@@ -567,7 +567,7 @@
             var UserStatus = $('#UserStatus').val();
             var UserPwd = $('#UserPwd').val();
             var ConfirmPwd = $('#ConfirmPwd').val();
-            var PartyGroup = $('#PartyGroup').val();
+            {#var PartyGroup = $('#PartyGroup').val();#}
 
 
             if (CompanyUserName === '' || UserPhoneNo === '' || imageUpload === undefined || imageUploadID === undefined ||
@@ -593,7 +593,7 @@
                 data.append('UserGroup', UserGroup);
                 data.append('UserStatus', UserStatus);
                 data.append('UserPwd', UserPwd);
-                data.append('PartyGroup', PartyGroup);
+                {#data.append('PartyGroup', PartyGroup);#}
 
 
                 data.append('csrfmiddlewaretoken', csrfmiddlewaretoken);
@@ -777,7 +777,7 @@
                     $('#UserEmailEdit').val(response.data['UserEmail']);
                     $('#UserAddressEdit').val(response.data['UserAddress']);
                     $('#UserGroupEdit').val(response.data['UserGroup']).change();
-                    $('#PartyGroupEdit').val(response.data['PartyGroup']).change();
+                    {#$('#PartyGroupEdit').val(response.data['PartyGroup']).change();#}
                     $('#UserStatusEdit').val(response.data['IsActive']).change();
                     $('#cImgEdit').css('background-image', 'url(' + response.data['ImgUrl'] + ')');
                     $('#cImgIDEdit').css('background-image', 'url(' + response.data['IDUrl'] + ')');
@@ -807,7 +807,7 @@
             var UserEmail = $('#UserEmailEdit').val();
             var UserAddress = $('#UserAddressEdit').val();
             var UserGroup = $('#UserGroupEdit').val();
-            var PartyGroup = $('#PartyGroupEdit').val();
+            {#var PartyGroup = $('#PartyGroupEdit').val();#}
             var UserStatus = $('#UserStatusEdit').val();
             var UserPwd = $('#UserPwdEdit').val();
             var ConfirmPwd = $('#ConfirmPwdEdit').val();
@@ -837,7 +837,7 @@
                 data.append('UserPwd', UserPwd);
                 data.append('imageUpload', imageUpload);
                 data.append('imageUploadID', imageUploadID);
-                data.append('PartyGroup', PartyGroup);
+                {#data.append('PartyGroup', PartyGroup);#}
 
 
                 data.append('csrfmiddlewaretoken', csrfmiddlewaretoken);

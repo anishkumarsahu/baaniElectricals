@@ -164,10 +164,12 @@ def homepage(request):
 
 def add_collection(request):
     instance = Bank.objects.filter(isDeleted__exact=False).order_by('name')
-    parties = Party.objects.filter(isDeleted__exact=False, assignTo__user_ID_id__exact=request.user.pk).order_by('name')
+    staffs = StaffUser.objects.filter(isDeleted__exact=False, group__iexact='Collection').order_by('name')
+    p_groups = PartyGroup.objects.filter(isDeleted__exact=False).order_by('name')
     context = {
         'instance': instance,
-        'parties': parties
+        'staffs': staffs,
+        'p_groups': p_groups,
     }
     return render(request, 'home/collection/addCollection.html', context)
 

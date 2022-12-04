@@ -60,6 +60,7 @@ urlpatterns = [
     path('api/edit_party_api/', edit_party_api, name='edit_party_api'),
     path('api/delete_party/', delete_party, name='delete_party'),
     path('api/list_party_api/', list_party_api, name='list_party_api'),
+    path('api/list_party_by_executive_or_station_api/', list_party_by_executive_or_station_api, name='list_party_by_executive_or_station_api'),
 
     # Collection
     path('api/add_collection_by_staff_api/', add_collection_by_staff_api, name='add_collection_by_staff_api'),
@@ -73,6 +74,6 @@ urlpatterns = [
 
     #
     path('api/generate_collection_report/', generate_collection_report, name='generate_collection_report'),
-    path('get_party_data/', get_party_data, name='get_party_data'),
+    # path('get_party_data/', get_party_data, name='get_party_data'),
 
 ]
