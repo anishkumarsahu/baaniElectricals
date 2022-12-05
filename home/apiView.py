@@ -136,13 +136,17 @@ class StaffUserListJson(BaseDatatableView):
         json_data = []
         for item in qs:
             images = '<img class="ui avatar image" src="{}">'.format(item.photo.thumbnail.url)
-
-            action = '''<button data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;" onclick = "GetUserDetails('{}')" class="ui circular facebook icon button green">
+            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+                action = '''<button data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;" onclick = "GetUserDetails('{}')" class="ui circular facebook icon button green">
                     <i class="pen icon"></i>
                   </button>
                   <button data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini" style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
                     <i class="trash alternate icon"></i>
                   </button></td>'''.format(item.pk, item.pk),
+            else:
+                action = '''<div class="ui tiny label">
+                  Denied
+                </div>'''
 
             json_data.append([
                 images,  # escape HTML for security reasons
@@ -325,13 +329,17 @@ class PartyGroupListJson(BaseDatatableView):
     def prepare_results(self, qs):
         json_data = []
         for item in qs:
-            action = '''<button  data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "GetUserDetails('{}')" class="ui circular facebook icon button green">
+            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+                action = '''<button  data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "GetUserDetails('{}')" class="ui circular facebook icon button green">
                     <i class="pen icon"></i>
                   </button>
                   <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
                     <i class="trash alternate icon"></i>
                   </button></td>'''.format(item.pk, item.pk),
-
+            else:
+                action = '''<div class="ui tiny label">
+                  Denied
+                </div>'''
             json_data.append([
                 escape(item.name),
                 escape(item.description),
@@ -418,13 +426,18 @@ class BankListJson(BaseDatatableView):
     def prepare_results(self, qs):
         json_data = []
         for item in qs:
-            action = '''<button  data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "GetUserDetails('{}')" class="ui circular facebook icon button green">
+            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+
+                action = '''<button  data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "GetUserDetails('{}')" class="ui circular facebook icon button green">
                     <i class="pen icon"></i>
                   </button>
                   <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
                     <i class="trash alternate icon"></i>
                   </button></td>'''.format(item.pk, item.pk),
-
+            else:
+                action = '''<div class="ui tiny label">
+                  Denied
+                </div>'''
             json_data.append([
                 escape(item.name),
                 escape(item.accountNumber),
@@ -539,12 +552,19 @@ class PartyListJson(BaseDatatableView):
     def prepare_results(self, qs):
         json_data = []
         for item in qs:
-            action = '''<button  data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "GetUserDetails('{}')" class="ui circular facebook icon button green">
+            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+
+                action = '''<button  data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "GetUserDetails('{}')" class="ui circular facebook icon button green">
                     <i class="pen icon"></i>
                   </button>
                   <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
                     <i class="trash alternate icon"></i>
                   </button></td>'''.format(item.pk, item.pk),
+
+            else:
+                action = '''<div class="ui tiny label">
+              Denied
+            </div>'''
             try:
                 party = item.partyGroupID.name
             except:
@@ -740,6 +760,7 @@ def add_collection_by_staff_api(request):
 
             obj.save()
             obj.paymentID = str(obj.pk).zfill(8)
+            obj.collectionDateTime = obj.datetime
             obj.save()
 
             return JsonResponse({'message': 'success'}, safe=False)
@@ -782,6 +803,7 @@ def add_collection_by_admin_api(request):
 
             obj.save()
             obj.paymentID = str(obj.pk).zfill(8)
+            obj.collectionDateTime = obj.datetime
             obj.save()
             try:
                 msg = "Sir, Our Executive has collected the payment of {} Rs.{}/- from you, Kindly confirm the same. If you have any query Please feel free contact on this no. 7005607770. Thanks, BSS".format(
@@ -794,9 +816,48 @@ def add_collection_by_admin_api(request):
         except:
             return JsonResponse({'message': 'error'}, safe=False)
 
+@transaction.atomic
+@csrf_exempt
+def edit_collection_by_admin_api(request):
+    if request.method == 'POST':
+        try:
+            ID = request.POST.get("ID")
+            cDate = request.POST.get("cDate")
+            party = request.POST.get("party")
+            paymentMode = request.POST.get("paymentMode")
+            amountPaid = request.POST.get("amountPaid")
+            bank = request.POST.get("bank")
+            detail = request.POST.get("detail")
+            remark = request.POST.get("remark")
+            c = str(party).split('@')
+            cus = Party.objects.select_related().get(pk=int(c[1]))
+            obj = Collection.objects.get(pk=int(ID))
+            obj.partyID_id = cus.pk
+            obj.modeOfPayment = paymentMode
+            obj.paidAmount = float(amountPaid)
+            try:
+                obj.bankID_id = int(bank)
+            except:
+                pass
+            obj.detail = detail
+            obj.remark = remark
+            obj.collectionDateTime = datetime.strptime(cDate, '%d/%m/%Y')
+            obj.save()
+            # try:
+            #     msg = "Sir, Our Executive has collected the payment of {} Rs.{}/- from you, Kindly confirm the same. If you have any query Please feel free contact on this no. 7005607770. Thanks, BSS".format(
+            #         obj.modeOfPayment, obj.paidAmount)
+            #     send_whatsapp_message(obj.partyID.phone, msg)
+            # except:
+            #     pass
+
+            return JsonResponse({'message': 'success'}, safe=False)
+        except:
+            return JsonResponse({'message': 'error'}, safe=False)
+
+
 
 class CollectionByStaffListJson(BaseDatatableView):
-    order_columns = ['paymentID', 'partyID.name', 'paidAmount', 'modeOfPayment', 'datetime', 'bankID.name', 'detail',
+    order_columns = ['paymentID', 'partyID.name', 'paidAmount', 'modeOfPayment', 'collectionDateTime', 'datetime', 'bankID.name', 'detail',
                      'remark',
                      ]
 
@@ -804,7 +865,7 @@ class CollectionByStaffListJson(BaseDatatableView):
         # user = StaffUser.objects.get(user_ID__id = self.request.pk)
         # if 'Admin' in self.request.user.groups.values_list('name', flat=True):
         return Collection.objects.select_related().filter(isDeleted__exact=False,
-                                                          datetime__icontains=datetime.today().date(),
+                                                          collectionDateTime__icontains=datetime.today().date(),
                                                           collectedBy__user_ID_id=self.request.user.pk)
 
     def filter_queryset(self, qs):
@@ -816,7 +877,7 @@ class CollectionByStaffListJson(BaseDatatableView):
                     modeOfPayment__icontains=search)
                 | Q(bankID__name__icontains=search) | Q(detail__icontains=search) | Q(detail__icontains=search) | Q(
                     remark__icontains=search)
-                | Q(datetime__icontains=search) | Q(collectionAddress__icontains=search)
+                | Q(collectionDateTime__icontains=search) | Q(datetime__icontains=search) | Q(collectionAddress__icontains=search)
             )
 
         return qs
@@ -842,6 +903,7 @@ class CollectionByStaffListJson(BaseDatatableView):
                 escape(item.partyID.name),
                 formatINR(item.paidAmount),
                 escape(item.modeOfPayment),
+                escape(item.collectionDateTime.strftime('%d-%m-%Y')),
                 escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
                 escape(bank),
                 escape(item.detail),
@@ -855,7 +917,7 @@ class CollectionByStaffListJson(BaseDatatableView):
 
 
 class CollectionByAdminListJson(BaseDatatableView):
-    order_columns = ['paymentID', 'partyID.name', 'paidAmount', 'modeOfPayment', 'collectedBy.name', 'datetime',
+    order_columns = ['paymentID', 'partyID.name', 'paidAmount', 'modeOfPayment', 'collectedBy.name','collectionDateTime', 'datetime',
                      'isApproved', 'approvedBy.name', 'bankID.name', 'detail', 'collectionAddress', 'remark'
                      ]
 
@@ -867,14 +929,14 @@ class CollectionByAdminListJson(BaseDatatableView):
             sDate = datetime.strptime(startDateV, '%d/%m/%Y')
             eDate = datetime.strptime(endDateV, '%d/%m/%Y')
             if staffID == 'All':
-                return Collection.objects.select_related().filter(isDeleted__exact=False, datetime__range=(
+                return Collection.objects.select_related().filter(isDeleted__exact=False, collectionDateTime__range=(
                     sDate.date(), eDate.date() + timedelta(days=1)))
             else:
-                return Collection.objects.select_related().filter(isDeleted__exact=False, datetime__range=(
+                return Collection.objects.select_related().filter(isDeleted__exact=False, collectionDateTime__range=(
                     sDate.date(), eDate.date() + timedelta(days=1)), collectedBy_id=int(staffID))
         except:
             return Collection.objects.select_related().filter(isDeleted__exact=False,
-                                                              datetime__icontains=datetime.today().date())
+                                                              collectionDateTime__icontains=datetime.today().date())
 
     def filter_queryset(self, qs):
         search = self.request.GET.get('search[value]', None)
@@ -885,7 +947,7 @@ class CollectionByAdminListJson(BaseDatatableView):
                     modeOfPayment__icontains=search)
                 | Q(bankID__name__icontains=search) | Q(detail__icontains=search) | Q(detail__icontains=search) | Q(
                     remark__icontains=search)
-                | Q(datetime__icontains=search) | Q(collectionAddress__icontains=search) | Q(
+                | Q(datetime__icontains=search) | Q(collectionDateTime__icontains=search) | Q(collectionAddress__icontains=search) | Q(
                     collectedBy__name__icontains=search)
                 | Q(approvedBy__name__icontains=search) | Q(isApproved__icontains=search)
             )
@@ -895,12 +957,21 @@ class CollectionByAdminListJson(BaseDatatableView):
     def prepare_results(self, qs):
         json_data = []
         for item in qs:
-            action = '''<button  data-inverted="" data-tooltip="Make Approval" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button green">
+            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+
+                action = '''<button  data-inverted="" data-tooltip="Make Approval" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
                    <i class="whatsapp icon"></i>
                   </button>
+                  <a href="/edit_collection/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
+                    <i class="pen icon"></i>
+                  </a>
                   <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
                     <i class="trash alternate icon"></i>
-                  </button>'''.format(item.pk, item.pk),
+                  </button>'''.format(item.pk, item.pk, item.pk),
+            else:
+                action = '''<div class="ui tiny label">
+              Denied
+            </div>'''
 
             try:
                 bank = item.bankID.name
@@ -929,6 +1000,7 @@ class CollectionByAdminListJson(BaseDatatableView):
                 formatINR(item.paidAmount),
                 escape(item.modeOfPayment),
                 collectedBy,
+                escape(item.collectionDateTime.strftime('%d-%m-%Y')),
                 escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
                 isApproved,
                 approvedBy,
@@ -1007,7 +1079,7 @@ def get_admin_dashboard_report_api(request):
     staff = StaffUser.objects.select_related().filter(isDeleted__exact=False)
     location = GeolocationPackage.objects.filter(isDeleted__exact=False).last()
     collection = Collection.objects.select_related().filter(isDeleted__exact=False,
-                                                            datetime__icontains=datetime.today().date(),
+                                                            collectionDateTime__icontains=datetime.today().date(),
                                                             )
 
     c_total = 0.0
@@ -1029,7 +1101,7 @@ def get_staff_dashboard_report_api(request):
     collection_total = Collection.objects.select_related().filter(isDeleted__exact=False,
                                                                   collectedBy__user_ID_id=request.user.pk)
     collection = Collection.objects.select_related().filter(isDeleted__exact=False,
-                                                            datetime__icontains=datetime.today().date(),
+                                                            collectionDateTime__icontains=datetime.today().date(),
                                                             collectedBy__user_ID_id=request.user.pk
                                                             )
 
@@ -1059,12 +1131,12 @@ def generate_collection_report(request):
     a_total_online = 0.0
     a_total_cheque_cc = 0.0
     if staffID == 'All':
-        col = Collection.objects.select_related().filter(datetime__icontains=colDate.date(),
+        col = Collection.objects.select_related().filter(collectionDateTime__icontains=colDate.date(),
                                                          isApproved__exact=True,
                                                          isDeleted__exact=False).order_by('collectedBy__name')
         staffName = 'All'
     else:
-        col = Collection.objects.select_related().filter(datetime__icontains=colDate.date(),
+        col = Collection.objects.select_related().filter(collectionDateTime__icontains=colDate.date(),
                                                          isApproved__exact=True,
                                                          isDeleted__exact=False, collectedBy_id=int(staffID)).order_by(
             'collectedBy__name')

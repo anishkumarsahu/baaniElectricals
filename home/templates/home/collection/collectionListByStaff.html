@@ -57,6 +57,7 @@
                                 <th>Party Name</th>
                                 <th>Amount</th>
                                 <th>Collection Mode</th>
+                                <th>Collection Date</th>
                                 <th>Added On</th>
                                 <th>Bank</th>
                                 <th>Detail</th>
@@ -160,7 +161,7 @@
             buttons: [{
                 extend: 'excel',
                 exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 7]
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7,8]
                 }
             }
                 {% comment %}      , {
@@ -175,11 +176,12 @@
                 {"name": "partyID.name", "targets": 1, "orderable": true},
                 {"name": "paidAmount", "targets": 2, "orderable": true},
                 {"name": "modeOfPayment", "targets": 3, "orderable": true},
-                {"name": "datetime", "targets": 4, "orderable": true},
-                {"name": "bankID.name", "targets": 5, "orderable": true},
-                {"name": "detail", "targets": 6, "orderable": true},
-                {"name": "remark", "targets": 7, "orderable": true},
-                {"name": "action", "targets": 8, "orderable": false},
+                {"name": "collectionDateTime", "targets": 4, "orderable": true},
+                {"name": "datetime", "targets": 5, "orderable": true},
+                {"name": "bankID.name", "targets": 6, "orderable": true},
+                {"name": "detail", "targets": 7, "orderable": true},
+                {"name": "remark", "targets": 8, "orderable": true},
+                {"name": "action", "targets": 9, "orderable": false},
 
             ],
             aaSorting: [[4, 'desc']],

@@ -43,7 +43,7 @@ admin.site.register(Party, PartyAdmin)
 
 class CollectionAdmin(admin.ModelAdmin):
     search_fields = ['partyID', 'modeOfPayment', 'paidAmount', 'collectedBy', 'remark']
-    list_display = ['partyID', 'modeOfPayment', 'paidAmount', 'remark', 'collectionAddress', 'collectedBy',
+    list_display = ['partyID', 'modeOfPayment', 'paidAmount','collectionDateTime', 'remark', 'collectionAddress', 'collectedBy',
                     'approvedOn',
                     'latitude',
                     'longitude', 'isApproved', 'approvedBy', 'datetime']

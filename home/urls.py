@@ -27,6 +27,7 @@ urlpatterns = [
 
     # Admin Collection
     path('take_collection/', take_collection, name='take_collection'),
+    path('edit_collection/<int:id>/', edit_collection, name='edit_collection'),
     path('collection_list/', collection_list, name='collection_list'),
     path('api/delete_collection/', delete_collection, name='delete_collection'),
     path('api/approve_collection/', approve_collection, name='approve_collection'),
@@ -65,6 +66,7 @@ urlpatterns = [
     # Collection
     path('api/add_collection_by_staff_api/', add_collection_by_staff_api, name='add_collection_by_staff_api'),
     path('api/add_collection_by_admin_api/', add_collection_by_admin_api, name='add_collection_by_admin_api'),
+    path('api/edit_collection_by_admin_api/', edit_collection_by_admin_api, name='edit_collection_by_admin_api'),
 
     # # change password
     path('api/change_password_api/', change_password_api, name='change_password_api'),
@@ -75,5 +77,6 @@ urlpatterns = [
     #
     path('api/generate_collection_report/', generate_collection_report, name='generate_collection_report'),
     # path('get_party_data/', get_party_data, name='get_party_data'),
+    path('generate_collection_date/', generate_collection_date, name='generate_collection_date'),
 
 ]

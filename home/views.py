@@ -40,6 +40,20 @@ def check_group(group_name):
 
     return _check_group
 
+def check_two_group(admin, collector):
+    def _check_group(view_func):
+        @wraps(view_func)
+        def wrapper(request, *args, **kwargs):
+            if request.user.groups.filter(name=admin).exists() or request.user.groups.filter(name=collector).exists():
+                pass
+            else:
+                return redirect('/')
+            return view_func(request, *args, **kwargs)
+
+        return wrapper
+
+    return _check_group
+
 
 def loginPage(request):
     # if not request.user.is_authenticated:
@@ -48,7 +62,7 @@ def loginPage(request):
     #     return redirect('/admin_home/')
 
 
-@check_group('Admin')
+@check_two_group('Admin','Moderator')
 def admin_home(request):
     try:
         val = Validity.objects.last()
@@ -61,13 +75,12 @@ def admin_home(request):
     }
     return render(request, 'home/admin/index.html', context)
 
-
 @check_group('Collection')
 def collection_home(request):
     return render(request, 'home/collection/indexCollection.html')
 
 
-@check_group('Admin')
+@check_two_group('Admin','Moderator')
 @is_activated()
 def user_list(request):
     groups = StaffGroup.objects.filter(isDeleted__exact=False).order_by('name')
@@ -80,19 +93,19 @@ def user_list(request):
 
 
 
-@check_group('Admin')
+@check_two_group('Admin','Moderator')
 @is_activated()
 def party_group_list(request):
     return render(request, 'home/admin/partyGroupList.html')
 
 
-@check_group('Admin')
+@check_two_group('Admin','Moderator')
 @is_activated()
 def bank_list(request):
     return render(request, 'home/admin/BankList.html')
 
 
-@check_group('Admin')
+@check_two_group('Admin','Moderator')
 @is_activated()
 def party_list(request):
     party_groups = PartyGroup.objects.filter(isDeleted__exact=False).order_by('name')
@@ -137,7 +150,7 @@ def postLogin(request):
         if user is not None:
             login(request, user)
             # login_or_logout(request, 'Login')
-            if 'Admin' in request.user.groups.values_list('name', flat=True):
+            if 'Admin' in request.user.groups.values_list('name', flat=True) or 'Moderator' in request.user.groups.values_list('name', flat=True) :
                 return JsonResponse({'message': 'success', 'data': '/home/'}, safe=False)
             elif 'Collection' in request.user.groups.values_list('name', flat=True):
                 return JsonResponse({'message': 'success', 'data': '/home/'}, safe=False)
@@ -153,7 +166,7 @@ def postLogin(request):
 #
 def homepage(request):
     if request.user.is_authenticated:
-        if 'Admin' in request.user.groups.values_list('name', flat=True):
+        if 'Admin' in request.user.groups.values_list('name', flat=True) or 'Moderator' in request.user.groups.values_list('name', flat=True):
             return redirect('/admin_home/')
         elif 'Collection' in request.user.groups.values_list('name', flat=True):
             return redirect('/collection_home/')
@@ -182,6 +195,7 @@ def my_collection(request):
 
 # admin
 @is_activated()
+@check_two_group('Admin','Moderator')
 def collection_list(request):
     staffs = StaffUser.objects.filter(isDeleted__exact=False).order_by('name')
     context = {
@@ -189,13 +203,23 @@ def collection_list(request):
     }
     return render(request, 'home/admin/collectionListByAdmin.html', context)
 
-
+@check_two_group('Admin','Moderator')
 def take_collection(request):
     instance = Bank.objects.filter(isDeleted__exact=False).order_by('name')
     context = {
         'instance': instance
     }
     return render(request, 'home/admin/takeCollection.html', context)
+
+
+def edit_collection(request, id = None):
+    obj = get_object_or_404(Collection, pk = id)
+    instance = Bank.objects.filter(isDeleted__exact=False).order_by('name')
+    context = {
+        'instance': instance,
+        'obj':obj
+    }
+    return render(request, 'home/admin/editCollection.html', context)
 
 
 def get_party_data(request):
@@ -223,4 +247,12 @@ def get_party_data(request):
             p.partyGroupID_id = party
             p.assignTo_id = usr
             p.save()
+    return HttpResponse('Ok')
+
+
+def generate_collection_date(request):
+    col = Collection.objects.all()
+    for c in col:
+        c.collectionDateTime = c.datetime
+        c.save()
     return HttpResponse('Ok')
