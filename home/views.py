@@ -40,6 +40,7 @@ def check_group(group_name):
 
     return _check_group
 
+
 def check_two_group(admin, collector):
     def _check_group(view_func):
         @wraps(view_func)
@@ -62,7 +63,7 @@ def loginPage(request):
     #     return redirect('/admin_home/')
 
 
-@check_two_group('Admin','Moderator')
+@check_two_group('Admin', 'Moderator')
 def admin_home(request):
     try:
         val = Validity.objects.last()
@@ -75,12 +76,13 @@ def admin_home(request):
     }
     return render(request, 'home/admin/index.html', context)
 
+
 @check_group('Collection')
 def collection_home(request):
     return render(request, 'home/collection/indexCollection.html')
 
 
-@check_two_group('Admin','Moderator')
+@check_two_group('Admin', 'Moderator')
 @is_activated()
 def user_list(request):
     groups = StaffGroup.objects.filter(isDeleted__exact=False).order_by('name')
@@ -92,20 +94,19 @@ def user_list(request):
     return render(request, 'home/admin/userList.html', context)
 
 
-
-@check_two_group('Admin','Moderator')
+@check_two_group('Admin', 'Moderator')
 @is_activated()
 def party_group_list(request):
     return render(request, 'home/admin/partyGroupList.html')
 
 
-@check_two_group('Admin','Moderator')
+@check_two_group('Admin', 'Moderator')
 @is_activated()
 def bank_list(request):
     return render(request, 'home/admin/BankList.html')
 
 
-@check_two_group('Admin','Moderator')
+@check_two_group('Admin', 'Moderator')
 @is_activated()
 def party_list(request):
     party_groups = PartyGroup.objects.filter(isDeleted__exact=False).order_by('name')
@@ -150,9 +151,13 @@ def postLogin(request):
         if user is not None:
             login(request, user)
             # login_or_logout(request, 'Login')
-            if 'Admin' in request.user.groups.values_list('name', flat=True) or 'Moderator' in request.user.groups.values_list('name', flat=True) :
+            if 'Admin' in request.user.groups.values_list('name',
+                                                          flat=True) or 'Moderator' in request.user.groups.values_list(
+                    'name', flat=True):
                 return JsonResponse({'message': 'success', 'data': '/home/'}, safe=False)
             elif 'Collection' in request.user.groups.values_list('name', flat=True):
+                return JsonResponse({'message': 'success', 'data': '/home/'}, safe=False)
+            elif 'NormalStaff' in request.user.groups.values_list('name', flat=True):
                 return JsonResponse({'message': 'success', 'data': '/home/'}, safe=False)
         else:
             return JsonResponse({'message': 'fail'}, safe=False)
@@ -166,12 +171,15 @@ def postLogin(request):
 #
 def homepage(request):
     if request.user.is_authenticated:
-        if 'Admin' in request.user.groups.values_list('name', flat=True) or 'Moderator' in request.user.groups.values_list('name', flat=True):
+        if 'Admin' in request.user.groups.values_list('name',
+                                                      flat=True) or 'Moderator' in request.user.groups.values_list(
+                'name', flat=True):
             return redirect('/admin_home/')
         elif 'Collection' in request.user.groups.values_list('name', flat=True):
             return redirect('/collection_home/')
+        elif 'NormalStaff' in request.user.groups.values_list('name', flat=True):
+            return redirect('/staff_home/')
         else:
-
             return render(request, 'home/login.html')
 
 
@@ -195,7 +203,7 @@ def my_collection(request):
 
 # admin
 @is_activated()
-@check_two_group('Admin','Moderator')
+@check_two_group('Admin', 'Moderator')
 def collection_list(request):
     staffs = StaffUser.objects.filter(isDeleted__exact=False).order_by('name')
     context = {
@@ -203,7 +211,8 @@ def collection_list(request):
     }
     return render(request, 'home/admin/collectionListByAdmin.html', context)
 
-@check_two_group('Admin','Moderator')
+
+@check_two_group('Admin', 'Moderator')
 def take_collection(request):
     instance = Bank.objects.filter(isDeleted__exact=False).order_by('name')
     context = {
@@ -212,12 +221,12 @@ def take_collection(request):
     return render(request, 'home/admin/takeCollection.html', context)
 
 
-def edit_collection(request, id = None):
-    obj = get_object_or_404(Collection, pk = id)
+def edit_collection(request, id=None):
+    obj = get_object_or_404(Collection, pk=id)
     instance = Bank.objects.filter(isDeleted__exact=False).order_by('name')
     context = {
         'instance': instance,
-        'obj':obj
+        'obj': obj
     }
     return render(request, 'home/admin/editCollection.html', context)
 
@@ -256,3 +265,56 @@ def generate_collection_date(request):
         c.collectionDateTime = c.datetime
         c.save()
     return HttpResponse('Ok')
+
+
+# ----------staff-------------------
+
+@check_group('NormalStaff')
+def staff_home(request):
+    obj = StaffUser.objects.get(user_ID__pk=request.user.pk)
+    context = {
+        'obj': obj
+    }
+
+    return render(request, 'home/NormalStaff/indexStaff.html', context)
+
+
+# attendance-------------------
+
+def add_attendance(request):
+    if request.user.is_authenticated:
+        try:
+            instance = Attendance.objects.get(datetime__icontains=datetime.today().date(),
+                                              staffID__user_ID__id=request.user.pk)
+        except:
+            instance = Attendance()
+            staff = StaffUser.objects.get(user_ID__id=request.user.pk)
+            instance.staffID_id = staff.pk
+            instance.save()
+        context = {
+            'obj': instance,
+            'date': datetime.today().date()
+
+        }
+        return render(request, 'home/addTodayAttendance.html', context)
+    else:
+        return redirect('/')
+
+
+def attendance_report(request):
+    if request.user.is_authenticated:
+        return render(request, 'home/attendanceReportStaff.html')
+    else:
+        return redirect('/')
+
+
+@check_two_group('Admin', 'Moderator')
+def attendance_report_admin(request):
+    if request.user.is_authenticated:
+        staffs = StaffUser.objects.filter(isDeleted__exact=False).order_by('name')
+        context = {
+            'staffs': staffs
+        }
+        return render(request, 'home/attendanceReportAdmin.html', context)
+    else:
+        return redirect('/')

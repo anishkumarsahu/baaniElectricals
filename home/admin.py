@@ -64,3 +64,10 @@ class MessageAdmin(admin.ModelAdmin):
 
 
 admin.site.register(WhatsappMessage, MessageAdmin)
+
+
+class AttendanceAdmin(admin.ModelAdmin):
+    list_display = ['staffID', 'isLogIn', 'loginDateTime', 'login_remark', 'isLogOut', 'logoutDateTime',  'logout_remark', 'datetime', 'lastUpdatedOn', 'isDeleted']
+
+
+admin.site.register(Attendance, AttendanceAdmin)

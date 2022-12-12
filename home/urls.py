@@ -79,4 +79,19 @@ urlpatterns = [
     # path('get_party_data/', get_party_data, name='get_party_data'),
     path('generate_collection_date/', generate_collection_date, name='generate_collection_date'),
 
+    # staff user
+    path('staff_home/', staff_home, name='staff_home'),
+
+    # attendance
+    path('add_attendance/', add_attendance, name='add_attendance'),
+    path('attendance_report/', attendance_report, name='attendance_report'),
+    path('attendance_report_admin/', attendance_report_admin, name='attendance_report_admin'),
+    path('api/add_attendance_api/', add_attendance_api, name='add_attendance_api'),
+    path('api/generate_attendance_pdf_staff_report/', generate_attendance_pdf_staff_report, name='generate_attendance_pdf_staff_report'),
+    path('api/generate_attendance_pdf_admin_report/', generate_attendance_pdf_admin_report, name='generate_attendance_pdf_admin_report'),
+    path('api/StaffAttendanceListJson/', StaffAttendanceListJson.as_view(), name='StaffAttendanceListJson'),
+    path('api/AdminAttendanceListJson/', AdminAttendanceListJson.as_view(), name='AdminAttendanceListJson'),
+
+
+
 ]

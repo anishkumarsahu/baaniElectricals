@@ -151,3 +151,31 @@ class WhatsappMessage(models.Model):
     datetime = models.DateTimeField(auto_now_add=True, auto_now=False)
     lastUpdatedOn = models.DateTimeField(auto_now_add=False, auto_now=True)
     isDeleted = models.BooleanField(default=False)
+
+
+class Attendance(models.Model):
+    staffID = models.ForeignKey(StaffUser, blank=True, null=True, on_delete=models.SET_NULL,
+                                    related_name='staffID')
+    registerType = models.CharField(max_length=200, blank=True, null=True)
+    login_remark = models.TextField(blank=True, null=True)
+    logout_remark = models.TextField(blank=True, null=True)
+    other_remark = models.TextField(blank=True, null=True)
+    login_latitude = models.CharField(max_length=200, default='0.0')
+    logout_latitude = models.CharField(max_length=200, default='0.0')
+    login_longitude = models.CharField(max_length=200, default='0.0')
+    logout_longitude = models.CharField(max_length=200, default='0.0')
+    isLogIn = models.BooleanField(default=False)
+    isLogOut = models.BooleanField(default=False)
+    loginDateTime = models.DateTimeField(blank=True, null=True)
+    logoutDateTime = models.DateTimeField(blank=True, null=True)
+    login_location = models.TextField(blank=True, null=True)
+    logout_location = models.TextField(blank=True, null=True)
+    datetime = models.DateTimeField(auto_now_add=True, auto_now=False)
+    lastUpdatedOn = models.DateTimeField(auto_now_add=False, auto_now=True)
+    isDeleted = models.BooleanField(default=False)
+
+    def __str__(self):
+        return str(self.staffID.name)
+
+    class Meta:
+        verbose_name_plural = 'i) Login/Logout List'

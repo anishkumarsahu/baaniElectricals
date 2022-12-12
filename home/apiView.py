@@ -1,3 +1,5 @@
+import threading
+
 import requests
 
 from django.contrib.auth import authenticate, login
@@ -19,10 +21,71 @@ from django.core.cache import cache
 from weasyprint import CSS, HTML
 import locale
 
+class LocationThread(threading.Thread):
+    def __init__(self, lat, lng):
+        self.lat = lat
+        self.lng = lng
+        self._is_running = True
+        threading.Thread.__init__(self)
+
+    def run(self):
+        while (self._is_running):
+            location = GeolocationPackage.objects.filter(isDeleted__exact=False).last()
+            if location.used < location.balance:
+
+                r = requests.get(
+                    "https://revgeocode.search.hereapi.com/v1/revgeocode?at=" + self.lat + "%2C" + self.lng + "&lang=en-US&apikey=VtAAEVuyqdswCZr8X1BdBzM-4JTpeAdivmp4_3ILPs4")
+                data = r.json()
+                location.used = (location.used + 1)
+                location.save()
+                return data["items"][0]["address"]["label"]
+            else:
+                return ""
+
+        self.stop()
+
+    def stop(self):
+        self._is_running = False
+
+def get_location(lat,lng):
+    LocationThread(lat,lng).start()
+
+
+
+class MessageThread(threading.Thread):
+    def __init__(self, number, message):
+        self.number = number
+        self.message = message
+        self._is_running = True
+        threading.Thread.__init__(self)
+
+    def run(self):
+        while (self._is_running):
+            msg = WhatsappMessage.objects.filter(isDeleted__exact=False).last()
+            if msg.used < msg.balance:
+                r = requests.get(
+                    "https://server.betablaster.in/api/send.php?number=91" + self.number + "&type=text&message=" + self.message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
+                    verify=False)
+                data = r.json()
+                msg.used = (msg.used + 1)
+                msg.save()
+
+            self.stop()
+
+    def stop(self):
+        self._is_running = False
+
+def send_message(number,message):
+    MessageThread(number,message).start()
+
+
+
 def formatINR(number):
     s, *d = str(number).partition(".")
-    r = ",".join([s[x-2:x] for x in range(-3, -len(s), -2)][::-1] + [s[-3:]])
+    r = ",".join([s[x - 2:x] for x in range(-3, -len(s), -2)][::-1] + [s[-3:]])
     return "".join([r] + d)
+
+
 def deduct_location_balance(lat, lng):
     location = GeolocationPackage.objects.filter(isDeleted__exact=False).last()
     if location.used < location.balance:
@@ -112,7 +175,7 @@ def add_staff_api(request):
 
 #
 class StaffUserListJson(BaseDatatableView):
-    order_columns = ['photo', 'name', 'username', 'userPassword', 'group',  'phone', 'address',
+    order_columns = ['photo', 'name', 'username', 'userPassword', 'group', 'phone', 'address',
                      'isActive', 'datetime']
 
     def get_initial_queryset(self):
@@ -143,16 +206,20 @@ class StaffUserListJson(BaseDatatableView):
                   <button data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini" style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
                     <i class="trash alternate icon"></i>
                   </button></td>'''.format(item.pk, item.pk),
+                username = item.username
+                password = item.userPassword
             else:
                 action = '''<div class="ui tiny label">
                   Denied
                 </div>'''
+                username = "*********"
+                password = "*********"
 
             json_data.append([
                 images,  # escape HTML for security reasons
                 escape(item.name),
-                escape(item.username),
-                escape(item.userPassword),
+                username,
+                password,
                 escape(item.group),
                 escape(item.phone),
                 escape(item.address),
@@ -562,9 +629,9 @@ class PartyListJson(BaseDatatableView):
                   </button></td>'''.format(item.pk, item.pk),
 
             else:
-                action = '''<div class="ui tiny label">
-              Denied
-            </div>'''
+                action = '''<button  data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "GetUserDetails('{}')" class="ui circular facebook icon button green">
+                    <i class="pen icon"></i>
+                  </button>'''.format(item.pk)
             try:
                 party = item.partyGroupID.name
             except:
@@ -686,14 +753,16 @@ def list_party_api(request):
     except:
         return JsonResponse({'message': 'error'}, safe=False)
 
+
 def list_party_by_executive_or_station_api(request):
     try:
         executive = request.GET.get('executive')
         station = request.GET.get('station')
-        o_list =[]
+        o_list = []
         if executive != 'All' and station == 'All':
-            obj_list = Party.objects.select_related().filter(isDeleted__exact=False, assignTo__id = int(executive)).order_by(
-            'name')
+            obj_list = Party.objects.select_related().filter(isDeleted__exact=False,
+                                                             assignTo__id=int(executive)).order_by(
+                'name')
         if executive == 'All' and station != 'All':
             obj_list = Party.objects.select_related().filter(isDeleted__exact=False,
                                                              partyGroupID__id=int(station)).order_by(
@@ -750,11 +819,8 @@ def add_collection_by_staff_api(request):
             user = StaffUser.objects.get(user_ID_id=request.user.pk)
             obj.collectedBy_id = user.pk
             try:
-                obj.collectionAddress = deduct_location_balance(lat, lng)
-                # r = requests.get(
-                #     "https://revgeocode.search.hereapi.com/v1/revgeocode?at=" + lat + "%2C" + lng + "&lang=en-US&apikey=VtAAEVuyqdswCZr8X1BdBzM-4JTpeAdivmp4_3ILPs4")
-                # data = r.json()
-                # obj.collectionAddress = data["items"][0]["address"]["label"]
+                # obj.collectionAddress = deduct_location_balance(lat, lng)
+                obj.collectionAddress = "From Field"
             except:
                 pass
 
@@ -808,13 +874,15 @@ def add_collection_by_admin_api(request):
             try:
                 msg = "Sir, Our Executive has collected the payment of {} Rs.{}/- from you, Kindly confirm the same. If you have any query Please feel free contact on this no. 7005607770. Thanks, BSS".format(
                     obj.modeOfPayment, obj.paidAmount)
-                send_whatsapp_message(obj.partyID.phone, msg)
+                # send_whatsapp_message(obj.partyID.phone, msg)
+                send_message(obj.partyID.phone, msg)
             except:
                 pass
 
             return JsonResponse({'message': 'success'}, safe=False)
         except:
             return JsonResponse({'message': 'error'}, safe=False)
+
 
 @transaction.atomic
 @csrf_exempt
@@ -855,9 +923,9 @@ def edit_collection_by_admin_api(request):
             return JsonResponse({'message': 'error'}, safe=False)
 
 
-
 class CollectionByStaffListJson(BaseDatatableView):
-    order_columns = ['paymentID', 'partyID.name', 'paidAmount', 'modeOfPayment', 'collectionDateTime', 'datetime', 'bankID.name', 'detail',
+    order_columns = ['paymentID', 'partyID.name', 'paidAmount', 'modeOfPayment', 'collectionDateTime', 'datetime',
+                     'bankID.name', 'detail',
                      'remark',
                      ]
 
@@ -877,7 +945,8 @@ class CollectionByStaffListJson(BaseDatatableView):
                     modeOfPayment__icontains=search)
                 | Q(bankID__name__icontains=search) | Q(detail__icontains=search) | Q(detail__icontains=search) | Q(
                     remark__icontains=search)
-                | Q(collectionDateTime__icontains=search) | Q(datetime__icontains=search) | Q(collectionAddress__icontains=search)
+                | Q(collectionDateTime__icontains=search) | Q(datetime__icontains=search) | Q(
+                    collectionAddress__icontains=search)
             )
 
         return qs
@@ -917,7 +986,8 @@ class CollectionByStaffListJson(BaseDatatableView):
 
 
 class CollectionByAdminListJson(BaseDatatableView):
-    order_columns = ['paymentID', 'partyID.name', 'paidAmount', 'modeOfPayment', 'collectedBy.name','collectionDateTime', 'datetime',
+    order_columns = ['paymentID', 'partyID.name', 'paidAmount', 'modeOfPayment', 'collectedBy.name',
+                     'collectionDateTime', 'datetime',
                      'isApproved', 'approvedBy.name', 'bankID.name', 'detail', 'collectionAddress', 'remark'
                      ]
 
@@ -947,7 +1017,8 @@ class CollectionByAdminListJson(BaseDatatableView):
                     modeOfPayment__icontains=search)
                 | Q(bankID__name__icontains=search) | Q(detail__icontains=search) | Q(detail__icontains=search) | Q(
                     remark__icontains=search)
-                | Q(datetime__icontains=search) | Q(collectionDateTime__icontains=search) | Q(collectionAddress__icontains=search) | Q(
+                | Q(datetime__icontains=search) | Q(collectionDateTime__icontains=search) | Q(
+                    collectionAddress__icontains=search) | Q(
                     collectedBy__name__icontains=search)
                 | Q(approvedBy__name__icontains=search) | Q(isApproved__icontains=search)
             )
@@ -1044,7 +1115,8 @@ def approve_collection(request):
                 msg = "Sir, Our Executive has collected the payment of {} Rs.{}/- from you, Kindly confirm the same. If you have any query Please feel free contact on this no. 7005607770. Thanks, BSS".format(
                     obj.modeOfPayment, obj.paidAmount)
 
-                send_whatsapp_message(obj.partyID.phone, msg)
+                # send_whatsapp_message(obj.partyID.phone, msg)
+                send_message(obj.partyID.phone, msg)
             except:
                 pass
             return JsonResponse({'message': 'success'}, safe=False)
@@ -1166,6 +1238,247 @@ def generate_collection_report(request):
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = "report.pdf"
     html = render_to_string("home/admin/collectionReportPDF.html", context)
+
+    HTML(string=html).write_pdf(response, stylesheets=[CSS(string='@page { size: A5; margin: .3cm ; }')])
+    return response
+
+
+# ----------- attendance API----------------
+@transaction.atomic
+@csrf_exempt
+def add_attendance_api(request):
+    if request.method == 'POST':
+        try:
+            remark = request.POST.get("remark")
+            stat = request.POST.get("stat")
+            lat = request.POST.get("lat")
+            lng = request.POST.get("lng")
+            obj = Attendance.objects.get(datetime__icontains=datetime.today().date(),
+                                         staffID__user_ID__id=request.user.pk)
+
+            if stat == 'Login':
+                obj.isLogIn = True
+                obj.login_remark = remark
+                obj.login_latitude = lat
+                obj.login_longitude = lng
+                obj.loginDateTime = datetime.today().now()
+                try:
+                    obj.login_location = deduct_location_balance(lat, lng)
+                except:
+                    pass
+            if stat == 'Logout':
+                obj.isLogOut = True
+                obj.logout_remark = remark
+                obj.logout_latitude = lat
+                obj.logout_longitude = lng
+                obj.logoutDateTime = datetime.today().now()
+                try:
+                    obj.logout_location = deduct_location_balance(lat, lng)
+                except:
+                    pass
+            obj.save()
+
+            return JsonResponse({'message': 'success'}, safe=False)
+        except:
+            return JsonResponse({'message': 'error'}, safe=False)
+
+
+class StaffAttendanceListJson(BaseDatatableView):
+    order_columns = ['datetime', 'loginDateTime', 'login_location', 'login_remark', 'logoutDateTime', 'logout_location',
+                     'logout_remark',
+                     ]
+
+    def get_initial_queryset(self):
+        try:
+            startDateV = self.request.GET.get("startDate")
+            endDateV = self.request.GET.get("endDate")
+            sDate = datetime.strptime(startDateV, '%d/%m/%Y')
+            eDate = datetime.strptime(endDateV, '%d/%m/%Y')
+
+            return Attendance.objects.select_related().filter(isDeleted__exact=False, datetime__range=(
+                sDate.date(), eDate.date() + timedelta(days=1)), staffID__user_ID__id=self.request.user.pk)
+        except:
+            return Attendance.objects.select_related().filter(isDeleted__exact=False,
+                                                              datetime__icontains=datetime.today().date(),
+                                                              staffID__user_ID__id=self.request.user.pk)
+
+    def filter_queryset(self, qs):
+        search = self.request.GET.get('search[value]', None)
+        if search:
+            qs = qs.filter(
+                Q(login_remark__icontains=search) | Q(login_location__icontains=search) | Q(
+                    logout_remark__icontains=search) | Q(
+                    logout_location__icontains=search)
+                | Q(datetime__icontains=search)
+            )
+
+        return qs
+
+    def prepare_results(self, qs):
+        json_data = []
+        for item in qs:
+            if item.isLogIn == True:
+                login_time = item.loginDateTime.strftime('%I:%M %p')
+                login_remark = item.login_remark
+                login_location = item.login_location
+            else:
+                login_time = '-'
+                login_remark = '-'
+                login_location = '-'
+
+            if item.isLogOut == True:
+                logout_time = item.logoutDateTime.strftime('%I:%M %p')
+                logout_remark = item.logout_remark
+                logout_location = item.logout_location
+            else:
+                logout_time = '-'
+                logout_remark = '-'
+                logout_location = '-'
+
+            json_data.append([
+                escape(item.datetime.strftime('%d-%m-%Y')),
+                login_time,
+                login_location,
+                login_remark,
+                logout_time,
+                logout_location,
+                logout_remark
+
+            ])
+
+        return json_data
+
+
+class AdminAttendanceListJson(BaseDatatableView):
+    order_columns = ['datetime', 'staffID.name', 'loginDateTime', 'login_location', 'login_remark', 'logoutDateTime',
+                     'logout_location', 'logout_remark',
+                     ]
+
+    def get_initial_queryset(self):
+        try:
+            startDateV = self.request.GET.get("startDate")
+            endDateV = self.request.GET.get("endDate")
+            staffID = self.request.GET.get("staffID")
+            sDate = datetime.strptime(startDateV, '%d/%m/%Y')
+            eDate = datetime.strptime(endDateV, '%d/%m/%Y')
+            if staffID == 'All':
+
+                return Attendance.objects.select_related().filter(isDeleted__exact=False, datetime__range=(
+                    sDate.date(), eDate.date() + timedelta(days=1)))
+
+            else:
+
+                return Attendance.objects.select_related().filter(isDeleted__exact=False, datetime__range=(
+                    sDate.date(), eDate.date() + timedelta(days=1)), staffID_id=int(staffID))
+
+        except:
+            return Attendance.objects.select_related().filter(isDeleted__exact=False,
+                                                              datetime__icontains=datetime.today().date())
+
+    def filter_queryset(self, qs):
+        search = self.request.GET.get('search[value]', None)
+        if search:
+            qs = qs.filter(
+                Q(login_remark__icontains=search) | Q(login_location__icontains=search) | Q(
+                    logout_remark__icontains=search) | Q(
+                    logout_location__icontains=search)
+                | Q(datetime__icontains=search)
+            )
+
+        return qs
+
+    def prepare_results(self, qs):
+        json_data = []
+        for item in qs:
+            if item.isLogIn == True:
+                login_time = item.loginDateTime.strftime('%I:%M %p')
+                login_remark = item.login_remark
+                login_location = item.login_location
+            else:
+                login_time = '-'
+                login_remark = '-'
+                login_location = '-'
+
+            if item.isLogOut == True:
+                logout_time = item.logoutDateTime.strftime('%I:%M %p')
+                logout_remark = item.logout_remark
+                logout_location = item.logout_location
+            else:
+                logout_time = '-'
+                logout_remark = '-'
+                logout_location = '-'
+
+            json_data.append([
+                escape(item.datetime.strftime('%d-%m-%Y')),
+                escape(item.staffID.name),
+                login_time,
+                login_location,
+                login_remark,
+                logout_time,
+                logout_location,
+                logout_remark
+
+            ])
+
+        return json_data
+
+
+def generate_attendance_pdf_staff_report(request):
+    cDate = request.GET.get('cDate')
+    eDate = request.GET.get('eDate')
+    startDate = datetime.strptime(cDate, '%d/%m/%Y')
+    endDate = datetime.strptime(eDate, '%d/%m/%Y')
+
+    col = Attendance.objects.select_related().filter(datetime__range=(
+        startDate.date(), endDate.date() + timedelta(days=1)),
+        isDeleted__exact=False, staffID__user_ID_id__exact=request.user.pk).order_by(
+        'datetime')
+    user = StaffUser.objects.get(user_ID__id=request.user.pk)
+
+    context = {
+        'startDate': startDate,
+        'endDate': endDate,
+        'col': col,
+        'staffName': user.name,
+    }
+
+    response = HttpResponse(content_type="application/pdf")
+    response['Content-Disposition'] = "report.pdf"
+    html = render_to_string("home/report/staffAttendanceReportPDF.html", context)
+
+    HTML(string=html).write_pdf(response, stylesheets=[CSS(string='@page { size: A5; margin: .3cm ; }')])
+    return response
+
+
+def generate_attendance_pdf_admin_report(request):
+    cDate = request.GET.get('cDate')
+    eDate = request.GET.get('eDate')
+    staffID = request.GET.get('staffID')
+    startDate = datetime.strptime(cDate, '%d/%m/%Y')
+    endDate = datetime.strptime(eDate, '%d/%m/%Y')
+    if staffID == 'All':
+        col = Attendance.objects.select_related().filter(datetime__range=(
+            startDate.date(), endDate.date() + timedelta(days=1)),
+            isDeleted__exact=False).order_by('staffID__name')
+        staffName = "All"
+    else:
+        col = Attendance.objects.select_related().filter(datetime__range=(
+            startDate.date(), endDate.date() + timedelta(days=1)),
+            isDeleted__exact=False, staffID_id=int(staffID)).order_by('datetime')
+
+        user = StaffUser.objects.get(id=int(staffID))
+        staffName = user.name
+
+    context = {
+        'startDate': startDate,
+        'endDate': endDate,
+        'col': col,
+        'staffName': staffName,
+    }
+
+    response = HttpResponse(content_type="application/pdf")
+    response['Content-Disposition'] = "report.pdf"
+    html = render_to_string("home/report/adminAttendanceReportPDF.html", context)
 
     HTML(string=html).write_pdf(response, stylesheets=[CSS(string='@page { size: A5; margin: .3cm ; }')])
     return response
