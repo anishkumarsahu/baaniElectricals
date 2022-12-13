@@ -863,22 +863,27 @@ def add_collection_by_admin_api(request):
             obj.longitude = lng
             user = StaffUser.objects.get(user_ID_id=request.user.pk)
             obj.collectedBy_id = user.pk
-            obj.isApproved = True
-            obj.approvedBy_id = user.pk
+
+
             obj.collectionAddress = "From Shop."
 
             obj.save()
             obj.paymentID = str(obj.pk).zfill(8)
             obj.collectionDateTime = obj.datetime
             obj.save()
-            try:
-                msg = "Sir, Our Executive has collected the payment of {} Rs.{}/- from you, Kindly confirm the same. If you have any query Please feel free contact on this no. 7005607770. Thanks, BSS".format(
-                    obj.modeOfPayment, obj.paidAmount)
-                # send_whatsapp_message(obj.partyID.phone, msg)
-                send_message(obj.partyID.phone, msg)
-            except:
+            if 'Admin' in request.user.groups.values_list('name', flat=True):
+                try:
+                    obj.isApproved = True
+                    obj.approvedBy_id = user.pk
+                    msg = "Sir, Our Executive has collected the payment of {} Rs.{}/- from you, Kindly confirm the same. If you have any query Please feel free contact on this no. 7005607770. Thanks, BSS".format(
+                        obj.modeOfPayment, obj.paidAmount)
+                    # send_whatsapp_message(obj.partyID.phone, msg)
+                    send_message(obj.partyID.phone, msg)
+                    obj.save()
+                except:
+                    pass
+            else:
                 pass
-
             return JsonResponse({'message': 'success'}, safe=False)
         except:
             return JsonResponse({'message': 'error'}, safe=False)
