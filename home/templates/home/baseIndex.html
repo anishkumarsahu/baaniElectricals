@@ -517,7 +517,7 @@ Collection side bar
                 {% if request.user|has_group:"Collection" %}
 
                     <div class="ui grid stackable padded">
-                        <div class="four wide computer eight wide tablet sixteen wide mobile column">
+                        <div class="five wide computer eight wide tablet sixteen wide mobile column">
                             <div class="ui fluid card">
                                 <div class="content">
                                     <div class="ui right floated header red">
@@ -542,7 +542,7 @@ Collection side bar
                                 </div>
                             </div>
                         </div>
-                        <div class="four wide computer eight wide tablet sixteen wide mobile column">
+                      {% comment %}  <div class="four wide computer eight wide tablet sixteen wide mobile column">
                             <div class="ui fluid card">
                                 <div class="content">
                                     <div class="ui right floated header green">
@@ -566,8 +566,8 @@ Collection side bar
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="four wide computer eight wide tablet sixteen wide mobile column">
+                        </div>{% endcomment %}
+                        <div class="six wide computer eight wide tablet sixteen wide mobile column">
                             <div class="ui fluid card">
                                 <div class="content">
                                     <div class="ui right floated header teal">
@@ -591,7 +591,7 @@ Collection side bar
                                 </div>
                             </div>
                         </div>
-                        <div class="four wide computer eight wide tablet sixteen wide mobile column">
+                        <div class="five wide computer eight wide tablet sixteen wide mobile column">
                             <div class="ui fluid card">
                                 <div class="content">
                                     <div class="ui right floated header purple">

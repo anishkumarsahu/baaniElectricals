@@ -875,8 +875,8 @@ def add_collection_by_admin_api(request):
                 try:
                     obj.isApproved = True
                     obj.approvedBy_id = user.pk
-                    msg = "Sir, Our Executive has collected the payment of {} Rs.{}/- from you, Kindly confirm the same. If you have any query Please feel free contact on this no. 7005607770. Thanks, BSS".format(
-                        obj.modeOfPayment, obj.paidAmount)
+                    msg = "Sir, Our Executive has collected the payment of {} Rs.{}/- from you with Ref. No. {}, Kindly confirm the same. If you have any query Please feel free contact on this no. 7005607770. Thanks, BSS".format(
+                        obj.modeOfPayment, obj.paidAmount, obj.paymentID)
                     # send_whatsapp_message(obj.partyID.phone, msg)
                     send_message(obj.partyID.phone, msg)
                     obj.save()
@@ -1117,11 +1117,10 @@ def approve_collection(request):
             obj.approvedBy_id = user.pk
             obj.save()
             try:
-                msg = "Sir, Our Executive has collected the payment of {} Rs.{}/- from you, Kindly confirm the same. If you have any query Please feel free contact on this no. 7005607770. Thanks, BSS".format(
-                    obj.modeOfPayment, obj.paidAmount)
-
-                # send_whatsapp_message(obj.partyID.phone, msg)
-                send_message(obj.partyID.phone, msg)
+                    msg = "Sir, Our Executive has collected the payment of {} Rs.{}/- from you with Ref. No. {}, Kindly confirm the same. If you have any query Please feel free contact on this no. 7005607770. Thanks, BSS".format(
+                        obj.modeOfPayment, obj.paidAmount, obj.paymentID)
+                    # send_whatsapp_message(obj.partyID.phone, msg)
+                    send_message(obj.partyID.phone, msg)
             except:
                 pass
             return JsonResponse({'message': 'success'}, safe=False)
