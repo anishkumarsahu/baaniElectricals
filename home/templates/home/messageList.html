@@ -1,0 +1,127 @@
+{% extends 'home/admin/index.html' %}
+{% load static %}
+{% block title %}
+    <title>Message List</title>
+{% endblock %}
+{% block css %}
+{% endblock %}
+{% block body %}
+
+    <style>
+
+
+        #UserTable_length {
+            left: 20px;
+            position: absolute;
+        }
+
+        #UserTable_filter {
+            width: 50%;
+            float: right;
+        }
+
+        .dt-buttons {
+            position: absolute;
+            left: 174px;
+        }
+
+        input[type=search] {
+            width: 100px !important;
+        }
+    </style>
+
+    <div class="ui right aligned basic  grid">
+        <div class="sixteen wide column">
+            <div class="ui  pointing secondary menu">
+                <div style="cursor: pointer;" class="item active" data-tab="user"
+                >Message List
+                </div>
+
+            </div>
+            <div class="ui tab " data-tab="user">
+
+                <div class="row" style="padding-left: 5px; padding-right: 5px">
+                    <div class="wide">
+
+                        <table class="ui unstackable tiny sortable celled very nowrap very compact table" id="UserTable"
+                               style="margin-top: 5px;width: 100%">
+                            <thead>
+                            <tr>
+                                <th>Party Name</th>
+                                <th>PhoneNumber</th>
+                                <th>Message</th>
+                                <th>Status</th>
+                                <th>Datetime</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+
+
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+
+        var userTab;
+
+
+        function showUserModal() {
+            $('#myModalUser').modal('show');
+        }
+
+        function EditUser() {
+            $('')
+        }
+
+
+        // user Details
+
+        userTab = $('#UserTable').DataTable({
+            dom: 'Blfrtip',
+            "scrollY": "450px",
+            "scrollX": true,
+            fixedColumns: {
+                right: 1
+            },
+            buttons: [{
+                extend: 'excel',
+                exportOptions: {
+                    columns: [0, 1, 2,3,4]
+                }
+            }
+                {% comment %}      , {
+                          extend: 'print',
+                          exportOptions: {
+                               columns: [1, 2, 3, 4, 5, 6, 7, 8]
+                          }
+                      }{% endcomment %}
+            ],
+            "columnDefs": [
+                {"name": "messageTo", "targets": 0, "orderable": true},
+                {"name": "phone", "targets": 1, "orderable": true},
+                {"name": "message", "targets": 2, "orderable": true},
+                {"name": "status", "targets": 3, "orderable": true},
+                {"name": "datetime", "targets": 4, "orderable": true}
+
+            ],
+            aaSorting: [[4, 'desc']],
+            "lengthMenu": [[ 25, 50, 100, -1], [25, 50, 100, "All"]],
+            "pageLength": 25,
+            "processing": true,
+            "serverSide": true,
+            "ajax": "{% url 'homeApp:MessageListJson' %}"
+        });
+
+
+    </script>
+
+{% endblock %}

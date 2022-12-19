@@ -188,6 +188,20 @@ admin and moderator side bar
 
             </div>
         </div>
+        <div class="item">
+            <div class="header">
+                Sales
+            </div>
+            <div class="menu">
+                <a class="item" href="{% url 'homeApp:add_sales' %}">
+                    <div><i class="shopping cart icon"></i>Add Sale</div>
+                </a>
+                <a class="item" href="{% url 'homeApp:sales_list' %}">
+                    <div><i class="book icon"></i>Sales List</div>
+                </a>
+
+            </div>
+        </div>
 
         <div class="item">
             <div class="header">
@@ -225,6 +239,18 @@ admin and moderator side bar
             <div class="menu">
                 <a class="item" href="{% url 'homeApp:bank_list' %}">
                     <div><i class="university icon"></i>Bank List</div>
+                </a>
+
+            </div>
+        </div>
+
+        <div class="item">
+            <div class="header">
+                Message History
+            </div>
+            <div class="menu">
+                <a class="item" href="{% url 'homeApp:message_list' %}">
+                    <div><i class="comment dots outline icon"></i>Message List</div>
                 </a>
 
             </div>

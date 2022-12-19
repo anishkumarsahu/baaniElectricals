@@ -21,6 +21,7 @@ from django.core.cache import cache
 from weasyprint import CSS, HTML
 import locale
 
+
 class LocationThread(threading.Thread):
     def __init__(self, lat, lng):
         self.lat = lat
@@ -47,15 +48,16 @@ class LocationThread(threading.Thread):
     def stop(self):
         self._is_running = False
 
-def get_location(lat,lng):
-    LocationThread(lat,lng).start()
 
+def get_location(lat, lng):
+    LocationThread(lat, lng).start()
 
 
 class MessageThread(threading.Thread):
-    def __init__(self, number, message):
+    def __init__(self, number, message, partyName):
         self.number = number
         self.message = message
+        self.partyName = partyName
         self._is_running = True
         threading.Thread.__init__(self)
 
@@ -63,21 +65,51 @@ class MessageThread(threading.Thread):
         while (self._is_running):
             msg = WhatsappMessage.objects.filter(isDeleted__exact=False).last()
             if msg.used < msg.balance:
-                r = requests.get(
-                    "https://server.betablaster.in/api/send.php?number=91" + self.number + "&type=text&message=" + self.message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
-                    verify=False)
-                data = r.json()
-                msg.used = (msg.used + 1)
-                msg.save()
+                try:
+
+                    r = requests.get(
+                        "https://server.betablaster.in/api/send.php?number=91" + self.number + "&type=text&message=" + self.message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
+                        verify=False)
+                    data = r.json()
+                    obj = WhatsappMessageStatus()
+                    obj.phone = self.number
+                    obj.message = self.message
+                    obj.messageTo = self.partyName
+                    try:
+                        if data['status'] == 'success':
+                            obj.status = 'Success'
+                        else:
+                            obj.status = 'Fail'
+                    except:
+                        obj.status = 'Fail'
+                    obj.save()
+
+                    msg.used = (msg.used + 1)
+                    msg.save()
+                except:
+                    obj = WhatsappMessageStatus()
+                    obj.phone = self.number
+                    obj.message = self.message
+                    obj.messageTo = self.partyName
+                    obj.status = 'Fail'
+                    obj.save()
+
+            else:
+                obj = WhatsappMessageStatus()
+                obj.phone = self.number
+                obj.message = self.message
+                obj.messageTo = self.partyName
+                obj.status = 'Fail'
+                obj.save()
 
             self.stop()
 
     def stop(self):
         self._is_running = False
 
-def send_message(number,message):
-    MessageThread(number,message).start()
 
+def send_message(number, message, party):
+    MessageThread(number, message, party).start()
 
 
 def formatINR(number):
@@ -864,7 +896,6 @@ def add_collection_by_admin_api(request):
             user = StaffUser.objects.get(user_ID_id=request.user.pk)
             obj.collectedBy_id = user.pk
 
-
             obj.collectionAddress = "From Shop."
 
             obj.save()
@@ -878,7 +909,13 @@ def add_collection_by_admin_api(request):
                     msg = "Sir, Our Executive has collected the payment of {} Rs.{}/- from you with Ref. No. {}, Kindly confirm the same. If you have any query Please feel free contact on this no. 7005607770. Thanks, BSS".format(
                         obj.modeOfPayment, obj.paidAmount, obj.paymentID)
                     # send_whatsapp_message(obj.partyID.phone, msg)
-                    send_message(obj.partyID.phone, msg)
+                    # send_message(obj.partyID.phone, msg, obj.partyID.name)
+                    try:
+                        numbers = str(obj.partyID.phone).split('.')
+                        for n in numbers:
+                            send_message(n, msg, obj.partyID.name)
+                    except:
+                        send_message(obj.partyID.phone, msg, obj.partyID.name)
                     obj.save()
                 except:
                     pass
@@ -1117,10 +1154,16 @@ def approve_collection(request):
             obj.approvedBy_id = user.pk
             obj.save()
             try:
-                    msg = "Sir, Our Executive has collected the payment of {} Rs.{}/- from you with Ref. No. {}, Kindly confirm the same. If you have any query Please feel free contact on this no. 7005607770. Thanks, BSS".format(
-                        obj.modeOfPayment, obj.paidAmount, obj.paymentID)
-                    # send_whatsapp_message(obj.partyID.phone, msg)
-                    send_message(obj.partyID.phone, msg)
+                msg = "Sir, Our Executive has collected the payment of {} Rs.{}/- from you with Ref. No. {}, Kindly confirm the same. If you have any query Please feel free contact on this no. 7005607770. Thanks, BSS".format(
+                    obj.modeOfPayment, obj.paidAmount, obj.paymentID)
+                # send_whatsapp_message(obj.partyID.phone, msg)
+                try:
+                    numbers = str(obj.partyID.phone).split('.')
+                    for n in numbers:
+                        send_message(n, msg, obj.partyID.name)
+                except:
+                    send_message(obj.partyID.phone, msg, obj.partyID.name)
+
             except:
                 pass
             return JsonResponse({'message': 'success'}, safe=False)
@@ -1486,3 +1529,275 @@ def generate_attendance_pdf_admin_report(request):
 
     HTML(string=html).write_pdf(response, stylesheets=[CSS(string='@page { size: A5; margin: .3cm ; }')])
     return response
+
+
+# -------------------Message List---------------
+class MessageListJson(BaseDatatableView):
+    order_columns = ['messageTo', 'phone', 'message', 'status', 'datetime']
+
+    def get_initial_queryset(self):
+        # if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+        return WhatsappMessageStatus.objects.select_related().filter(isDeleted__exact=False)
+
+    def filter_queryset(self, qs):
+
+        search = self.request.GET.get('search[value]', None)
+        if search:
+            qs = qs.filter(
+                Q(messageTo__icontains=search) | Q(phone__icontains=search) | Q(message__icontains=search)
+                | Q(status__icontains=search) | Q(datetime__icontains=search)
+            )
+
+        return qs
+
+    def prepare_results(self, qs):
+        json_data = []
+        for item in qs:
+            if item.status == 'Success':
+                status = '''<div class="ui tiny green label">
+              Success
+            </div>'''
+            else:
+                status = '''<div class="ui tiny red label">
+                             Fail
+                           </div>'''
+
+            json_data.append([
+                escape(item.messageTo),
+                escape(item.phone),
+                escape(item.message),
+                status,
+                escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
+
+            ])
+
+        return json_data
+
+
+#----------------------Sales-----------------
+
+
+@transaction.atomic
+@csrf_exempt
+def add_sales_by_admin_api(request):
+    if request.method == 'POST':
+        try:
+            invoiceSeriesSelect = request.POST.get("invoiceSeriesSelect")
+            invoiceNo = request.POST.get("invoiceNo")
+            invoiceYearSelect = request.POST.get("invoiceYearSelect")
+            colDate = request.POST.get("colDate")
+            party = request.POST.get("party")
+            amount = request.POST.get("amount")
+            remark = request.POST.get("remark")
+            c = str(party).split('@')
+            cus = Party.objects.select_related().get(pk=int(c[1]))
+            obj = Sales()
+            obj.partyID_id = cus.pk
+            obj.invoiceNumber = invoiceSeriesSelect+'/'+invoiceNo+'/'+invoiceYearSelect
+            obj.amount = float(amount)
+            obj.remark = remark
+            obj.buildDate = datetime.strptime(colDate, '%d/%m/%Y')
+            user = StaffUser.objects.get(user_ID_id=request.user.pk)
+            obj.createdBy_id = user.pk
+            obj.save()
+            obj.paymentID = 'S'+str(obj.pk).zfill(8)
+            obj.save()
+            try:
+                msg = "Sir"
+                # send_whatsapp_message(obj.partyID.phone, msg)
+                try:
+                    numbers = str(obj.partyID.phone).split('.')
+                    for n in numbers:
+                        send_message(n, msg, obj.partyID.name)
+                except:
+                    send_message(obj.partyID.phone, msg, obj.partyID.name)
+            except:
+                pass
+
+            return JsonResponse({'message': 'success'}, safe=False)
+        except:
+            return JsonResponse({'message': 'error'}, safe=False)
+
+class SalesByAdminListJson(BaseDatatableView):
+    order_columns = ['paymentID', 'partyID.name', 'invoiceNumber','amount', 'buildDate', 'createdBy.name',
+                     'datetime', 'remark'
+                     ]
+
+    def get_initial_queryset(self):
+        try:
+            startDateV = self.request.GET.get("startDate")
+            endDateV = self.request.GET.get("endDate")
+            staffID = self.request.GET.get("staffID")
+            sDate = datetime.strptime(startDateV, '%d/%m/%Y')
+            eDate = datetime.strptime(endDateV, '%d/%m/%Y')
+            if staffID == 'All':
+                return Sales.objects.select_related().filter(isDeleted__exact=False, buildDate__range=(
+                    sDate.date(), eDate.date() + timedelta(days=1)))
+            else:
+                return Sales.objects.select_related().filter(isDeleted__exact=False, buildDate__range=(
+                    sDate.date(), eDate.date() + timedelta(days=1)), createdBy_id=int(staffID))
+        except:
+            return Sales.objects.select_related().filter(isDeleted__exact=False,
+                                                              buildDate__icontains=datetime.today().date())
+
+    def filter_queryset(self, qs):
+        search = self.request.GET.get('search[value]', None)
+        if search:
+            qs = qs.filter(
+                Q(paymentID__icontains=search) | Q(partyID__name__icontains=search) | Q(
+                    amount__icontains=search) | Q(
+                    invoiceNumber__icontains=search) | Q(createdBy__icontains=search)  | Q(
+                    remark__icontains=search)
+                | Q(datetime__icontains=search) | Q(buildDate__icontains=search)
+
+            )
+
+        return qs
+
+    def prepare_results(self, qs):
+        json_data = []
+        for item in qs:
+            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+
+                action = '''<button  data-inverted="" data-tooltip="Send Message" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
+                   <i class="whatsapp icon"></i>
+                  </button>
+                  <a href="/edit_sales/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
+                    <i class="pen icon"></i>
+                  </a>
+                  <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
+                    <i class="trash alternate icon"></i>
+                  </button>'''.format(item.pk, item.pk, item.pk),
+            else:
+                action = '''<div class="ui tiny label">
+              Denied
+            </div>'''
+
+
+            try:
+                createdBy = item.createdBy.name
+            except:
+                createdBy = '-'
+
+
+
+            json_data.append([
+                escape(item.paymentID),
+                escape(item.partyID.name),
+                escape(item.invoiceNumber),
+                formatINR(item.amount),
+                escape(item.buildDate.strftime('%d-%m-%Y')),
+                createdBy,
+                escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
+                escape(item.remark),
+                action,
+
+            ])
+
+        return json_data
+
+
+def generate_sales_report(request):
+    cDate = request.GET.get('cDate')
+    staffID = request.GET.get('staffID')
+    colDate = datetime.strptime(cDate, '%d/%m/%Y')
+    a_total = 0.0
+    if staffID == 'All':
+        col = Sales.objects.select_related().filter(buildDate__icontains=colDate.date(),
+                                                         isDeleted__exact=False).order_by('createdBy__name')
+        staffName = 'All'
+    else:
+        col = Sales.objects.select_related().filter(buildDate__icontains=colDate.date(),
+                                                         isDeleted__exact=False, createdBy_id=int(staffID)).order_by(
+            'createdBy__name')
+        user = StaffUser.objects.get(pk=int(staffID))
+        staffName = user.name + ' - ' + user.partyGroupID.name
+
+    for a in col:
+        a_total = a_total + a.amount
+
+    context = {
+        'date': colDate,
+        'col': col,
+        'staffName': staffName,
+        'total': a_total,
+
+    }
+
+    response = HttpResponse(content_type="application/pdf")
+    response['Content-Disposition'] = "report.pdf"
+    html = render_to_string("home/report/salesReportPDF.html", context)
+
+    HTML(string=html).write_pdf(response, stylesheets=[CSS(string='@page { size: A5; margin: .3cm ; }')])
+    return response
+
+@transaction.atomic
+@csrf_exempt
+def delete_sales(request):
+    if request.method == 'POST':
+        try:
+            id = request.POST.get("userID")
+            obj = Sales.objects.select_related().get(pk=int(id))
+            obj.isDeleted = True
+            obj.save()
+            return JsonResponse({'message': 'success'}, safe=False)
+        except:
+            return JsonResponse({'message': 'error'}, safe=False)
+
+
+
+
+@transaction.atomic
+@csrf_exempt
+def update_sales_by_admin_api(request):
+    if request.method == 'POST':
+        try:
+            invoiceSeriesSelect = request.POST.get("invoiceSeriesSelect")
+            invoiceNo = request.POST.get("invoiceNo")
+            invoiceYearSelect = request.POST.get("invoiceYearSelect")
+            colDate = request.POST.get("colDate")
+            party = request.POST.get("party")
+            amount = request.POST.get("amount")
+            remark = request.POST.get("remark")
+            ID = request.POST.get("ID")
+            c = str(party).split('@')
+            cus = Party.objects.select_related().get(pk=int(c[1]))
+            obj = Sales.objects.get(pk = int(ID))
+            obj.partyID_id = cus.pk
+            obj.invoiceNumber = invoiceSeriesSelect+'/'+invoiceNo+'/'+invoiceYearSelect
+            obj.amount = float(amount)
+            obj.remark = remark
+            obj.buildDate = datetime.strptime(colDate, '%d/%m/%Y')
+            user = StaffUser.objects.get(user_ID_id=request.user.pk)
+            obj.createdBy_id = user.pk
+            obj.save()
+
+
+            return JsonResponse({'message': 'success'}, safe=False)
+        except:
+            return JsonResponse({'message': 'error'}, safe=False)
+
+@transaction.atomic
+@csrf_exempt
+def send_message_sales(request):
+    if request.method == 'POST':
+        try:
+            id = request.POST.get("userID")
+            obj = Sales.objects.select_related().get(pk=int(id))
+            try:
+                msg = "Sir, Our Executive has collected the payment of {} Rs.{}/- from you with Ref. No. {}, Kindly confirm the same. If you have any query Please feel free contact on this no. 7005607770. Thanks, BSS".format(
+                    obj.invoiceNumber, obj.amount, obj.paymentID)
+                # send_whatsapp_message(obj.partyID.phone, msg)
+                try:
+                    numbers = str(obj.partyID.phone).split('.')
+                    for n in numbers:
+                        send_message(n, msg, obj.partyID.name)
+                except:
+                    send_message(obj.partyID.phone, msg, obj.partyID.name)
+
+            except:
+                pass
+            return JsonResponse({'message': 'success'}, safe=False)
+        except:
+            return JsonResponse({'message': 'error'}, safe=False)
+

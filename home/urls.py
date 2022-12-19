@@ -92,6 +92,19 @@ urlpatterns = [
     path('api/StaffAttendanceListJson/', StaffAttendanceListJson.as_view(), name='StaffAttendanceListJson'),
     path('api/AdminAttendanceListJson/', AdminAttendanceListJson.as_view(), name='AdminAttendanceListJson'),
 
+    # Sales
+    path('add_sales/', add_sales, name='add_sales'),
+    path('sales_list/', sales_list, name='sales_list'),
+    path('api/add_sales_by_admin_api/', add_sales_by_admin_api, name='add_sales_by_admin_api'),
+    path('api/update_sales_by_admin_api/', update_sales_by_admin_api, name='update_sales_by_admin_api'),
+    path('api/SalesByAdminListJson/', SalesByAdminListJson.as_view(), name='SalesByAdminListJson'),
+    path('api/generate_sales_report/', generate_sales_report, name='generate_sales_report'),
+    path('api/delete_sales/', delete_sales, name='delete_sales'),
+    path('api/send_message_sales/', send_message_sales, name='send_message_sales'),
+    path('edit_sales/<int:id>/', edit_sales, name='edit_sales'),
 
+    # message List
+    path('message_list/', message_list, name='message_list'),
+    path('api/MessageListJson/', MessageListJson.as_view(), name='MessageListJson'),
 
 ]

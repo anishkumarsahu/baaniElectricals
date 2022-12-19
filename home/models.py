@@ -152,6 +152,9 @@ class WhatsappMessage(models.Model):
     lastUpdatedOn = models.DateTimeField(auto_now_add=False, auto_now=True)
     isDeleted = models.BooleanField(default=False)
 
+    class Meta:
+        verbose_name_plural = 'L) Whatsapp Message Package List'
+
 
 class Attendance(models.Model):
     staffID = models.ForeignKey(StaffUser, blank=True, null=True, on_delete=models.SET_NULL,
@@ -179,3 +182,41 @@ class Attendance(models.Model):
 
     class Meta:
         verbose_name_plural = 'i) Login/Logout List'
+
+
+
+class WhatsappMessageStatus(models.Model):
+    message = models.TextField(blank=True, null=True)
+    messageTo = models.CharField(max_length=300, blank=True, null=True)
+    phone = models.CharField(max_length=300, blank=True, null=True)
+    status = models.CharField(max_length=300, blank=True, null=True)
+    datetime = models.DateTimeField(auto_now_add=True, auto_now=False)
+    lastUpdatedOn = models.DateTimeField(auto_now_add=False, auto_now=True)
+    isDeleted = models.BooleanField(default=False)
+
+    def __str__(self):
+        return str(self.messageTo)
+
+    class Meta:
+        verbose_name_plural = 'J) Message Sent  List'
+
+
+
+class Sales(models.Model):
+    partyID = models.ForeignKey(Party, blank=True, null=True, on_delete=models.SET_NULL)
+    paymentID = models.CharField(max_length=200, blank=True, null=True)
+    invoiceNumber = models.CharField(max_length=200, default='Cash')
+    amount = models.FloatField(default=0.0)
+    remark = models.CharField(max_length=500, blank=True, null=True)
+    createdBy = models.ForeignKey(StaffUser, blank=True, null=True, on_delete=models.SET_NULL,
+                                    related_name='createdBy')
+    buildDate = models.DateField(blank=True, null=True)
+    datetime = models.DateTimeField(auto_now_add=True, auto_now=False)
+    lastUpdatedOn = models.DateTimeField(auto_now_add=False, auto_now=True)
+    isDeleted = models.BooleanField(default=False)
+
+    def __str__(self):
+        return str(self.partyID.name)
+
+    class Meta:
+        verbose_name_plural = 'K) Sales List'

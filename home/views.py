@@ -279,7 +279,7 @@ def staff_home(request):
     return render(request, 'home/NormalStaff/indexStaff.html', context)
 
 
-# attendance-------------------
+# ---------------------------attendance-------------------
 
 def add_attendance(request):
     if request.user.is_authenticated:
@@ -318,3 +318,38 @@ def attendance_report_admin(request):
         return render(request, 'home/attendanceReportAdmin.html', context)
     else:
         return redirect('/')
+
+# ----------------------------- Sales ----------------------
+def add_sales(request):
+
+    return render(request, 'home/sales/addSales.html')
+
+@is_activated()
+@check_two_group('Admin', 'Moderator')
+def sales_list(request):
+    staffs = StaffUser.objects.filter(isDeleted__exact=False).order_by('name')
+    context = {
+        'staffs': staffs
+    }
+    return render(request, 'home/sales/salesListByAdmin.html', context)
+
+
+
+def edit_sales(request, id=None):
+    obj = get_object_or_404(Sales, pk=id)
+    invoice = obj.invoiceNumber
+    splitVoice = invoice.split('/')
+
+    context = {
+        'obj': obj,
+        'series':splitVoice[0],
+        'number':splitVoice[1],
+        'year':splitVoice[2],
+    }
+    return render(request, 'home/sales/editSales.html', context)
+
+
+#-----------------------Message---------------------
+@check_two_group('Admin', 'Moderator')
+def message_list(request):
+    return render(request, 'home/messageList.html')

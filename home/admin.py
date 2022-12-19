@@ -71,3 +71,19 @@ class AttendanceAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Attendance, AttendanceAdmin)
+
+
+
+class MessageStatusAdmin(admin.ModelAdmin):
+    list_display = ['messageTo', 'phone', 'status', 'message','datetime', 'lastUpdatedOn', 'isDeleted']
+
+
+admin.site.register(WhatsappMessageStatus, MessageStatusAdmin)
+
+
+
+class SalesAdmin(admin.ModelAdmin):
+    list_display = ['partyID', 'paymentID','buildDate', 'invoiceNumber', 'amount','remark','createdBy','datetime', 'lastUpdatedOn', 'isDeleted']
+
+
+admin.site.register(Sales, SalesAdmin)
