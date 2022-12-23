@@ -106,5 +106,6 @@ urlpatterns = [
     # message List
     path('message_list/', message_list, name='message_list'),
     path('api/MessageListJson/', MessageListJson.as_view(), name='MessageListJson'),
+    path('api/re_send_message_sales/', re_send_message_sales, name='re_send_message_sales'),
 
 ]

@@ -108,9 +108,9 @@
                                 <th>Date</th>
                                 <th>StaffName</th>
                                 <th>LoginTime</th>
+                                <th>LogoutTime</th>
                                 <th>LoginLocation</th>
                                 <th>LoginRemark</th>
-                                <th>LogoutTime</th>
                                 <th>LogoutLocation</th>
                                 <th>LogoutRemark</th>
                             </tr>
@@ -172,10 +172,6 @@
             dom: 'Blfrtip',
             "scrollY": "350px",
             "scrollX": true,
-            fixedColumns: {
-                left: 1,
-                right: 1
-            },
             buttons: [{
                 extend: 'excel',
                 exportOptions: {
@@ -193,9 +189,9 @@
                 {"name": "datetime", "targets": 0, "orderable": true},
                 {"name": "staffID.name", "targets": 1, "orderable": true},
                 {"name": "loginDateTime", "targets": 2, "orderable": true},
-                {"name": "login_location", "targets": 3, "orderable": true},
-                {"name": "login_remark", "targets": 4, "orderable": true},
-                {"name": "logoutDateTime", "targets": 5, "orderable": true},
+                {"name": "logoutDateTime", "targets": 3, "orderable": true},
+                {"name": "login_location", "targets": 4, "orderable": true},
+                {"name": "login_remark", "targets": 5, "orderable": true},
                 {"name": "logout_location", "targets": 6, "orderable": true},
                 {"name": "logout_remark", "targets": 7, "orderable": true},
 

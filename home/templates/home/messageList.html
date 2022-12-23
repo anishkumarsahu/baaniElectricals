@@ -50,8 +50,8 @@
                                 <th>Party Name</th>
                                 <th>PhoneNumber</th>
                                 <th>Message</th>
-                                <th>Status</th>
                                 <th>Datetime</th>
+                                <th>Status</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -66,6 +66,29 @@
             </div>
         </div>
     </div>
+        <div class="ui mini modal" id="imgModal">
+        <div class="header">
+            ReSend Message
+        </div>
+        <div class="content">
+            <p>Are you sure you want to send message?</p>
+        </div>
+        <input type="hidden" id="approveCollectionID">
+        <div class="actions">
+            <div class="ui negative button">
+                No
+            </div>
+            <button class="ui green right labeled icon button saveBtn" onclick="confirmApproval()">
+                Yes
+                <i class="checkmark icon"></i>
+            </button>
+            <button style="display: none;" class="ui teal right labeled icon button saveBtnLoad">
+                Saving ....
+                <i class="checkmark icon"></i>
+            </button>
+
+        </div>
+    </div>
 {% endblock %}
 
 {% block js %}
@@ -73,10 +96,11 @@
 
         var userTab;
 
-
-        function showUserModal() {
-            $('#myModalUser').modal('show');
+        function ResendMsg(id) {
+            $('#imgModal').modal('show');
+            $('#approveCollectionID').val('' + id);
         }
+
 
         function EditUser() {
             $('')
@@ -109,17 +133,70 @@
                 {"name": "messageTo", "targets": 0, "orderable": true},
                 {"name": "phone", "targets": 1, "orderable": true},
                 {"name": "message", "targets": 2, "orderable": true},
-                {"name": "status", "targets": 3, "orderable": true},
-                {"name": "datetime", "targets": 4, "orderable": true}
+                {"name": "datetime", "targets": 3, "orderable": true},
+                {"name": "status", "targets": 4, "orderable": true}
+
 
             ],
-            aaSorting: [[4, 'desc']],
+            aaSorting: [[3, 'desc']],
             "lengthMenu": [[ 25, 50, 100, -1], [25, 50, 100, "All"]],
             "pageLength": 25,
             "processing": true,
             "serverSide": true,
             "ajax": "{% url 'homeApp:MessageListJson' %}"
         });
+
+        function confirmApproval() {
+            showLoading();
+            var id = $('#approveCollectionID').val();
+            var formdata = new FormData();
+            formdata.append('userID', id);
+
+            $.ajax({
+                url: "{% url 'homeApp:re_send_message_sales' %}",
+                type: "post",
+                data: formdata,
+                contentType: false,
+                cache: false,
+                processData: false,
+
+                success: function (response) {
+                    if (response.message === 'success') {
+                        $('body')
+                            .toast({
+                                class: 'success',
+                                message: 'Message sent Successfully.'
+                            })
+                        ;
+
+                        $('#imgModal').modal('hide');
+                        userTab.ajax.reload();
+                        hideLoading();
+                    } else {
+                        $('body')
+                            .toast({
+                                class: 'error',
+                                message: 'An error occurred !'
+                            })
+                        ;
+                        hideLoading();
+                    }
+
+                    return response;
+                },
+                error: function () {
+                    $('body')
+                        .toast({
+                            class: 'error',
+                            message: 'An error occurred !'
+                        })
+                    ;
+                    hideLoading();
+                }
+
+            });
+
+        }
 
 
     </script>

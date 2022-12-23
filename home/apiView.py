@@ -1040,12 +1040,11 @@ class CollectionByAdminListJson(BaseDatatableView):
             staffID = self.request.GET.get("staffID")
             sDate = datetime.strptime(startDateV, '%d/%m/%Y')
             eDate = datetime.strptime(endDateV, '%d/%m/%Y')
+
             if staffID == 'All':
-                return Collection.objects.select_related().filter(isDeleted__exact=False, collectionDateTime__range=(
-                    sDate.date(), eDate.date() + timedelta(days=1)))
+                return Collection.objects.select_related().filter(isDeleted__exact=False, collectionDateTime__date__range=[sDate.date(),eDate.date()])
             else:
-                return Collection.objects.select_related().filter(isDeleted__exact=False, collectionDateTime__range=(
-                    sDate.date(), eDate.date() + timedelta(days=1)), collectedBy_id=int(staffID))
+                return Collection.objects.select_related().filter(isDeleted__exact=False, collectionDateTime__date__range=[sDate.date(),eDate.date()], collectedBy_id=int(staffID))
         except:
             return Collection.objects.select_related().filter(isDeleted__exact=False,
                                                               collectionDateTime__icontains=datetime.today().date())
@@ -1397,7 +1396,7 @@ class StaffAttendanceListJson(BaseDatatableView):
 
 
 class AdminAttendanceListJson(BaseDatatableView):
-    order_columns = ['datetime', 'staffID.name', 'loginDateTime', 'login_location', 'login_remark', 'logoutDateTime',
+    order_columns = ['datetime', 'staffID.name', 'loginDateTime', 'logoutDateTime', 'login_location', 'login_remark',
                      'logout_location', 'logout_remark',
                      ]
 
@@ -1459,9 +1458,10 @@ class AdminAttendanceListJson(BaseDatatableView):
                 escape(item.datetime.strftime('%d-%m-%Y')),
                 escape(item.staffID.name),
                 login_time,
+                logout_time,
                 login_location,
                 login_remark,
-                logout_time,
+
                 logout_location,
                 logout_remark
 
@@ -1533,7 +1533,7 @@ def generate_attendance_pdf_admin_report(request):
 
 # -------------------Message List---------------
 class MessageListJson(BaseDatatableView):
-    order_columns = ['messageTo', 'phone', 'message', 'status', 'datetime']
+    order_columns = ['messageTo', 'phone', 'message','datetime','status']
 
     def get_initial_queryset(self):
         # if 'Admin' in self.request.user.groups.values_list('name', flat=True):
@@ -1558,16 +1558,16 @@ class MessageListJson(BaseDatatableView):
               Success
             </div>'''
             else:
-                status = '''<div class="ui tiny red label">
+                status = '''<a class="ui tiny red label" onclick="ResendMsg('{}')">
                              Fail
-                           </div>'''
+                           </a>'''.format(item.pk)
 
             json_data.append([
                 escape(item.messageTo),
                 escape(item.phone),
                 escape(item.message),
-                status,
                 escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
+                status,
 
             ])
 
@@ -1603,7 +1603,7 @@ def add_sales_by_admin_api(request):
             obj.paymentID = 'S'+str(obj.pk).zfill(8)
             obj.save()
             try:
-                msg = "Sir"
+                msg = "Your order has been dispatched Ag. Bill No. {} Dt. {} Amt. Rs. {}, Please confirm received the material. If you have any queries about your order, Please feel free to contact your area executive. Thanks, BSS".format(obj.invoiceNumber, obj.buildDate.strftime('%d-%m-%Y'), obj.amount)
                 # send_whatsapp_message(obj.partyID.phone, msg)
                 try:
                     numbers = str(obj.partyID.phone).split('.')
@@ -1657,21 +1657,21 @@ class SalesByAdminListJson(BaseDatatableView):
     def prepare_results(self, qs):
         json_data = []
         for item in qs:
-            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+            # if 'Admin' in self.request.user.groups.values_list('name', flat=True):
 
-                action = '''<button  data-inverted="" data-tooltip="Send Message" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
-                   <i class="whatsapp icon"></i>
-                  </button>
-                  <a href="/edit_sales/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
-                    <i class="pen icon"></i>
-                  </a>
-                  <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
-                    <i class="trash alternate icon"></i>
-                  </button>'''.format(item.pk, item.pk, item.pk),
-            else:
-                action = '''<div class="ui tiny label">
-              Denied
-            </div>'''
+            action = '''<button  data-inverted="" data-tooltip="Send Message" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
+               <i class="whatsapp icon"></i>
+              </button>
+              <a href="/edit_sales/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
+                <i class="pen icon"></i>
+              </a>
+              <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
+                <i class="trash alternate icon"></i>
+              </button>'''.format(item.pk, item.pk, item.pk),
+            # else:
+            #     action = '''<div class="ui tiny label">
+            #   Denied
+            # </div>'''
 
 
             try:
@@ -1795,6 +1795,36 @@ def send_message_sales(request):
                 except:
                     send_message(obj.partyID.phone, msg, obj.partyID.name)
 
+            except:
+                pass
+            return JsonResponse({'message': 'success'}, safe=False)
+        except:
+            return JsonResponse({'message': 'error'}, safe=False)
+
+@transaction.atomic
+@csrf_exempt
+def re_send_message_sales(request):
+    if request.method == 'POST':
+        try:
+            id = request.POST.get("userID")
+            obj = WhatsappMessageStatus.objects.select_related().get(pk=int(id))
+            try:
+                msg = WhatsappMessage.objects.filter(isDeleted__exact=False).last()
+                if msg.used < msg.balance:
+                    r = requests.get(
+                        "https://server.betablaster.in/api/send.php?number=91" + obj.phone + "&type=text&message=" + obj.message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
+                        verify=False)
+                    data = r.json()
+                    try:
+                        if data['status'] == 'success':
+                            obj.status = 'Success'
+                            msg.used = (msg.used + 1)
+                            msg.save()
+                        else:
+                            obj.status = 'Fail'
+                    except:
+                        obj.status = 'Fail'
+                    obj.save()
             except:
                 pass
             return JsonResponse({'message': 'success'}, safe=False)
