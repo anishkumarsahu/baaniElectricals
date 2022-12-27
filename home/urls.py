@@ -95,9 +95,11 @@ urlpatterns = [
     # Sales
     path('add_sales/', add_sales, name='add_sales'),
     path('sales_list/', sales_list, name='sales_list'),
+    path('my_sales_list/', my_sales_list, name='my_sales_list'),
     path('api/add_sales_by_admin_api/', add_sales_by_admin_api, name='add_sales_by_admin_api'),
     path('api/update_sales_by_admin_api/', update_sales_by_admin_api, name='update_sales_by_admin_api'),
     path('api/SalesByAdminListJson/', SalesByAdminListJson.as_view(), name='SalesByAdminListJson'),
+    path('api/SalesByStaffListJson/', SalesByStaffListJson.as_view(), name='SalesByStaffListJson'),
     path('api/generate_sales_report/', generate_sales_report, name='generate_sales_report'),
     path('api/delete_sales/', delete_sales, name='delete_sales'),
     path('api/send_message_sales/', send_message_sales, name='send_message_sales'),

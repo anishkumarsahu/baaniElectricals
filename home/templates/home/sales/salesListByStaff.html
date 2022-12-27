@@ -46,7 +46,7 @@
 
                 <div class="row" style="padding-left: 5px; padding-right: 5px">
                     <div class="">
-
+{% comment %}
                         <div class="ui form">
                             <form class="ui tiny form">
                                 <div class="fields">
@@ -99,7 +99,7 @@
                                     </div>
                                 </div>
                             </form>
-                        </div>
+                        </div>{% endcomment %}
                         <table class="ui unstackable  sortable celled very nowrap very small compact table"
                                id="UserTable"
                                style="margin-top: 5px;width: 100%">
@@ -253,7 +253,7 @@
             "pageLength": 10,
             "processing": true,
             "serverSide": true,
-            "ajax": "{% url 'homeApp:SalesByAdminListJson' %}"
+            "ajax": "{% url 'homeApp:SalesByStaffListJson' %}"
         });
 
 
@@ -316,10 +316,10 @@
         }
 
         function filterDetails() {
-            var startDate = $('#startDateF').val();
-            var endDate = $('#endDateF').val();
-            var staffID = $('#staffID').val();
-            userTab.ajax.url('{% url 'homeApp:SalesByAdminListJson' %}?startDate=' + startDate + '&endDate=' + endDate + '&staffID=' + staffID).load();
+            {#var startDate = $('#startDateF').val();#}
+            {#var endDate = $('#endDateF').val();#}
+            {#var staffID = $('#staffID').val();#}
+            {#userTab.ajax.url('{% url 'homeApp:SalesByAdminListJson' %}?startDate=' + startDate + '&endDate=' + endDate + '&staffID=' + staffID).load();#}
 
         }
 

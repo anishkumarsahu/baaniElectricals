@@ -334,6 +334,13 @@ def sales_list(request):
     return render(request, 'home/sales/salesListByAdmin.html', context)
 
 
+def my_sales_list(request):
+    context = {
+    }
+    return render(request, 'home/sales/salesListByStaff.html', context)
+
+
+
 
 def edit_sales(request, id=None):
     obj = get_object_or_404(Sales, pk=id)

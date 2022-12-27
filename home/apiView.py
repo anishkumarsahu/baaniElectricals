@@ -1603,7 +1603,8 @@ def add_sales_by_admin_api(request):
             obj.paymentID = 'S'+str(obj.pk).zfill(8)
             obj.save()
             try:
-                msg = "Your order has been dispatched Ag. Bill No. {} Dt. {} Amt. Rs. {}, Please confirm received the material. If you have any queries about your order, Please feel free to contact your area executive. Thanks, BSS".format(obj.invoiceNumber, obj.buildDate.strftime('%d-%m-%Y'), obj.amount)
+                # msg = "Your order has been dispatched Ag. Bill No. {} Dt. {} Amt. Rs. {}, Please confirm received the material. If you have any queries about your order, Please feel free to contact your area executive. Thanks, BSS".format(obj.invoiceNumber, obj.buildDate.strftime('%d-%m-%Y'), obj.amount)
+                msg = "Your order has been dispatched Ag. Bill No. {} Dt. {} Amt. Rs. {}, Please confirm received the material. If you have any queries about your order, Please feel free contact on this no 7005607770. Thanks, BSS".format(obj.invoiceNumber, obj.buildDate.strftime('%d-%m-%Y'), obj.amount)
                 # send_whatsapp_message(obj.partyID.phone, msg)
                 try:
                     numbers = str(obj.partyID.phone).split('.')
@@ -1657,9 +1658,9 @@ class SalesByAdminListJson(BaseDatatableView):
     def prepare_results(self, qs):
         json_data = []
         for item in qs:
-            # if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
 
-            action = '''<button  data-inverted="" data-tooltip="Send Message" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
+                action = '''<button  data-inverted="" data-tooltip="Send Message" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
                <i class="whatsapp icon"></i>
               </button>
               <a href="/edit_sales/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
@@ -1668,10 +1669,75 @@ class SalesByAdminListJson(BaseDatatableView):
               <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
                 <i class="trash alternate icon"></i>
               </button>'''.format(item.pk, item.pk, item.pk),
-            # else:
-            #     action = '''<div class="ui tiny label">
-            #   Denied
-            # </div>'''
+            else:
+                action = '''<div class="ui tiny label">
+              Denied
+            </div>'''
+
+
+            try:
+                createdBy = item.createdBy.name
+            except:
+                createdBy = '-'
+
+
+
+            json_data.append([
+                escape(item.paymentID),
+                escape(item.partyID.name),
+                escape(item.invoiceNumber),
+                formatINR(item.amount),
+                escape(item.buildDate.strftime('%d-%m-%Y')),
+                createdBy,
+                escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
+                escape(item.remark),
+                action,
+
+            ])
+
+        return json_data
+
+class SalesByStaffListJson(BaseDatatableView):
+    order_columns = ['paymentID', 'partyID.name', 'invoiceNumber','amount', 'buildDate', 'createdBy.name',
+                     'datetime', 'remark'
+                     ]
+
+    def get_initial_queryset(self):
+            return Sales.objects.select_related().filter(isDeleted__exact=False,
+                                                              buildDate__icontains=datetime.today().date(), createdBy__user_ID_id=self.request.user.pk)
+
+    def filter_queryset(self, qs):
+        search = self.request.GET.get('search[value]', None)
+        if search:
+            qs = qs.filter(
+                Q(paymentID__icontains=search) | Q(partyID__name__icontains=search) | Q(
+                    amount__icontains=search) | Q(
+                    invoiceNumber__icontains=search) | Q(createdBy__icontains=search)  | Q(
+                    remark__icontains=search)
+                | Q(datetime__icontains=search) | Q(buildDate__icontains=search)
+
+            )
+
+        return qs
+
+    def prepare_results(self, qs):
+        json_data = []
+        for item in qs:
+            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+
+                action = '''<button  data-inverted="" data-tooltip="Send Message" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
+               <i class="whatsapp icon"></i>
+              </button>
+              <a href="/edit_sales/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
+                <i class="pen icon"></i>
+              </a>
+              <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
+                <i class="trash alternate icon"></i>
+              </button>'''.format(item.pk, item.pk, item.pk),
+            else:
+                action = '''<div class="ui tiny label">
+              Denied
+            </div>'''
 
 
             try:
@@ -1785,8 +1851,8 @@ def send_message_sales(request):
             id = request.POST.get("userID")
             obj = Sales.objects.select_related().get(pk=int(id))
             try:
-                msg = "Sir, Our Executive has collected the payment of {} Rs.{}/- from you with Ref. No. {}, Kindly confirm the same. If you have any query Please feel free contact on this no. 7005607770. Thanks, BSS".format(
-                    obj.invoiceNumber, obj.amount, obj.paymentID)
+                msg = "Your order has been dispatched Ag. Bill No. {} Dt. {} Amt. Rs. {}, Please confirm received the material. If you have any queries about your order, Please feel free contact on this no 7005607770. Thanks, BSS".format(obj.invoiceNumber, obj.buildDate.strftime('%d-%m-%Y'), obj.amount)
+
                 # send_whatsapp_message(obj.partyID.phone, msg)
                 try:
                     numbers = str(obj.partyID.phone).split('.')
