@@ -1658,7 +1658,7 @@ class SalesByAdminListJson(BaseDatatableView):
     def prepare_results(self, qs):
         json_data = []
         for item in qs:
-            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+            if 'Admin' in self.request.user.groups.values_list('name', flat=True) or 'Moderator' in self.request.user.groups.values_list('name', flat=True):
 
                 action = '''<button  data-inverted="" data-tooltip="Send Message" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
                <i class="whatsapp icon"></i>
