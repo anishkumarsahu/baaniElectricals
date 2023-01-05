@@ -1703,6 +1703,12 @@ class SalesByStaffListJson(BaseDatatableView):
                      ]
 
     def get_initial_queryset(self):
+        if self.request.user.username == 'USER618':
+            return Sales.objects.select_related().filter(isDeleted__exact=False,
+                                                              buildDate__icontains=datetime.today().date())
+
+        else:
+
             return Sales.objects.select_related().filter(isDeleted__exact=False,
                                                               buildDate__icontains=datetime.today().date(), createdBy__user_ID_id=self.request.user.pk)
 
