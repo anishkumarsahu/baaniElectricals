@@ -209,7 +209,7 @@ class Sales(models.Model):
     amount = models.FloatField(default=0.0)
     remark = models.CharField(max_length=500, blank=True, null=True)
     createdBy = models.ForeignKey(StaffUser, blank=True, null=True, on_delete=models.SET_NULL,
-                                    related_name='createdBy')
+                                    related_name='createdByStaff')
     buildDate = models.DateField(blank=True, null=True)
     datetime = models.DateTimeField(auto_now_add=True, auto_now=False)
     lastUpdatedOn = models.DateTimeField(auto_now_add=False, auto_now=True)

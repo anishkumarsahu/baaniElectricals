@@ -1012,7 +1012,7 @@ class CollectionByStaffListJson(BaseDatatableView):
             json_data.append([
                 escape(item.paymentID),
                 escape(item.partyID.name),
-                formatINR(item.paidAmount),
+                formatINR(format(item.paidAmount, '.2f')),
                 escape(item.modeOfPayment),
                 escape(item.collectionDateTime.strftime('%d-%m-%Y')),
                 escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
@@ -1109,7 +1109,7 @@ class CollectionByAdminListJson(BaseDatatableView):
             json_data.append([
                 escape(item.paymentID),
                 escape(item.partyID.name),
-                formatINR(item.paidAmount),
+                formatINR(format(item.paidAmount, '.2f')),
                 escape(item.modeOfPayment),
                 collectedBy,
                 escape(item.collectionDateTime.strftime('%d-%m-%Y')),
@@ -1647,7 +1647,7 @@ class SalesByAdminListJson(BaseDatatableView):
             qs = qs.filter(
                 Q(paymentID__icontains=search) | Q(partyID__name__icontains=search) | Q(
                     amount__icontains=search) | Q(
-                    invoiceNumber__icontains=search) | Q(createdBy__icontains=search)  | Q(
+                    invoiceNumber__icontains=search) | Q(createdBy__name__icontains=search)  | Q(
                     remark__icontains=search)
                 | Q(datetime__icontains=search) | Q(buildDate__icontains=search)
 
@@ -1686,7 +1686,7 @@ class SalesByAdminListJson(BaseDatatableView):
                 escape(item.paymentID),
                 escape(item.partyID.name),
                 escape(item.invoiceNumber),
-                formatINR(item.amount),
+                formatINR(format(item.amount, '.2f')),
                 escape(item.buildDate.strftime('%d-%m-%Y')),
                 createdBy,
                 escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
@@ -1718,7 +1718,7 @@ class SalesByStaffListJson(BaseDatatableView):
             qs = qs.filter(
                 Q(paymentID__icontains=search) | Q(partyID__name__icontains=search) | Q(
                     amount__icontains=search) | Q(
-                    invoiceNumber__icontains=search) | Q(createdBy__icontains=search)  | Q(
+                    invoiceNumber__icontains=search) | Q(createdBy__name__icontains=search)  | Q(
                     remark__icontains=search)
                 | Q(datetime__icontains=search) | Q(buildDate__icontains=search)
 
@@ -1757,7 +1757,7 @@ class SalesByStaffListJson(BaseDatatableView):
                 escape(item.paymentID),
                 escape(item.partyID.name),
                 escape(item.invoiceNumber),
-                formatINR(item.amount),
+                formatINR(format(item.amount, '.2f')),
                 escape(item.buildDate.strftime('%d-%m-%Y')),
                 createdBy,
                 escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
