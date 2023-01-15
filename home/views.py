@@ -211,6 +211,16 @@ def collection_list(request):
     }
     return render(request, 'home/admin/collectionListByAdmin.html', context)
 
+@is_activated()
+@check_two_group('Admin', 'Moderator')
+def cheque_reminder_list(request):
+    staffs = StaffUser.objects.filter(isDeleted__exact=False).order_by('name')
+    context = {
+        'staffs': staffs
+    }
+    return render(request, 'home/admin/collectionListChequeReminder.html', context)
+
+
 
 @check_two_group('Admin', 'Moderator')
 def take_collection(request):

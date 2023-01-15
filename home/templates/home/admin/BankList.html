@@ -248,7 +248,7 @@
                             ;
 
 
-                            userTab.ajax.reload();
+                            userTab.ajax.reload(null, false);
                             $('#addForm').trigger('reset');
                             $('#myModalUser').modal('toggle');
                             hideLoading();
@@ -352,7 +352,7 @@
                         ;
 
 
-                        userTab.ajax.reload();
+                        userTab.ajax.reload(null, false);
                     } else {
                         $('body')
                             .toast({
@@ -447,7 +447,7 @@ showLoading();
                             ;
 
 
-                            userTab.ajax.reload();
+                            userTab.ajax.reload(null, false);
                             $('#EditForm').trigger('reset');
                             $('#userModal').modal('toggle');
                             hideLoading();

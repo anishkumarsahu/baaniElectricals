@@ -834,6 +834,7 @@ def add_collection_by_staff_api(request):
             remark = request.POST.get("remark")
             lat = request.POST.get("lat")
             lng = request.POST.get("lng")
+            chequeDate = request.POST.get("chequeDate")
             c = str(party).split('@')
             cus = Party.objects.select_related().get(pk=int(c[1]))
             obj = Collection()
@@ -844,6 +845,8 @@ def add_collection_by_staff_api(request):
                 obj.bankID_id = int(bank)
             except:
                 pass
+            if paymentMode == 'Cheque':
+                obj.chequeDate = datetime.strptime(chequeDate, '%d/%m/%Y')
             obj.detail = detail
             obj.remark = remark
             obj.latitude = lat
@@ -879,6 +882,7 @@ def add_collection_by_admin_api(request):
             remark = request.POST.get("remark")
             lat = request.POST.get("lat")
             lng = request.POST.get("lng")
+            chequeDate = request.POST.get("chequeDate")
             c = str(party).split('@')
             cus = Party.objects.select_related().get(pk=int(c[1]))
             obj = Collection()
@@ -889,6 +893,8 @@ def add_collection_by_admin_api(request):
                 obj.bankID_id = int(bank)
             except:
                 pass
+            if paymentMode == 'Cheque':
+                obj.chequeDate = datetime.strptime(chequeDate, '%d/%m/%Y')
             obj.detail = detail
             obj.remark = remark
             obj.latitude = lat
@@ -906,8 +912,10 @@ def add_collection_by_admin_api(request):
                 try:
                     obj.isApproved = True
                     obj.approvedBy_id = user.pk
-                    msg = "Sir, Our Executive has collected the payment of {} Rs.{}/- from you with Ref. No. {}, Kindly confirm the same. If you have any query Please feel free contact on this no. 7005607770. Thanks, BSS".format(
-                        obj.modeOfPayment, obj.paidAmount, obj.paymentID)
+                    # msg = "Sir, Our Executive has collected the payment of {} Rs.{}/- from you with Ref. No. {}, Kindly confirm the same. If you have any query Please feel free contact on this no. 7005607770. Thanks, BSS".format(
+                    #     obj.modeOfPayment, obj.paidAmount, obj.paymentID)
+                    msg = "Sir, Your Payment has been received by {} Rs.{}/- on Dt.{} ag. Ref. No. {}, Kindly confirm the same. If you have any query Please feel free to contact on this no. 7005607770. Thanks, BSS".format(
+                        obj.modeOfPayment, obj.paidAmount, str(obj.collectionDateTime.strftime('%d-%m-%Y')), obj.paymentID)
                     # send_whatsapp_message(obj.partyID.phone, msg)
                     # send_message(obj.partyID.phone, msg, obj.partyID.name)
                     try:
@@ -940,6 +948,7 @@ def edit_collection_by_admin_api(request):
             detail = request.POST.get("detail")
             remark = request.POST.get("remark")
             c = str(party).split('@')
+            chequeDate = request.POST.get("chequeDate")
             cus = Party.objects.select_related().get(pk=int(c[1]))
             obj = Collection.objects.get(pk=int(ID))
             obj.partyID_id = cus.pk
@@ -949,6 +958,8 @@ def edit_collection_by_admin_api(request):
                 obj.bankID_id = int(bank)
             except:
                 pass
+            if paymentMode == 'Cheque':
+                obj.chequeDate = datetime.strptime(chequeDate, '%d/%m/%Y')
             obj.detail = detail
             obj.remark = remark
             obj.collectionDateTime = datetime.strptime(cDate, '%d/%m/%Y')
@@ -1030,7 +1041,7 @@ class CollectionByStaffListJson(BaseDatatableView):
 class CollectionByAdminListJson(BaseDatatableView):
     order_columns = ['paymentID', 'partyID.name', 'paidAmount', 'modeOfPayment', 'collectedBy.name',
                      'collectionDateTime', 'datetime',
-                     'isApproved', 'approvedBy.name', 'bankID.name', 'detail', 'collectionAddress', 'remark'
+                     'isApproved', 'approvedBy.name', 'bankID.name', 'detail','chequeDate', 'collectionAddress', 'remark'
                      ]
 
     def get_initial_queryset(self):
@@ -1056,7 +1067,7 @@ class CollectionByAdminListJson(BaseDatatableView):
                 Q(paymentID__icontains=search) | Q(partyID__name__icontains=search) | Q(
                     paidAmount__icontains=search) | Q(
                     modeOfPayment__icontains=search)
-                | Q(bankID__name__icontains=search) | Q(detail__icontains=search) | Q(detail__icontains=search) | Q(
+                | Q(bankID__name__icontains=search) | Q(chequeDate__icontains=search) | Q(detail__icontains=search) | Q(
                     remark__icontains=search)
                 | Q(datetime__icontains=search) | Q(collectionDateTime__icontains=search) | Q(
                     collectionAddress__icontains=search) | Q(
@@ -1084,7 +1095,10 @@ class CollectionByAdminListJson(BaseDatatableView):
                 action = '''<div class="ui tiny label">
               Denied
             </div>'''
-
+            if item.modeOfPayment == 'Cheque':
+                chequeDate = item.chequeDate.strftime('%d-%m-%Y')
+            else:
+                chequeDate = '-'
             try:
                 bank = item.bankID.name
             except:
@@ -1118,6 +1132,112 @@ class CollectionByAdminListJson(BaseDatatableView):
                 approvedBy,
                 escape(bank),
                 escape(item.detail),
+                escape(chequeDate),
+                escape(item.collectionAddress),
+                escape(item.remark),
+                action,
+
+            ])
+
+        return json_data
+
+
+
+class ChequeReminderCollectionListJson(BaseDatatableView):
+    order_columns = ['paymentID', 'partyID.name', 'paidAmount', 'modeOfPayment', 'collectedBy.name',
+                     'collectionDateTime', 'datetime',
+                     'isApproved', 'approvedBy.name', 'bankID.name', 'detail','chequeDate', 'collectionAddress', 'remark'
+                     ]
+
+    def get_initial_queryset(self):
+        try:
+            startDateV = self.request.GET.get("startDate")
+            endDateV = self.request.GET.get("endDate")
+            staffID = self.request.GET.get("staffID")
+            sDate = datetime.strptime(startDateV, '%d/%m/%Y')
+            eDate = datetime.strptime(endDateV, '%d/%m/%Y')
+
+            if staffID == 'All':
+                return Collection.objects.select_related().filter(isDeleted__exact=False, chequeDate__range=[sDate.date(),eDate.date()],modeOfPayment__exact='Cheque')
+            else:
+                return Collection.objects.select_related().filter(isDeleted__exact=False, chequeDate__range=[sDate.date(),eDate.date()], collectedBy_id=int(staffID),modeOfPayment__exact='Cheque')
+        except:
+            return Collection.objects.select_related().filter(isDeleted__exact=False,
+                                                              chequeDate__icontains=datetime.today().date(),modeOfPayment__exact='Cheque')
+
+    def filter_queryset(self, qs):
+        search = self.request.GET.get('search[value]', None)
+        if search:
+            qs = qs.filter(
+                Q(paymentID__icontains=search) | Q(partyID__name__icontains=search) | Q(
+                    paidAmount__icontains=search) | Q(
+                    modeOfPayment__icontains=search)
+                | Q(bankID__name__icontains=search) | Q(chequeDate__icontains=search) | Q(detail__icontains=search) | Q(
+                    remark__icontains=search)
+                | Q(datetime__icontains=search) | Q(collectionDateTime__icontains=search) | Q(
+                    collectionAddress__icontains=search) | Q(
+                    collectedBy__name__icontains=search)
+                | Q(approvedBy__name__icontains=search) | Q(isApproved__icontains=search)
+            )
+
+        return qs
+
+    def prepare_results(self, qs):
+        json_data = []
+        for item in qs:
+            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+
+                action = '''<button  data-inverted="" data-tooltip="Make Approval" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
+                   <i class="whatsapp icon"></i>
+                  </button>
+                  <a href="/edit_collection/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
+                    <i class="pen icon"></i>
+                  </a>
+                  <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
+                    <i class="trash alternate icon"></i>
+                  </button>'''.format(item.pk, item.pk, item.pk),
+            else:
+                action = '''<div class="ui tiny label">
+              Denied
+            </div>'''
+            if item.modeOfPayment == 'Cheque':
+                chequeDate = item.chequeDate.strftime('%d-%m-%Y')
+            else:
+                chequeDate = '-'
+            try:
+                bank = item.bankID.name
+            except:
+                bank = '-'
+            try:
+                collectedBy = item.collectedBy.name
+            except:
+                collectedBy = '-'
+            try:
+                approvedBy = item.approvedBy.name
+            except:
+                approvedBy = '-'
+            if item.isApproved == True:
+                isApproved = '''<div class="ui tiny green label">
+                  Yes
+                </div>'''
+            else:
+                isApproved = '''<div class="ui tiny red label">
+                  No
+                </div>'''
+
+            json_data.append([
+                escape(item.paymentID),
+                escape(item.partyID.name),
+                formatINR(format(item.paidAmount, '.2f')),
+                escape(item.modeOfPayment),
+                collectedBy,
+                escape(item.collectionDateTime.strftime('%d-%m-%Y')),
+                escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
+                isApproved,
+                approvedBy,
+                escape(bank),
+                escape(item.detail),
+                escape(chequeDate),
                 escape(item.collectionAddress),
                 escape(item.remark),
                 action,
@@ -1153,8 +1273,9 @@ def approve_collection(request):
             obj.approvedBy_id = user.pk
             obj.save()
             try:
-                msg = "Sir, Our Executive has collected the payment of {} Rs.{}/- from you with Ref. No. {}, Kindly confirm the same. If you have any query Please feel free contact on this no. 7005607770. Thanks, BSS".format(
-                    obj.modeOfPayment, obj.paidAmount, obj.paymentID)
+                msg = "Sir, Your Payment has been received by {} Rs.{}/- on Dt.{} ag. Ref. No. {}, Kindly confirm the same. If you have any query Please feel free to contact on this no. 7005607770. Thanks, BSS".format(
+                    obj.modeOfPayment, obj.paidAmount, str(obj.collectionDateTime.strftime('%d-%m-%Y')), obj.paymentID)
+
                 # send_whatsapp_message(obj.partyID.phone, msg)
                 try:
                     numbers = str(obj.partyID.phone).split('.')
@@ -1199,16 +1320,23 @@ def get_admin_dashboard_report_api(request):
     collection = Collection.objects.select_related().filter(isDeleted__exact=False,
                                                             collectionDateTime__icontains=datetime.today().date(),
                                                             )
-
+    sales = Sales.objects.select_related().filter(isDeleted__exact=False,
+                                                            buildDate__icontains=datetime.today().date(),
+                                                            )
     c_total = 0.0
     for c in collection:
         c_total = c_total + c.paidAmount
+
+    s_total = 0.0
+    for s in sales:
+        s_total = s_total + s.amount
 
     data = {
         'partyCount': formatINR(party.count()),
         'staffCount': staff.count(),
         'locationCount': str(int(location.used)) + '/' + str(int(location.balance)),
-        'collection': formatINR(c_total)
+        'collection': formatINR(c_total),
+        'Sale': formatINR(s_total),
     }
     return JsonResponse({'data': data}, safe=False)
 
@@ -1602,25 +1730,23 @@ def add_sales_by_admin_api(request):
             obj.save()
             obj.paymentID = 'S'+str(obj.pk).zfill(8)
             obj.save()
-            try:
-                # msg = "Your order has been dispatched Ag. Bill No. {} Dt. {} Amt. Rs. {}, Please confirm received the material. If you have any queries about your order, Please feel free to contact your area executive. Thanks, BSS".format(obj.invoiceNumber, obj.buildDate.strftime('%d-%m-%Y'), obj.amount)
-                msg = "Your order has been dispatched Ag. Bill No. {} Dt. {} Amt. Rs. {}, Please confirm received the material. If you have any queries about your order, Please feel free contact on this no 7005607770. Thanks, BSS".format(obj.invoiceNumber, obj.buildDate.strftime('%d-%m-%Y'), obj.amount)
-                # send_whatsapp_message(obj.partyID.phone, msg)
-                try:
-                    numbers = str(obj.partyID.phone).split('.')
-                    for n in numbers:
-                        send_message(n, msg, obj.partyID.name)
-                except:
-                    send_message(obj.partyID.phone, msg, obj.partyID.name)
-            except:
-                pass
+            # try:
+            #     msg = "Your order has been dispatched Ag. Bill No. {} Dt. {} Amt. Rs. {}, Please confirm received the material. If you have any queries about your order, Please feel free contact on this no 7005607770. Thanks, BSS".format(obj.invoiceNumber, obj.buildDate.strftime('%d-%m-%Y'), obj.amount)
+            #     try:
+            #         numbers = str(obj.partyID.phone).split('.')
+            #         for n in numbers:
+            #             send_message(n, msg, obj.partyID.name)
+            #     except:
+            #         send_message(obj.partyID.phone, msg, obj.partyID.name)
+            # except:
+            #     pass
 
             return JsonResponse({'message': 'success'}, safe=False)
         except:
             return JsonResponse({'message': 'error'}, safe=False)
 
 class SalesByAdminListJson(BaseDatatableView):
-    order_columns = ['paymentID', 'partyID.name', 'invoiceNumber','amount', 'buildDate', 'createdBy.name',
+    order_columns = ['paymentID', 'partyID.name', 'invoiceNumber','amount', 'buildDate', 'createdBy.name','isApproved', 'approvedBy.name',
                      'datetime', 'remark'
                      ]
 
@@ -1632,11 +1758,9 @@ class SalesByAdminListJson(BaseDatatableView):
             sDate = datetime.strptime(startDateV, '%d/%m/%Y')
             eDate = datetime.strptime(endDateV, '%d/%m/%Y')
             if staffID == 'All':
-                return Sales.objects.select_related().filter(isDeleted__exact=False, buildDate__range=(
-                    sDate.date(), eDate.date() + timedelta(days=1)))
+                return Sales.objects.select_related().filter(isDeleted__exact=False, buildDate__range=[sDate.date(),eDate.date()])
             else:
-                return Sales.objects.select_related().filter(isDeleted__exact=False, buildDate__range=(
-                    sDate.date(), eDate.date() + timedelta(days=1)), createdBy_id=int(staffID))
+                return Sales.objects.select_related().filter(isDeleted__exact=False, buildDate__range=[sDate.date(),eDate.date()], createdBy_id=int(staffID))
         except:
             return Sales.objects.select_related().filter(isDeleted__exact=False,
                                                               buildDate__icontains=datetime.today().date())
@@ -1660,7 +1784,7 @@ class SalesByAdminListJson(BaseDatatableView):
         for item in qs:
             if 'Admin' in self.request.user.groups.values_list('name', flat=True) or 'Moderator' in self.request.user.groups.values_list('name', flat=True):
 
-                action = '''<button  data-inverted="" data-tooltip="Send Message" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
+                action = '''<button  data-inverted="" data-tooltip="Make Approval" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
                <i class="whatsapp icon"></i>
               </button>
               <a href="/edit_sales/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
@@ -1680,7 +1804,18 @@ class SalesByAdminListJson(BaseDatatableView):
             except:
                 createdBy = '-'
 
-
+            try:
+                approvedBy = item.approvedBy.name
+            except:
+                approvedBy = '-'
+            if item.isApproved == True:
+                isApproved = '''<div class="ui tiny green label">
+                             Yes
+                           </div>'''
+            else:
+                isApproved = '''<div class="ui tiny red label">
+                             No
+                           </div>'''
 
             json_data.append([
                 escape(item.paymentID),
@@ -1689,6 +1824,8 @@ class SalesByAdminListJson(BaseDatatableView):
                 formatINR(format(item.amount, '.2f')),
                 escape(item.buildDate.strftime('%d-%m-%Y')),
                 createdBy,
+                isApproved,
+                approvedBy,
                 escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
                 escape(item.remark),
                 action,
@@ -1703,14 +1840,14 @@ class SalesByStaffListJson(BaseDatatableView):
                      ]
 
     def get_initial_queryset(self):
-        if self.request.user.username == 'USER618':
+        # if self.request.user.username == 'USER618':
             return Sales.objects.select_related().filter(isDeleted__exact=False,
                                                               buildDate__icontains=datetime.today().date())
-
-        else:
-
-            return Sales.objects.select_related().filter(isDeleted__exact=False,
-                                                              buildDate__icontains=datetime.today().date(), createdBy__user_ID_id=self.request.user.pk)
+        #
+        # else:
+        #
+        #     return Sales.objects.select_related().filter(isDeleted__exact=False,
+        #                                                       buildDate__icontains=datetime.today().date(), createdBy__user_ID_id=self.request.user.pk)
 
     def filter_queryset(self, qs):
         search = self.request.GET.get('search[value]', None)
@@ -1856,6 +1993,10 @@ def send_message_sales(request):
         try:
             id = request.POST.get("userID")
             obj = Sales.objects.select_related().get(pk=int(id))
+            user = StaffUser.objects.get(user_ID__id=request.user.pk)
+            obj.isApproved = True
+            obj.approvedBy_id = user.pk
+            obj.save()
             try:
                 msg = "Your order has been dispatched Ag. Bill No. {} Dt. {} Amt. Rs. {}, Please confirm received the material. If you have any queries about your order, Please feel free contact on this no 7005607770. Thanks, BSS".format(obj.invoiceNumber, obj.buildDate.strftime('%d-%m-%Y'), obj.amount)
 

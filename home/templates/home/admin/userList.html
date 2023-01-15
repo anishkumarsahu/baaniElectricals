@@ -629,7 +629,7 @@
                                 ;
 
 
-                                userTab.ajax.reload();
+                                userTab.ajax.reload(null, false);
                                 $('#addForm').trigger('reset');
                                 $('#myModalUser').modal('toggle');
                                 hideLoading();
@@ -669,6 +669,7 @@
             dom: 'Blfrtip',
             "scrollY": "350px",
             "scrollX": true,
+            stateSave: true,
             fixedColumns: {
                 left: 1,
                 right: 1
@@ -737,7 +738,7 @@
                             ;
 
 
-                            userTab.ajax.reload();
+                            userTab.ajax.reload(null, false);
                         } else {
                             $('body')
                                 .toast({
@@ -873,7 +874,7 @@
                                 ;
 
 
-                                userTab.ajax.reload();
+                                userTab.ajax.reload(null, false);
                                 $('#EditForm').trigger('reset');
                                 $('#userModal').modal('toggle');
                                 hideLoading();

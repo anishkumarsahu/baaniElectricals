@@ -111,6 +111,8 @@
                                 <th>Amount</th>
                                 <th>BuildDate</th>
                                 <th>Created By</th>
+                                <th>IsApproved?</th>
+                                <th>ApprovedBy</th>
                                 <th>Added On</th>
                                 <th>Remark</th>
                                 <th>Action</th>
@@ -151,10 +153,10 @@
 
     <div class="ui mini modal" id="imgModal">
         <div class="header">
-            Send Message
+            Approve Sale?
         </div>
         <div class="content">
-            <p>Are you sure you want to send message?</p>
+            <p>Are you sure you want to approve this sale?</p>
         </div>
         <input type="hidden" id="approveCollectionID">
         <div class="actions">
@@ -219,6 +221,7 @@
             dom: 'Blfrtip',
             "scrollY": "350px",
             "scrollX": true,
+            stateSave: true,
             fixedColumns: {
                 left: 1,
                 right: 1
@@ -226,7 +229,7 @@
             buttons: [{
                 extend: 'excel',
                 exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 7]
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7,8,9]
                 }
             }
                 {% comment %}      , {
@@ -243,12 +246,14 @@
                 {"name": "amount", "targets": 3, "orderable": true},
                 {"name": "buildDate", "targets": 4, "orderable": true},
                 {"name": "createdBy.name", "targets": 5, "orderable": true},
-                {"name": "datetime", "targets": 6, "orderable": true},
-                {"name": "remark", "targets": 7, "orderable": true},
-                {"name": "action", "targets": 8, "orderable": false},
+                {"name": "isApproved", "targets": 6, "orderable": true},
+                {"name": "approvedBy.name", "targets": 7, "orderable": true},
+                {"name": "datetime", "targets": 8, "orderable": true},
+                {"name": "remark", "targets": 9, "orderable": true},
+                {"name": "action", "targets": 10, "orderable": false},
 
             ],
-            aaSorting: [[6, 'desc']],
+            aaSorting: [[8, 'desc']],
             "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
             "pageLength": 10,
             "processing": true,
@@ -288,7 +293,7 @@
                         ;
 
 
-                        userTab.ajax.reload();
+                        userTab.ajax.reload(null, false);
                         hideLoading();
                     } else {
                         $('body')

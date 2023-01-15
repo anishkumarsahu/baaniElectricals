@@ -1,7 +1,7 @@
 {% extends 'home/admin/index.html' %}
 {% load static %}
 {% block title %}
-    <title>Sales List</title>
+    <title>Cheque Reminder</title>
 {% endblock %}
 {% block css %}
 {% endblock %}
@@ -32,13 +32,13 @@
         <div class="sixteen wide column">
             <div class="ui  pointing secondary menu">
                 <div style="cursor: pointer;" class="item active" data-tab="user"
-                >Sales List
+                >Cheque Reminder List
                 </div>
                 <div style=" position: absolute;right: 1.5rem;top: 18px;">
-                    <a href="{% url 'homeApp:add_sales' %}" class="ui green mini plus button right">
+                 {% comment %}   <a href="{% url 'homeApp:take_collection' %}" class="ui green mini plus button right">
                         <i class="plus square outline icon"></i>
-                        Add Sales
-                    </a>
+                        Take Collections
+                    </a>{% endcomment %}
                 </div>
             </div>
 
@@ -46,7 +46,7 @@
 
                 <div class="row" style="padding-left: 5px; padding-right: 5px">
                     <div class="">
-{% comment %}
+
                         <div class="ui form">
                             <form class="ui tiny form">
                                 <div class="fields">
@@ -91,15 +91,15 @@
                                             <i class="funnel dollar icon"></i>
                                             Search
                                         </button>
-                                        <a id="reportUrl"
-                                           href="{% url 'homeApp:generate_sales_report' %}"
+                                     {% comment %}   <a id="reportUrl"
+                                           href="{% url 'homeApp:generate_collection_report' %}"
                                            style="float: right;"
                                            class="teal tiny ui button">Download Report
-                                        </a>
+                                        </a>{% endcomment %}
                                     </div>
                                 </div>
                             </form>
-                        </div>{% endcomment %}
+                        </div>
                         <table class="ui unstackable  sortable celled very nowrap very small compact table"
                                id="UserTable"
                                style="margin-top: 5px;width: 100%">
@@ -107,11 +107,17 @@
                             <tr>
                                 <th>PaymentID</th>
                                 <th>Party Name</th>
-                                <th>InvoiceNumber</th>
                                 <th>Amount</th>
-                                <th>BuildDate</th>
-                                <th>Created By</th>
+                                <th>Collection Mode</th>
+                                <th>CollectedBy</th>
+                                <th>CollectionDate</th>
                                 <th>Added On</th>
+                                <th>IsApproved</th>
+                                <th>ApprovedBy</th>
+                                <th>Bank</th>
+                                <th>Detail</th>
+                                <th>ChequeDate</th>
+                                <th>Location</th>
                                 <th>Remark</th>
                                 <th>Action</th>
                             </tr>
@@ -125,11 +131,11 @@
                 <div class="ui basic modal custom" id="deleteUser">
                     <div class="ui icon header">
                         <i class="archive icon"></i>
-                        Sales Details will be Deleted
+                        Collection Details will be Deleted
                     </div>
                     <div class="content">
-                        <p style="text-align: center">The Sale will be deleted, are you sure to delete this
-                            Sale?</p>
+                        <p style="text-align: center">The Collection will be deleted, are you sure to delete this
+                            Collection?</p>
                     </div>
                     <div class="actions">
                         <div class="ui red basic cancel inverted button">
@@ -151,10 +157,10 @@
 
     <div class="ui mini modal" id="imgModal">
         <div class="header">
-            Send Message
+            Approve Collection
         </div>
         <div class="content">
-            <p>Are you sure you want to send message?</p>
+            <p>Are you sure you want to approve this collection?</p>
         </div>
         <input type="hidden" id="approveCollectionID">
         <div class="actions">
@@ -227,7 +233,7 @@
             buttons: [{
                 extend: 'excel',
                 exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 7]
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,12,13]
                 }
             }
                 {% comment %}      , {
@@ -238,15 +244,21 @@
                       }{% endcomment %}
             ],
             "columnDefs": [
-                {"name": "paymentID", "targets": 0, "orderable": true},
+                {"name": "id", "targets": 0, "orderable": true},
                 {"name": "partyID.name", "targets": 1, "orderable": true},
-                {"name": "invoiceNumber", "targets": 2, "orderable": true},
-                {"name": "amount", "targets": 3, "orderable": true},
-                {"name": "buildDate", "targets": 4, "orderable": true},
-                {"name": "createdBy.name", "targets": 5, "orderable": true},
+                {"name": "paidAmount", "targets": 2, "orderable": true},
+                {"name": "modeOfPayment", "targets": 3, "orderable": true},
+                {"name": "collectedBy.name", "targets": 4, "orderable": true},
+                {"name": "collectionDateTime", "targets": 5, "orderable": true},
                 {"name": "datetime", "targets": 6, "orderable": true},
-                {"name": "remark", "targets": 7, "orderable": true},
-                {"name": "action", "targets": 8, "orderable": false},
+                {"name": "isApproved", "targets": 7, "orderable": true},
+                {"name": "approvedBy.name", "targets": 8, "orderable": true},
+                {"name": "bankID.name", "targets": 9, "orderable": true},
+                {"name": "detail", "targets": 10, "orderable": true},
+                {"name": "chequeDate", "targets": 11, "orderable": true},
+                {"name": "collectionAddress", "targets": 12, "orderable": true},
+                {"name": "remark", "targets": 13, "orderable": true},
+                {"name": "action", "targets": 14, "orderable": false},
 
             ],
             aaSorting: [[6, 'desc']],
@@ -254,7 +266,7 @@
             "pageLength": 10,
             "processing": true,
             "serverSide": true,
-            "ajax": "{% url 'homeApp:SalesByStaffListJson' %}"
+            "ajax": "{% url 'homeApp:ChequeReminderCollectionListJson' %}"
         });
 
 
@@ -272,7 +284,7 @@
             formdata.append('userID', id);
 
             $.ajax({
-                url: "{% url 'homeApp:delete_sales' %}",
+                url: "{% url 'homeApp:delete_collection' %}",
                 type: "post",
                 data: formdata,
                 contentType: false,
@@ -284,7 +296,7 @@
                         $('body')
                             .toast({
                                 class: 'success',
-                                message: 'Sales Detail Deleted Successfully.'
+                                message: 'Collection Detail Deleted Successfully.'
                             })
                         ;
 
@@ -317,10 +329,10 @@
         }
 
         function filterDetails() {
-            {#var startDate = $('#startDateF').val();#}
-            {#var endDate = $('#endDateF').val();#}
-            {#var staffID = $('#staffID').val();#}
-            {#userTab.ajax.url('{% url 'homeApp:SalesByAdminListJson' %}?startDate=' + startDate + '&endDate=' + endDate + '&staffID=' + staffID).load();#}
+            var startDate = $('#startDateF').val();
+            var endDate = $('#endDateF').val();
+            var staffID = $('#staffID').val();
+            userTab.ajax.url('{% url 'homeApp:ChequeReminderCollectionListJson' %}?startDate=' + startDate + '&endDate=' + endDate + '&staffID=' + staffID).load();
 
         }
 
@@ -337,7 +349,7 @@
             formdata.append('userID', id);
 
             $.ajax({
-                url: "{% url 'homeApp:send_message_sales' %}",
+                url: "{% url 'homeApp:approve_collection' %}",
                 type: "post",
                 data: formdata,
                 contentType: false,
@@ -349,7 +361,7 @@
                         $('body')
                             .toast({
                                 class: 'success',
-                                message: 'Message sent Successfully.'
+                                message: 'Collection Detail Updated Successfully.'
                             })
                         ;
 
@@ -387,7 +399,7 @@
         function ChangeDate() {
             var startDateF = $('#startDateF').val();
             var staffID = $('#staffID').val();
-            $("#reportUrl").attr("href", "{% url 'homeApp:generate_sales_report' %}?cDate=" + startDateF + '&staffID=' + staffID);
+            $("#reportUrl").attr("href", "{% url 'homeApp:generate_collection_report' %}?cDate=" + startDateF + '&staffID=' + staffID);
         }
     </script>
 

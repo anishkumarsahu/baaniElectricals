@@ -137,6 +137,12 @@
                                     <input type="text" name="detail" id="detail" placeholder="Detail">
 
                                 </div>
+                                <div class="eight wide field required" id="chequeDatelDiv" style="display: none">
+                                    <label>Cheque Date</label>
+                                     <div class="ui calendar" id="cheqDate">
+                                    <input type="text" name="chequeDate" id="chequeDate" placeholder="chequeDate">
+                                     </div>
+                                </div>
 
 
                             </div>
@@ -197,18 +203,41 @@
     </script>
 
     <script>
+           var today = new Date();
+        $('#cheqDate')
+            .calendar({
+                    initialDate: today.getDate() + '/' + (today.getMonth() + 1) + '/' + today.getFullYear(),
+                    monthFirst: false,
+                    type: 'date',
+                    formatter: {
+                        date: function (date, settings) {
+
+                            if (!date) return '';
+                            var day = String(date.getDate());
+                            var month = String(date.getMonth() + 1);
+                            var year = date.getFullYear();
+{#                            return '{{ sale.invoiceDate|date:'d/m/Y' }}';#}
+                            return day + '/' + month + '/' + year;
+                        }
+                    }
+                }
+            );
+
         function isCash() {
             var mode = $('#paymentMode').val();
             console.log(mode);
             if (mode === 'Cash' || mode === 'Cheque CC') {
                 $('#bankDiv').css('display', "none");
                 $('#detailDiv').css('display', "none");
+                $('#chequeDatelDiv').css('display', "none");
             } else if (mode === 'Cheque') {
                 $('#bankDiv').css('display', "none");
                 $('#detailDiv').css('display', "");
+                $('#chequeDatelDiv').css('display', "");
             } else {
                 $('#bankDiv').css('display', "");
                 $('#detailDiv').css('display', "");
+                $('#chequeDatelDiv').css('display', "None");
             }
         }
 
@@ -222,6 +251,7 @@
             var remark = $('#remark').val();
             var lat = $('#lat').val();
             var lng = $('#lng').val();
+            var chequeDate = $('#chequeDate').val();
 
             if (party === '' || paymentMode === '' || amountPaid === ''
             ) {
@@ -242,6 +272,7 @@
                 data.append('lat', lat);
                 data.append('lng', lng);
                 data.append('remark', remark);
+                data.append('chequeDate', chequeDate);
 
                 $.ajax({
                     type: 'post',

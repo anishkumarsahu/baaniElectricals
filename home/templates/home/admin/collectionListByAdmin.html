@@ -116,6 +116,7 @@
                                 <th>ApprovedBy</th>
                                 <th>Bank</th>
                                 <th>Detail</th>
+                                <th>ChequeDate</th>
                                 <th>Location</th>
                                 <th>Remark</th>
                                 <th>Action</th>
@@ -224,6 +225,7 @@
             dom: 'Blfrtip',
             "scrollY": "350px",
             "scrollX": true,
+            stateSave: true,
             fixedColumns: {
                 left: 1,
                 right: 1
@@ -231,7 +233,7 @@
             buttons: [{
                 extend: 'excel',
                 exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,12]
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,12,13]
                 }
             }
                 {% comment %}      , {
@@ -253,9 +255,10 @@
                 {"name": "approvedBy.name", "targets": 8, "orderable": true},
                 {"name": "bankID.name", "targets": 9, "orderable": true},
                 {"name": "detail", "targets": 10, "orderable": true},
-                {"name": "collectionAddress", "targets": 11, "orderable": true},
-                {"name": "remark", "targets": 12, "orderable": true},
-                {"name": "action", "targets": 13, "orderable": false},
+                {"name": "chequeDate", "targets": 11, "orderable": true},
+                {"name": "collectionAddress", "targets": 12, "orderable": true},
+                {"name": "remark", "targets": 13, "orderable": true},
+                {"name": "action", "targets": 14, "orderable": false},
 
             ],
             aaSorting: [[6, 'desc']],
@@ -298,7 +301,7 @@
                         ;
 
 
-                        userTab.ajax.reload();
+                        userTab.ajax.reload(null, false);
                         hideLoading();
                     } else {
                         $('body')
@@ -363,7 +366,7 @@
                         ;
 
                         $('#imgModal').modal('hide');
-                        userTab.ajax.reload();
+                        userTab.ajax.reload(null, false);
                         hideLoading();
                     } else {
                         $('body')

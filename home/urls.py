@@ -29,9 +29,11 @@ urlpatterns = [
     path('take_collection/', take_collection, name='take_collection'),
     path('edit_collection/<int:id>/', edit_collection, name='edit_collection'),
     path('collection_list/', collection_list, name='collection_list'),
+    path('cheque_reminder_list/', cheque_reminder_list, name='cheque_reminder_list'),
     path('api/delete_collection/', delete_collection, name='delete_collection'),
     path('api/approve_collection/', approve_collection, name='approve_collection'),
     path('api/CollectionByAdminListJson/', CollectionByAdminListJson.as_view(), name='CollectionByAdminListJson'),
+    path('api/ChequeReminderCollectionListJson/', ChequeReminderCollectionListJson.as_view(), name='ChequeReminderCollectionListJson'),
 
     # # api Staff
     path('api/add_staff_api/', add_staff_api, name='add_staff_api'),

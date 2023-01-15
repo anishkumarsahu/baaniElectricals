@@ -184,6 +184,8 @@ admin and moderator side bar
                 </a>
                 <a class="item" href="{% url 'homeApp:collection_list' %}">
                     <div><i class="book icon"></i>Collection List</div>
+                </a> <a class="item" href="{% url 'homeApp:cheque_reminder_list' %}">
+                    <div><i class="bell icon"></i>Cheque Reminder List</div>
                 </a>
 
             </div>
@@ -413,7 +415,7 @@ Collection side bar
 
         <div class="ui tiny teal inverted progress">
             <div class="bar" style="width:78%"></div>
-            <div class="label">v 1.0.2</div>
+            <div class="label">v 1.5.2</div>
         </div>
     </div>
 </div>
@@ -563,6 +565,31 @@ Collection side bar
                                 <div class="extra content">
                                     <div class="ui two buttons">
                                         <a class="ui purple button" href="{% url 'homeApp:collection_list' %}">More
+                                            Info</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    <div class="four wide computer eight wide tablet sixteen wide mobile column">
+                            <div class="ui fluid card">
+                                <div class="content">
+                                    <div class="ui right floated header purple">
+                                        <i class="shopping cart icon"></i>
+                                    </div>
+                                    <div class="header">
+                                        <div class="ui orange header" id="sale">0</div>
+                                    </div>
+                                    <div class="meta">
+                                        Today's Sales
+                                    </div>
+                                    <div class="description">
+                                        Total amount of sales.
+                                    </div>
+                                </div>
+                                <div class="extra content">
+                                    <div class="ui two buttons">
+                                        <a class="ui orange button" href="{% url 'homeApp:sales_list' %}">More
                                             Info</a>
                                     </div>
                                 </div>
@@ -797,6 +824,7 @@ Collection side bar
                         $('#salesCount').html(response.data['staffCount']);
                         $('#todayInstallmentCount').html(response.data['locationCount']);
                         $('#collection').html(response.data['collection']);
+                        $('#sale').html(response.data['Sale']);
 
 
                     },

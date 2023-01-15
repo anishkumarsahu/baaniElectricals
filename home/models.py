@@ -118,6 +118,8 @@ class Collection(models.Model):
     lastUpdatedOn = models.DateTimeField(auto_now_add=False, auto_now=True)
     collectionDateTime = models.DateTimeField(blank=True, null=True)
     isDeleted = models.BooleanField(default=False)
+    chequeDate = models.DateField(blank=True, null=True)
+
 
     def __str__(self):
         return str(self.partyID.name)
@@ -211,6 +213,10 @@ class Sales(models.Model):
     createdBy = models.ForeignKey(StaffUser, blank=True, null=True, on_delete=models.SET_NULL,
                                     related_name='createdByStaff')
     buildDate = models.DateField(blank=True, null=True)
+    approvedOn = models.DateTimeField(blank=True, null=True)
+    isApproved = models.BooleanField(default=False)
+    approvedBy = models.ForeignKey(StaffUser, blank=True, null=True, on_delete=models.SET_NULL,
+                                   related_name='SalesApprovedBy')
     datetime = models.DateTimeField(auto_now_add=True, auto_now=False)
     lastUpdatedOn = models.DateTimeField(auto_now_add=False, auto_now=True)
     isDeleted = models.BooleanField(default=False)

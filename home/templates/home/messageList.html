@@ -113,6 +113,7 @@
             dom: 'Blfrtip',
             "scrollY": "450px",
             "scrollX": true,
+            stateSave: true,
             fixedColumns: {
                 right: 1
             },
@@ -170,7 +171,7 @@
                         ;
 
                         $('#imgModal').modal('hide');
-                        userTab.ajax.reload();
+                        userTab.ajax.reload(null, false);
                         hideLoading();
                     } else {
                         $('body')

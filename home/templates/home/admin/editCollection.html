@@ -148,6 +148,13 @@
                                     <input type="text" name="detail" id="detail" placeholder="Detail" value="{{ obj.detail }}">
 
                                 </div>
+                                   <div class="eight wide field required" id="chequeDatelDiv" style="display: none">
+                                    <label>Cheque Date</label>
+                                     <div class="ui calendar" id="cheqDate">
+                                    <input type="text" name="chequeDate" id="chequeDate" placeholder="chequeDate">
+                                     </div>
+                                </div>
+
 
 
                             </div>
@@ -229,7 +236,29 @@
                     }
                 }
             );
+        $('#cheqDate')
+            .calendar({
+       {% if obj.chequeDate is not None %}
+                    initialDate: {{ obj.chequeDate|date:'d' }} + '/' + {{ obj.chequeDate|date:'m' }} + '/' + {{ obj.chequeDate|date:'Y' }},
+       {% else %}
+                    initialDate: today.getDate() + '/' + (today.getMonth() + 1) + '/' + today.getFullYear(),
 
+       {% endif %}
+                    monthFirst: false,
+                    type: 'date',
+                    formatter: {
+                        date: function (date, settings) {
+
+                            if (!date) return '';
+                            var day = String(date.getDate());
+                            var month = String(date.getMonth() + 1);
+                            var year = date.getFullYear();
+{#                            return '{{ sale.invoiceDate|date:'d/m/Y' }}';#}
+                            return day + '/' + month + '/' + year;
+                        }
+                    }
+                }
+            );
     $(loadDetail());
     function loadDetail() {
 
@@ -247,23 +276,23 @@
             },200);
 
     }
-
-
-        function isCash() {
+       function isCash() {
             var mode = $('#paymentMode').val();
             console.log(mode);
             if (mode === 'Cash' || mode === 'Cheque CC') {
                 $('#bankDiv').css('display', "none");
                 $('#detailDiv').css('display', "none");
+                $('#chequeDatelDiv').css('display', "none");
             } else if (mode === 'Cheque') {
                 $('#bankDiv').css('display', "none");
                 $('#detailDiv').css('display', "");
+                $('#chequeDatelDiv').css('display', "");
             } else {
                 $('#bankDiv').css('display', "");
                 $('#detailDiv').css('display', "");
+                $('#chequeDatelDiv').css('display', "None");
             }
         }
-
         function salesSave() {
             showLoading();
             var party = $('#party').val();
@@ -276,6 +305,8 @@
             var lng = $('#lng').val();
             var cDate = $('#colDate').val();
             var ID = $('#ID').val();
+            var chequeDate = $('#chequeDate').val();
+
 
             if (party === '' || paymentMode === '' || amountPaid === ''|| cDate === ''
             ) {
@@ -298,7 +329,7 @@
                 data.append('remark', remark);
                 data.append('ID', ID);
                 data.append('cDate', cDate);
-
+                data.append('chequeDate', chequeDate);
                 $.ajax({
                     type: 'post',
                     url: '{% url 'homeApp:edit_collection_by_admin_api' %}',
