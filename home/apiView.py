@@ -1096,7 +1096,10 @@ class CollectionByAdminListJson(BaseDatatableView):
               Denied
             </div>'''
             if item.modeOfPayment == 'Cheque':
-                chequeDate = item.chequeDate.strftime('%d-%m-%Y')
+                try:
+                    chequeDate = item.chequeDate.strftime('%d-%m-%Y')
+                except:
+                    chequeDate = '-'
             else:
                 chequeDate = '-'
             try:
@@ -1201,7 +1204,10 @@ class ChequeReminderCollectionListJson(BaseDatatableView):
               Denied
             </div>'''
             if item.modeOfPayment == 'Cheque':
-                chequeDate = item.chequeDate.strftime('%d-%m-%Y')
+                try:
+                    chequeDate = item.chequeDate.strftime('%d-%m-%Y')
+                except:
+                    chequeDate = '-'
             else:
                 chequeDate = '-'
             try:
