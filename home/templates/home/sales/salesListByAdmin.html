@@ -358,7 +358,7 @@
                         ;
 
                         $('#imgModal').modal('hide');
-                        userTab.ajax.reload();
+                        userTab.ajax.reload(null, false);
                         hideLoading();
                     } else {
                         $('body')
