@@ -950,20 +950,28 @@ def edit_collection_by_admin_api(request):
             c = str(party).split('@')
             chequeDate = request.POST.get("chequeDate")
             cus = Party.objects.select_related().get(pk=int(c[1]))
+
             obj = Collection.objects.get(pk=int(ID))
-            obj.partyID_id = cus.pk
-            obj.modeOfPayment = paymentMode
-            obj.paidAmount = float(amountPaid)
-            try:
-                obj.bankID_id = int(bank)
-            except:
-                pass
-            if paymentMode == 'Cheque':
-                obj.chequeDate = datetime.strptime(chequeDate, '%d/%m/%Y')
-            obj.detail = detail
-            obj.remark = remark
-            obj.collectionDateTime = datetime.strptime(cDate, '%d/%m/%Y')
-            obj.save()
+            if 'Admin' in request.user.groups.values_list('name', flat=True):
+                obj.partyID_id = cus.pk
+                obj.modeOfPayment = paymentMode
+                obj.paidAmount = float(amountPaid)
+                obj.detail = detail
+                obj.remark = remark
+                obj.collectionDateTime = datetime.strptime(cDate, '%d/%m/%Y')
+                try:
+                    obj.bankID_id = int(bank)
+                except:
+                    pass
+                if paymentMode == 'Cheque':
+                    obj.chequeDate = datetime.strptime(chequeDate, '%d/%m/%Y')
+
+                obj.save()
+            if 'Moderator' in request.user.groups.values_list('name', flat=True):
+                if paymentMode == 'Cheque':
+                    obj.chequeDate = datetime.strptime(chequeDate, '%d/%m/%Y')
+
+                obj.save()
             # try:
             #     msg = "Sir, Our Executive has collected the payment of {} Rs.{}/- from you, Kindly confirm the same. If you have any query Please feel free contact on this no. 7005607770. Thanks, BSS".format(
             #         obj.modeOfPayment, obj.paidAmount)
@@ -1092,9 +1100,9 @@ class CollectionByAdminListJson(BaseDatatableView):
                     <i class="trash alternate icon"></i>
                   </button>'''.format(item.pk, item.pk, item.pk),
             else:
-                action = '''<div class="ui tiny label">
-              Denied
-            </div>'''
+                action = ''' <a href="/edit_collection/{}/" data-inverted="" data-tooltip="Edit Cheque Date Only" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
+                    <i class="pen icon"></i>
+                  </a>'''.format(item.pk)
             if item.modeOfPayment == 'Cheque':
                 try:
                     chequeDate = item.chequeDate.strftime('%d-%m-%Y')
@@ -1200,9 +1208,9 @@ class ChequeReminderCollectionListJson(BaseDatatableView):
                     <i class="trash alternate icon"></i>
                   </button>'''.format(item.pk, item.pk, item.pk),
             else:
-                action = '''<div class="ui tiny label">
-              Denied
-            </div>'''
+                action = ''' <a href="/edit_collection/{}/" data-inverted="" data-tooltip="Edit Cheque Date Only" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
+                        <i class="pen icon"></i>
+                      </a>'''.format(item.pk)
             if item.modeOfPayment == 'Cheque':
                 try:
                     chequeDate = item.chequeDate.strftime('%d-%m-%Y')
