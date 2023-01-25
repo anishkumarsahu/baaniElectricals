@@ -947,9 +947,10 @@ def edit_collection_by_admin_api(request):
             bank = request.POST.get("bank")
             detail = request.POST.get("detail")
             remark = request.POST.get("remark")
-            c = str(party).split('@')
+            # c = str(party).split('@')
             chequeDate = request.POST.get("chequeDate")
-            cus = Party.objects.select_related().get(pk=int(c[1]))
+            # cus = Party.objects.select_related().get(pk=int(c[1]))
+            cus = Party.objects.select_related().get(pk=int(party))
 
             obj = Collection.objects.get(pk=int(ID))
             if 'Admin' in request.user.groups.values_list('name', flat=True):
@@ -1983,8 +1984,9 @@ def update_sales_by_admin_api(request):
             amount = request.POST.get("amount")
             remark = request.POST.get("remark")
             ID = request.POST.get("ID")
-            c = str(party).split('@')
-            cus = Party.objects.select_related().get(pk=int(c[1]))
+            # c = str(party).split('@')
+            # cus = Party.objects.select_related().get(pk=int(c[1]))
+            cus = Party.objects.select_related().get(pk=int(party))
             obj = Sales.objects.get(pk = int(ID))
             obj.partyID_id = cus.pk
             obj.invoiceNumber = invoiceSeriesSelect+'/'+invoiceNo+'/'+invoiceYearSelect

@@ -223,7 +223,7 @@
     function loadDetail() {
 
         setTimeout(function(){
-                              $('#party').val("{{ obj.partyID.name  }} - {% if obj.partyID.name %}{{obj.partyID.partyGroupID.name}}{% else %}N/A{% endif %} @ {{obj.partyID.pk}}").change();
+                              $('#party').val("{{obj.partyID.pk}}").change();
 
 
 
@@ -331,10 +331,11 @@
                     var j;
                     for (j = 0; j < response.data.length; j++) {
 
-                        $('#party').append('<option value="' + response.data[j]['Detail'] + '" >' + response.data[j]['DisplayDetail'] + '</option>');
+                        $('#party').append('<option value="' + response.data[j]['ID'] + '" >' + response.data[j]['DisplayDetail'] + '</option>');
 
                     }
-                    $('#party').val("{{ obj.partyID.name  }} - {% if obj.partyID.name %}{{obj.partyID.partyGroupID.name}}{% else %}N/A{% endif %} @ {{obj.partyID.pk}}").change();
+                    {#$('#party').val("{{ obj.partyID.name  }} - {% if obj.partyID.name %}{{obj.partyID.partyGroupID.name}}{% else %}N/A{% endif %} @ {{obj.partyID.pk}}").change();#}
+                    $('#party').val("{{obj.partyID.pk}}").change();
 
                       {% comment %}    setTimeout(function(){
                               $('#party').val("{{ obj.partyID.name  }} - {% if obj.partyID.name %}{{obj.partyID.partyGroupID.name}}{% else %}N/A{% endif %} @ {{obj.partyID.pk}}").change();
