@@ -68,7 +68,7 @@ class MessageThread(threading.Thread):
                 try:
 
                     r = requests.get(
-                        "https://server.betablaster.in/api/send.php?number=91" + self.number + "&type=text&message=" + self.message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
+                        "https://server1.betablaster.live/api/send.php?number=91" + self.number + "&type=text&message=" + self.message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
                         verify=False)
                     data = r.json()
                     obj = WhatsappMessageStatus()
@@ -136,7 +136,7 @@ def send_whatsapp_message(number, message):
     msg = WhatsappMessage.objects.filter(isDeleted__exact=False).last()
     if msg.used < msg.balance:
         r = requests.get(
-            "https://server.betablaster.in/api/send.php?number=91" + number + "&type=text&message=" + message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
+            "https://server1.betablaster.live/api/send.php?number=91" + number + "&type=text&message=" + message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
             verify=False)
         data = r.json()
         msg.used = (msg.used + 1)
@@ -2041,7 +2041,7 @@ def re_send_message_sales(request):
                 msg = WhatsappMessage.objects.filter(isDeleted__exact=False).last()
                 if msg.used < msg.balance:
                     r = requests.get(
-                        "https://server.betablaster.in/api/send.php?number=91" + obj.phone + "&type=text&message=" + obj.message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
+                        "https://server1.betablaster.live/api/send.php?number=91" + obj.phone + "&type=text&message=" + obj.message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
                         verify=False)
                     data = r.json()
                     try:
