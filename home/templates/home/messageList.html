@@ -140,8 +140,8 @@
 
             ],
             aaSorting: [[3, 'desc']],
-            "lengthMenu": [[ 25, 50, 100, -1], [25, 50, 100, "All"]],
-            "pageLength": 25,
+            "lengthMenu": [[ 15, 30, 100, -1], [15, 30, 100, "All"]],
+            "pageLength": 15,
             "processing": true,
             "serverSide": true,
             "ajax": "{% url 'homeApp:MessageListJson' %}"
@@ -180,6 +180,7 @@
                                 message: 'An error occurred !'
                             })
                         ;
+                        $('#imgModal').modal('hide');
                         hideLoading();
                     }
 

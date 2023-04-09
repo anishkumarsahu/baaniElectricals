@@ -2040,22 +2040,29 @@ def re_send_message_sales(request):
             try:
                 msg = WhatsappMessage.objects.filter(isDeleted__exact=False).last()
                 if msg.used < msg.balance:
-                    r = requests.get(
-                        "https://server2.betablaster.live/api/send.php?number=91" + obj.phone + "&type=text&message=" + obj.message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
-                        verify=False)
-                    data = r.json()
                     try:
+                        r = requests.get(
+                            "https://server2.betablaster.live/api/send.php?number=91" + obj.phone + "&type=text&message=" + obj.message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
+                            verify=False)
+                        data = r.json()
+
                         if data['status'] == 'success':
                             obj.status = 'Success'
                             msg.used = (msg.used + 1)
                             msg.save()
+                            obj.save()
+                            return JsonResponse({'message': 'success'}, safe=False)
                         else:
                             obj.status = 'Fail'
+                            obj.save()
+                            return JsonResponse({'message': 'error'}, safe=False)
+
                     except:
                         obj.status = 'Fail'
-                    obj.save()
+                        obj.save()
+                        return JsonResponse({'message': 'error'}, safe=False)
             except:
-                pass
+                return JsonResponse({'message': 'error'}, safe=False)
             return JsonResponse({'message': 'success'}, safe=False)
         except:
             return JsonResponse({'message': 'error'}, safe=False)
