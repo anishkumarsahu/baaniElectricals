@@ -68,7 +68,7 @@ class MessageThread(threading.Thread):
                 try:
 
                     r = requests.get(
-                        "https://server2.betablaster.live/api/send.php?number=91" + self.number + "&type=text&message=" + self.message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
+                        "https://apibuddy.in/api/send.php?number=91" + self.number + "&type=text&message=" + self.message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
                         verify=False)
                     data = r.json()
                     obj = WhatsappMessageStatus()
@@ -136,7 +136,7 @@ def send_whatsapp_message(number, message):
     msg = WhatsappMessage.objects.filter(isDeleted__exact=False).last()
     if msg.used < msg.balance:
         r = requests.get(
-            "https://server2.betablaster.live/api/send.php?number=91" + number + "&type=text&message=" + message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
+            "https://apibuddy.in/api/send.php?number=91" + number + "&type=text&message=" + message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
             verify=False)
         data = r.json()
         msg.used = (msg.used + 1)
@@ -883,6 +883,7 @@ def add_collection_by_admin_api(request):
             lat = request.POST.get("lat")
             lng = request.POST.get("lng")
             chequeDate = request.POST.get("chequeDate")
+            collectDate = request.POST.get("collectDate")
             c = str(party).split('@')
             cus = Party.objects.select_related().get(pk=int(c[1]))
             obj = Collection()
@@ -895,6 +896,7 @@ def add_collection_by_admin_api(request):
                 pass
             if paymentMode == 'Cheque':
                 obj.chequeDate = datetime.strptime(chequeDate, '%d/%m/%Y')
+            obj.collectionDateTime = datetime.strptime(collectDate, '%d/%m/%Y')
             obj.detail = detail
             obj.remark = remark
             obj.latitude = lat
@@ -906,7 +908,7 @@ def add_collection_by_admin_api(request):
 
             obj.save()
             obj.paymentID = str(obj.pk).zfill(8)
-            obj.collectionDateTime = obj.datetime
+            # obj.collectionDateTime = obj.datetime
             obj.save()
             if 'Admin' in request.user.groups.values_list('name', flat=True):
                 try:
@@ -2042,7 +2044,7 @@ def re_send_message_sales(request):
                 if msg.used < msg.balance:
                     try:
                         r = requests.get(
-                            "https://server2.betablaster.live/api/send.php?number=91" + obj.phone + "&type=text&message=" + obj.message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
+                            "https://apibuddy.in/api/send.php?number=91" + obj.phone + "&type=text&message=" + obj.message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
                             verify=False)
                         data = r.json()
 

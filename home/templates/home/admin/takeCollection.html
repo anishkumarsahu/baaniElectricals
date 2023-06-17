@@ -110,7 +110,8 @@
 
                                 <div class="eight wide field required">
                                     <label>Amount Paid (₹ <a class="ui violet label" id="money">0.0</a> )</label>
-                                    <input type="number" name="amountPaid" id="amountPaid" placeholder="Amount Paid" onkeyup="toIndianCurrency()">
+                                    <input type="number" name="amountPaid" id="amountPaid" placeholder="Amount Paid"
+                                           onkeyup="toIndianCurrency()">
 
 
                                 </div>
@@ -139,11 +140,22 @@
                                 </div>
                                 <div class="eight wide field required" id="chequeDatelDiv" style="display: none">
                                     <label>Cheque Date</label>
-                                     <div class="ui calendar" id="cheqDate">
-                                    <input type="text" name="chequeDate" id="chequeDate" placeholder="chequeDate">
-                                     </div>
+                                    <div class="ui calendar" id="cheqDate">
+                                        <input type="text" name="chequeDate" id="chequeDate" placeholder="chequeDate">
+                                    </div>
                                 </div>
 
+
+                            </div>
+                            <div class="one fields">
+                                <div class="sixteen wide field required">
+                                    <label>Collection Date</label>
+                                    <div class="ui calendar" id="collectionDate">
+                                        <div class="ui input">
+                                            <input type="text" placeholder="Date" id="collectDate" name="collectDate">
+                                        </div>
+                                    </div>
+                                </div>
 
                             </div>
                             <div class="one  fields ">
@@ -203,7 +215,7 @@
     </script>
 
     <script>
-           var today = new Date();
+        var today = new Date();
         $('#cheqDate')
             .calendar({
                     initialDate: today.getDate() + '/' + (today.getMonth() + 1) + '/' + today.getFullYear(),
@@ -216,13 +228,29 @@
                             var day = String(date.getDate());
                             var month = String(date.getMonth() + 1);
                             var year = date.getFullYear();
-{#                            return '{{ sale.invoiceDate|date:'d/m/Y' }}';#}
+                            {#                            return '{{ sale.invoiceDate|date:'d/m/Y' }}';#}
                             return day + '/' + month + '/' + year;
                         }
                     }
                 }
             );
+        $('#collectionDate')
+            .calendar({
+                    initialDate: today.getDate() + '/' + (today.getMonth() + 1) + '/' + today.getFullYear(),
+                    monthFirst: false,
+                    type: 'date',
+                    formatter: {
+                        date: function (date, settings) {
 
+                            if (!date) return '';
+                            var day = String(date.getDate());
+                            var month = String(date.getMonth() + 1);
+                            var year = date.getFullYear();
+                            return day + '/' + month + '/' + year;
+                        }
+                    }
+                }
+            );
         function isCash() {
             var mode = $('#paymentMode').val();
             console.log(mode);
@@ -252,8 +280,9 @@
             var lat = $('#lat').val();
             var lng = $('#lng').val();
             var chequeDate = $('#chequeDate').val();
+            var collectDate = $('#collectDate').val();
 
-            if (party === '' || paymentMode === '' || amountPaid === ''
+            if (party === '' || paymentMode === '' || amountPaid === ''|| collectDate === ''
             ) {
                 $('body')
                     .toast({
@@ -273,6 +302,7 @@
                 data.append('lng', lng);
                 data.append('remark', remark);
                 data.append('chequeDate', chequeDate);
+                data.append('collectDate', collectDate);
 
                 $.ajax({
                     type: 'post',
@@ -370,11 +400,11 @@
         $(getLocation());
         navigator.permissions.query({name: 'geolocation'}).then(function (result) {
             console.log(result);
-     {% comment %}       if (result.state === 'granted') {
-                $('#saveBtn').prop('disabled', false);
-            } else {
-                $('#saveBtn').prop('disabled', true);
-            }{% endcomment %}
+            {% comment %}       if (result.state === 'granted') {
+                       $('#saveBtn').prop('disabled', false);
+                   } else {
+                       $('#saveBtn').prop('disabled', true);
+                   }{% endcomment %}
             // Don't do anything if the permission was denied.
         });
 
@@ -413,9 +443,9 @@
         }
 
         const toIndianCurrency = () => {
-            let  num = $('#amountPaid').val();
-   const curr = num.replace(/(\d)(?=(\d\d)+\d$)/g, "$1,")
-$('#money').html(curr);
-};
+            let num = $('#amountPaid').val();
+            const curr = num.replace(/(\d)(?=(\d\d)+\d$)/g, "$1,")
+            $('#money').html(curr);
+        };
     </script>
 {% endblock %}
