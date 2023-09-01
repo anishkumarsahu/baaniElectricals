@@ -826,6 +826,7 @@ def list_party_by_executive_or_station_api(request):
 def add_collection_by_staff_api(request):
     if request.method == 'POST':
         try:
+            transferredParty = request.POST.get("TransferredParty")
             party = request.POST.get("party")
             paymentMode = request.POST.get("paymentMode")
             amountPaid = request.POST.get("amountPaid")
@@ -847,6 +848,14 @@ def add_collection_by_staff_api(request):
                 pass
             if paymentMode == 'Cheque':
                 obj.chequeDate = datetime.strptime(chequeDate, '%d/%m/%Y')
+            if paymentMode == 'Party':
+                try:
+                    p = str(transferredParty).split('@')
+                    tParty = Party.objects.select_related().get(pk=int(p[1]))
+                    obj.transferredPartyID_id = int(tParty.pk)
+                except:
+                    pass
+
             obj.detail = detail
             obj.remark = remark
             obj.latitude = lat
@@ -874,6 +883,7 @@ def add_collection_by_staff_api(request):
 def add_collection_by_admin_api(request):
     if request.method == 'POST':
         try:
+            transferredParty = request.POST.get("TransferredParty")
             party = request.POST.get("party")
             paymentMode = request.POST.get("paymentMode")
             amountPaid = request.POST.get("amountPaid")
@@ -896,6 +906,14 @@ def add_collection_by_admin_api(request):
                 pass
             if paymentMode == 'Cheque':
                 obj.chequeDate = datetime.strptime(chequeDate, '%d/%m/%Y')
+            if paymentMode == 'Party':
+                try:
+                    p = str(transferredParty).split('@')
+                    tParty = Party.objects.select_related().get(pk=int(p[1]))
+                    obj.transferredPartyID_id = int(tParty.pk)
+                except:
+                    pass
+
             obj.collectionDateTime = datetime.strptime(collectDate, '%d/%m/%Y')
             obj.detail = detail
             obj.remark = remark
@@ -944,6 +962,7 @@ def edit_collection_by_admin_api(request):
             ID = request.POST.get("ID")
             cDate = request.POST.get("cDate")
             party = request.POST.get("party")
+            transferredParty = request.POST.get("TransferredParty")
             paymentMode = request.POST.get("paymentMode")
             amountPaid = request.POST.get("amountPaid")
             bank = request.POST.get("bank")
@@ -954,13 +973,15 @@ def edit_collection_by_admin_api(request):
             # cus = Party.objects.select_related().get(pk=int(c[1]))
             cus = Party.objects.select_related().get(pk=int(party))
 
+
             obj = Collection.objects.get(pk=int(ID))
-            if 'Admin' in request.user.groups.values_list('name', flat=True):
+            if 'Admin' or 'Moderator'  in request.user.groups.values_list('name', flat=True):
                 obj.partyID_id = cus.pk
                 obj.modeOfPayment = paymentMode
                 obj.paidAmount = float(amountPaid)
                 obj.detail = detail
                 obj.remark = remark
+                obj.transferredPartyID = None
                 obj.collectionDateTime = datetime.strptime(cDate, '%d/%m/%Y')
                 try:
                     obj.bankID_id = int(bank)
@@ -968,13 +989,18 @@ def edit_collection_by_admin_api(request):
                     pass
                 if paymentMode == 'Cheque':
                     obj.chequeDate = datetime.strptime(chequeDate, '%d/%m/%Y')
-
+                if paymentMode == 'Party':
+                    try:
+                        tparty = Party.objects.select_related().get(pk=int(transferredParty))
+                        obj.transferredPartyID_id = tparty.pk
+                    except:
+                        pass
                 obj.save()
-            if 'Moderator' in request.user.groups.values_list('name', flat=True):
-                if paymentMode == 'Cheque':
-                    obj.chequeDate = datetime.strptime(chequeDate, '%d/%m/%Y')
-
-                obj.save()
+            # if 'Moderator' in request.user.groups.values_list('name', flat=True):
+            #     if paymentMode == 'Cheque':
+            #         obj.chequeDate = datetime.strptime(chequeDate, '%d/%m/%Y')
+            #
+            #     obj.save()
             # try:
             #     msg = "Sir, Our Executive has collected the payment of {} Rs.{}/- from you, Kindly confirm the same. If you have any query Please feel free contact on this no. 7005607770. Thanks, BSS".format(
             #         obj.modeOfPayment, obj.paidAmount)
@@ -989,7 +1015,7 @@ def edit_collection_by_admin_api(request):
 
 class CollectionByStaffListJson(BaseDatatableView):
     order_columns = ['paymentID', 'partyID.name', 'paidAmount', 'modeOfPayment', 'collectionDateTime', 'datetime',
-                     'bankID.name', 'detail',
+                     'bankID.name', 'detail','transferredPartyID',
                      'remark',
                      ]
 
@@ -1004,7 +1030,7 @@ class CollectionByStaffListJson(BaseDatatableView):
         search = self.request.GET.get('search[value]', None)
         if search:
             qs = qs.filter(
-                Q(paymentID__icontains=search) | Q(partyID__name__icontains=search) | Q(
+                Q(paymentID__icontains=search) | Q(partyID__name__icontains=search)| Q(transferredPartyID__name__icontains=search) | Q(
                     paidAmount__icontains=search) | Q(
                     modeOfPayment__icontains=search)
                 | Q(bankID__name__icontains=search) | Q(detail__icontains=search) | Q(detail__icontains=search) | Q(
@@ -1031,6 +1057,10 @@ class CollectionByStaffListJson(BaseDatatableView):
                 bank = item.bankID.name
             except:
                 bank = '-'
+            try:
+                tparty = item.transferredPartyID.name
+            except:
+                tparty = '-'
             json_data.append([
                 escape(item.paymentID),
                 escape(item.partyID.name),
@@ -1040,6 +1070,7 @@ class CollectionByStaffListJson(BaseDatatableView):
                 escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
                 escape(bank),
                 escape(item.detail),
+                escape(tparty),
                 escape(item.remark),
 
                 action,
@@ -1052,7 +1083,7 @@ class CollectionByStaffListJson(BaseDatatableView):
 class CollectionByAdminListJson(BaseDatatableView):
     order_columns = ['paymentID', 'partyID.name', 'paidAmount', 'modeOfPayment', 'collectedBy.name',
                      'collectionDateTime', 'datetime',
-                     'isApproved', 'approvedBy.name', 'bankID.name', 'detail','chequeDate', 'collectionAddress', 'remark'
+                     'isApproved', 'approvedBy.name', 'bankID.name', 'detail','chequeDate','transferredPartyID', 'collectionAddress', 'remark'
                      ]
 
     def get_initial_queryset(self):
@@ -1075,7 +1106,7 @@ class CollectionByAdminListJson(BaseDatatableView):
         search = self.request.GET.get('search[value]', None)
         if search:
             qs = qs.filter(
-                Q(paymentID__icontains=search) | Q(partyID__name__icontains=search) | Q(
+                Q(paymentID__icontains=search) | Q(partyID__name__icontains=search) | Q(transferredPartyID__name__icontains=search) | Q(
                     paidAmount__icontains=search) | Q(
                     modeOfPayment__icontains=search)
                 | Q(bankID__name__icontains=search) | Q(chequeDate__icontains=search) | Q(detail__icontains=search) | Q(
@@ -1118,6 +1149,10 @@ class CollectionByAdminListJson(BaseDatatableView):
             except:
                 bank = '-'
             try:
+                tparty = item.transferredPartyID.name
+            except:
+                tparty = '-'
+            try:
                 collectedBy = item.collectedBy.name
             except:
                 collectedBy = '-'
@@ -1147,6 +1182,7 @@ class CollectionByAdminListJson(BaseDatatableView):
                 escape(bank),
                 escape(item.detail),
                 escape(chequeDate),
+                escape(tparty),
                 escape(item.collectionAddress),
                 escape(item.remark),
                 action,
@@ -1393,6 +1429,7 @@ def generate_collection_report(request):
     a_total_cheque = 0.0
     a_total_online = 0.0
     a_total_cheque_cc = 0.0
+    a_total_party = 0.0
     if staffID == 'All':
         col = Collection.objects.select_related().filter(collectionDateTime__icontains=colDate.date(),
                                                          isApproved__exact=True,
@@ -1415,6 +1452,8 @@ def generate_collection_report(request):
             a_total_online = a_total_online + a.paidAmount
         if a.modeOfPayment == 'Cheque CC':
             a_total_cheque_cc = a_total_cheque_cc + a.paidAmount
+        if a.modeOfPayment == 'Party':
+            a_total_party = a_total_party + a.paidAmount
     context = {
         'date': colDate,
         'col': col,
@@ -1423,7 +1462,8 @@ def generate_collection_report(request):
         'a_total_cheque': a_total_cheque,
         'a_total_online': a_total_online,
         'a_total_cheque_cc': a_total_cheque_cc,
-        'total': a_total_cash + a_total_cheque + a_total_online + a_total_cheque_cc
+        'a_total_party': a_total_party,
+        'total': a_total_cash + a_total_cheque + a_total_online + a_total_cheque_cc+a_total_party
     }
 
     response = HttpResponse(content_type="application/pdf")

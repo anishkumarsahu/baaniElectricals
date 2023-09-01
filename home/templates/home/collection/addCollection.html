@@ -148,6 +148,7 @@
                                        <option value="Cheque CC">Cheque CC</option>
                                         <option value="Cheque">Cheque</option>
                                         <option value="Online">Online</option>
+                                        <option value="Party">Party</option>
                                     </select>
                                 </div>
 
@@ -156,6 +157,15 @@
                                     <input type="number" name="amountPaid" id="amountPaid" placeholder="Amount Paid" onkeyup="toIndianCurrency()">
                                 </div>
 
+
+                            </div>
+                                 <div class="one fields" id="partyDiv" style="display: None">
+                                <div class="sixteen wide field required">
+                                    <label>Transferred Party Name</label>
+                                    <select class="ui clearable search dropdown" id="TransferredParty">
+                                        <option value="">Search By Party Name</option>
+                                    </select>
+                                </div>
 
                             </div>
                             <div class="two required fields ">
@@ -287,26 +297,36 @@
 
         }
 
-        function isCash() {
+       function isCash() {
             var mode = $('#paymentMode').val();
             console.log(mode);
             if (mode === 'Cash' || mode === 'Cheque CC') {
                 $('#bankDiv').css('display', "none");
                 $('#detailDiv').css('display', "none");
                 $('#chequeDatelDiv').css('display', "none");
+                $('#partyDiv').css('display', "none");
             } else if (mode === 'Cheque') {
                 $('#bankDiv').css('display', "none");
                 $('#detailDiv').css('display', "");
                 $('#chequeDatelDiv').css('display', "");
+                $('#partyDiv').css('display', "none");
+            }else if (mode === 'Party') {
+                $('#bankDiv').css('display', "none");
+                $('#detailDiv').css('display', "none");
+                $('#chequeDatelDiv').css('display', "none");
+                $('#partyDiv').css('display', "");
             } else {
                 $('#bankDiv').css('display', "");
                 $('#detailDiv').css('display', "");
                 $('#chequeDatelDiv').css('display', "None");
+                $('#partyDiv').css('display', "none");
             }
         }
 
         function salesSave() {
             showLoading();
+            var TransferredParty = $('#TransferredParty').val();
+
             var paymentMode = $('#paymentMode').val();
             var amountPaid = $('#amountPaid').val();
             var bank = $('#bank').val();
@@ -342,6 +362,7 @@
                 data.append('lng', lng);
                 data.append('remark', remark);
                data.append('chequeDate', chequeDate);
+                   data.append('TransferredParty', TransferredParty);
 
                 $.ajax({
                     type: 'post',
@@ -458,10 +479,13 @@
 
                     $('#partyAllAll').html('');
                     $('#partyAllAll').append(' <option value="">Search By Party Name</option>');
-                    var j;
+                     $('#TransferredParty').html('');
+                    $('#TransferredParty').append(' <option value="">Search By Party Name</option>');
+                   var j;
                     for (j = 0; j < response.data.length; j++) {
 
                         $('#partyAllAll').append('<option value="' + response.data[j]['Detail'] + '" >' + response.data[j]['DisplayDetail'] + '</option>');
+                        $('#TransferredParty').append('<option value="' + response.data[j]['Detail'] + '" >' + response.data[j]['DisplayDetail'] + '</option>');
 
                     }
 

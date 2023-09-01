@@ -119,7 +119,8 @@ class Collection(models.Model):
     collectionDateTime = models.DateTimeField(blank=True, null=True)
     isDeleted = models.BooleanField(default=False)
     chequeDate = models.DateField(blank=True, null=True)
-
+    transferredPartyID = models.ForeignKey(Party, blank=True, null=True, on_delete=models.SET_NULL,
+                                           related_name="TransferredPartyID")
 
     def __str__(self):
         return str(self.partyID.name)
@@ -160,7 +161,7 @@ class WhatsappMessage(models.Model):
 
 class Attendance(models.Model):
     staffID = models.ForeignKey(StaffUser, blank=True, null=True, on_delete=models.SET_NULL,
-                                    related_name='staffID')
+                                related_name='staffID')
     registerType = models.CharField(max_length=200, blank=True, null=True)
     login_remark = models.TextField(blank=True, null=True)
     logout_remark = models.TextField(blank=True, null=True)
@@ -186,7 +187,6 @@ class Attendance(models.Model):
         verbose_name_plural = 'i) Login/Logout List'
 
 
-
 class WhatsappMessageStatus(models.Model):
     message = models.TextField(blank=True, null=True)
     messageTo = models.CharField(max_length=300, blank=True, null=True)
@@ -203,7 +203,6 @@ class WhatsappMessageStatus(models.Model):
         verbose_name_plural = 'J) Message Sent  List'
 
 
-
 class Sales(models.Model):
     partyID = models.ForeignKey(Party, blank=True, null=True, on_delete=models.SET_NULL)
     paymentID = models.CharField(max_length=200, blank=True, null=True)
@@ -211,7 +210,7 @@ class Sales(models.Model):
     amount = models.FloatField(default=0.0)
     remark = models.CharField(max_length=500, blank=True, null=True)
     createdBy = models.ForeignKey(StaffUser, blank=True, null=True, on_delete=models.SET_NULL,
-                                    related_name='createdByStaff')
+                                  related_name='createdByStaff')
     buildDate = models.DateField(blank=True, null=True)
     approvedOn = models.DateTimeField(blank=True, null=True)
     isApproved = models.BooleanField(default=False)

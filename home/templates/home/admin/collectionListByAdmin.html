@@ -117,6 +117,7 @@
                                 <th>Bank</th>
                                 <th>Detail</th>
                                 <th>ChequeDate</th>
+                                <th>TPartyName</th>
                                 <th>Location</th>
                                 <th>Remark</th>
                                 <th>Action</th>
@@ -233,7 +234,7 @@
             buttons: [{
                 extend: 'excel',
                 exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,12,13]
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,12,13,14]
                 }
             }
                 {% comment %}      , {
@@ -256,9 +257,10 @@
                 {"name": "bankID.name", "targets": 9, "orderable": true},
                 {"name": "detail", "targets": 10, "orderable": true},
                 {"name": "chequeDate", "targets": 11, "orderable": true},
-                {"name": "collectionAddress", "targets": 12, "orderable": true},
-                {"name": "remark", "targets": 13, "orderable": true},
-                {"name": "action", "targets": 14, "orderable": false},
+                {"name": "transferredPartyID", "targets": 12, "orderable": true},
+                {"name": "collectionAddress", "targets": 13, "orderable": true},
+                {"name": "remark", "targets": 14, "orderable": true},
+                {"name": "action", "targets": 15, "orderable": false},
 
             ],
             aaSorting: [[6, 'desc']],
