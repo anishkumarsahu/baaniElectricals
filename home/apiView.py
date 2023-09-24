@@ -1,25 +1,24 @@
 import threading
+from datetime import datetime, timedelta
 
 import requests
-
 from django.contrib.auth import authenticate, login
+from django.contrib.auth.models import Group
+from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Q, Sum, F
+from django.db.models import Q
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.utils.crypto import get_random_string
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.models import Group
-from datetime import datetime, timedelta
-
-from dateutil.relativedelta import relativedelta
-from home.models import *
-from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.utils.html import escape
-from django.core.cache import cache
+from django.views.decorators.csrf import csrf_exempt
+from django_datatables_view.base_datatable_view import BaseDatatableView
 from weasyprint import CSS, HTML
-import locale
+
+from home.models import *
+
+BASE_URL_WHATSAPP = "https://server1.betablaster.live/api/"
 
 
 class LocationThread(threading.Thread):
@@ -68,7 +67,7 @@ class MessageThread(threading.Thread):
                 try:
 
                     r = requests.get(
-                        "https://apibuddy.in/api/send.php?number=91" + self.number + "&type=text&message=" + self.message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
+                        BASE_URL_WHATSAPP + "send.php?number=91" + self.number + "&type=text&message=" + self.message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
                         verify=False)
                     data = r.json()
                     obj = WhatsappMessageStatus()
@@ -136,7 +135,7 @@ def send_whatsapp_message(number, message):
     msg = WhatsappMessage.objects.filter(isDeleted__exact=False).last()
     if msg.used < msg.balance:
         r = requests.get(
-            "https://apibuddy.in/api/send.php?number=91" + number + "&type=text&message=" + message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
+            BASE_URL_WHATSAPP + "send.php?number=91" + number + "&type=text&message=" + message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
             verify=False)
         data = r.json()
         msg.used = (msg.used + 1)
@@ -935,7 +934,8 @@ def add_collection_by_admin_api(request):
                     # msg = "Sir, Our Executive has collected the payment of {} Rs.{}/- from you with Ref. No. {}, Kindly confirm the same. If you have any query Please feel free contact on this no. 7005607770. Thanks, BSS".format(
                     #     obj.modeOfPayment, obj.paidAmount, obj.paymentID)
                     msg = "Sir, Your Payment has been received by {} Rs.{}/- on Dt.{} ag. Ref. No. {}, Kindly confirm the same. If you have any query Please feel free to contact on this no. 7005607770. Thanks, BSS".format(
-                        obj.modeOfPayment, obj.paidAmount, str(obj.collectionDateTime.strftime('%d-%m-%Y')), obj.paymentID)
+                        obj.modeOfPayment, obj.paidAmount, str(obj.collectionDateTime.strftime('%d-%m-%Y')),
+                        obj.paymentID)
                     # send_whatsapp_message(obj.partyID.phone, msg)
                     # send_message(obj.partyID.phone, msg, obj.partyID.name)
                     try:
@@ -973,9 +973,8 @@ def edit_collection_by_admin_api(request):
             # cus = Party.objects.select_related().get(pk=int(c[1]))
             cus = Party.objects.select_related().get(pk=int(party))
 
-
             obj = Collection.objects.get(pk=int(ID))
-            if 'Admin' or 'Moderator'  in request.user.groups.values_list('name', flat=True):
+            if 'Admin' or 'Moderator' in request.user.groups.values_list('name', flat=True):
                 obj.partyID_id = cus.pk
                 obj.modeOfPayment = paymentMode
                 obj.paidAmount = float(amountPaid)
@@ -1015,7 +1014,7 @@ def edit_collection_by_admin_api(request):
 
 class CollectionByStaffListJson(BaseDatatableView):
     order_columns = ['paymentID', 'partyID.name', 'paidAmount', 'modeOfPayment', 'collectionDateTime', 'datetime',
-                     'bankID.name', 'detail','transferredPartyID',
+                     'bankID.name', 'detail', 'transferredPartyID',
                      'remark',
                      ]
 
@@ -1030,7 +1029,8 @@ class CollectionByStaffListJson(BaseDatatableView):
         search = self.request.GET.get('search[value]', None)
         if search:
             qs = qs.filter(
-                Q(paymentID__icontains=search) | Q(partyID__name__icontains=search)| Q(transferredPartyID__name__icontains=search) | Q(
+                Q(paymentID__icontains=search) | Q(partyID__name__icontains=search) | Q(
+                    transferredPartyID__name__icontains=search) | Q(
                     paidAmount__icontains=search) | Q(
                     modeOfPayment__icontains=search)
                 | Q(bankID__name__icontains=search) | Q(detail__icontains=search) | Q(detail__icontains=search) | Q(
@@ -1083,7 +1083,8 @@ class CollectionByStaffListJson(BaseDatatableView):
 class CollectionByAdminListJson(BaseDatatableView):
     order_columns = ['paymentID', 'partyID.name', 'paidAmount', 'modeOfPayment', 'collectedBy.name',
                      'collectionDateTime', 'datetime',
-                     'isApproved', 'approvedBy.name', 'bankID.name', 'detail','chequeDate','transferredPartyID', 'collectionAddress', 'remark'
+                     'isApproved', 'approvedBy.name', 'bankID.name', 'detail', 'chequeDate', 'transferredPartyID',
+                     'collectionAddress', 'remark'
                      ]
 
     def get_initial_queryset(self):
@@ -1095,9 +1096,14 @@ class CollectionByAdminListJson(BaseDatatableView):
             eDate = datetime.strptime(endDateV, '%d/%m/%Y')
 
             if staffID == 'All':
-                return Collection.objects.select_related().filter(isDeleted__exact=False, collectionDateTime__date__range=[sDate.date(),eDate.date()])
+                return Collection.objects.select_related().filter(isDeleted__exact=False,
+                                                                  collectionDateTime__date__range=[sDate.date(),
+                                                                                                   eDate.date()])
             else:
-                return Collection.objects.select_related().filter(isDeleted__exact=False, collectionDateTime__date__range=[sDate.date(),eDate.date()], collectedBy_id=int(staffID))
+                return Collection.objects.select_related().filter(isDeleted__exact=False,
+                                                                  collectionDateTime__date__range=[sDate.date(),
+                                                                                                   eDate.date()],
+                                                                  collectedBy_id=int(staffID))
         except:
             return Collection.objects.select_related().filter(isDeleted__exact=False,
                                                               collectionDateTime__icontains=datetime.today().date())
@@ -1106,7 +1112,8 @@ class CollectionByAdminListJson(BaseDatatableView):
         search = self.request.GET.get('search[value]', None)
         if search:
             qs = qs.filter(
-                Q(paymentID__icontains=search) | Q(partyID__name__icontains=search) | Q(transferredPartyID__name__icontains=search) | Q(
+                Q(paymentID__icontains=search) | Q(partyID__name__icontains=search) | Q(
+                    transferredPartyID__name__icontains=search) | Q(
                     paidAmount__icontains=search) | Q(
                     modeOfPayment__icontains=search)
                 | Q(bankID__name__icontains=search) | Q(chequeDate__icontains=search) | Q(detail__icontains=search) | Q(
@@ -1192,11 +1199,11 @@ class CollectionByAdminListJson(BaseDatatableView):
         return json_data
 
 
-
 class ChequeReminderCollectionListJson(BaseDatatableView):
     order_columns = ['paymentID', 'partyID.name', 'paidAmount', 'modeOfPayment', 'collectedBy.name',
                      'collectionDateTime', 'datetime',
-                     'isApproved', 'approvedBy.name', 'bankID.name', 'detail','chequeDate', 'collectionAddress', 'remark'
+                     'isApproved', 'approvedBy.name', 'bankID.name', 'detail', 'chequeDate', 'collectionAddress',
+                     'remark'
                      ]
 
     def get_initial_queryset(self):
@@ -1208,12 +1215,18 @@ class ChequeReminderCollectionListJson(BaseDatatableView):
             eDate = datetime.strptime(endDateV, '%d/%m/%Y')
 
             if staffID == 'All':
-                return Collection.objects.select_related().filter(isDeleted__exact=False, chequeDate__range=[sDate.date(),eDate.date()],modeOfPayment__exact='Cheque')
+                return Collection.objects.select_related().filter(isDeleted__exact=False,
+                                                                  chequeDate__range=[sDate.date(), eDate.date()],
+                                                                  modeOfPayment__exact='Cheque')
             else:
-                return Collection.objects.select_related().filter(isDeleted__exact=False, chequeDate__range=[sDate.date(),eDate.date()], collectedBy_id=int(staffID),modeOfPayment__exact='Cheque')
+                return Collection.objects.select_related().filter(isDeleted__exact=False,
+                                                                  chequeDate__range=[sDate.date(), eDate.date()],
+                                                                  collectedBy_id=int(staffID),
+                                                                  modeOfPayment__exact='Cheque')
         except:
             return Collection.objects.select_related().filter(isDeleted__exact=False,
-                                                              chequeDate__icontains=datetime.today().date(),modeOfPayment__exact='Cheque')
+                                                              chequeDate__icontains=datetime.today().date(),
+                                                              modeOfPayment__exact='Cheque')
 
     def filter_queryset(self, qs):
         search = self.request.GET.get('search[value]', None)
@@ -1374,8 +1387,8 @@ def get_admin_dashboard_report_api(request):
                                                             collectionDateTime__icontains=datetime.today().date(),
                                                             )
     sales = Sales.objects.select_related().filter(isDeleted__exact=False,
-                                                            buildDate__icontains=datetime.today().date(),
-                                                            )
+                                                  buildDate__icontains=datetime.today().date(),
+                                                  )
     c_total = 0.0
     for c in collection:
         c_total = c_total + c.paidAmount
@@ -1463,7 +1476,7 @@ def generate_collection_report(request):
         'a_total_online': a_total_online,
         'a_total_cheque_cc': a_total_cheque_cc,
         'a_total_party': a_total_party,
-        'total': a_total_cash + a_total_cheque + a_total_online + a_total_cheque_cc+a_total_party
+        'total': a_total_cash + a_total_cheque + a_total_online + a_total_cheque_cc + a_total_party
     }
 
     response = HttpResponse(content_type="application/pdf")
@@ -1718,7 +1731,7 @@ def generate_attendance_pdf_admin_report(request):
 
 # -------------------Message List---------------
 class MessageListJson(BaseDatatableView):
-    order_columns = ['messageTo', 'phone', 'message','datetime','status']
+    order_columns = ['messageTo', 'phone', 'message', 'datetime', 'status']
 
     def get_initial_queryset(self):
         # if 'Admin' in self.request.user.groups.values_list('name', flat=True):
@@ -1759,7 +1772,7 @@ class MessageListJson(BaseDatatableView):
         return json_data
 
 
-#----------------------Sales-----------------
+# ----------------------Sales-----------------
 
 
 @transaction.atomic
@@ -1778,14 +1791,14 @@ def add_sales_by_admin_api(request):
             cus = Party.objects.select_related().get(pk=int(c[1]))
             obj = Sales()
             obj.partyID_id = cus.pk
-            obj.invoiceNumber = invoiceSeriesSelect+'/'+invoiceNo+'/'+invoiceYearSelect
+            obj.invoiceNumber = invoiceSeriesSelect + '/' + invoiceNo + '/' + invoiceYearSelect
             obj.amount = float(amount)
             obj.remark = remark
             obj.buildDate = datetime.strptime(colDate, '%d/%m/%Y')
             user = StaffUser.objects.get(user_ID_id=request.user.pk)
             obj.createdBy_id = user.pk
             obj.save()
-            obj.paymentID = 'S'+str(obj.pk).zfill(8)
+            obj.paymentID = 'S' + str(obj.pk).zfill(8)
             obj.save()
             # try:
             #     msg = "Your order has been dispatched Ag. Bill No. {} Dt. {} Amt. Rs. {}, Please confirm received the material. If you have any queries about your order, Please feel free contact on this no 7005607770. Thanks, BSS".format(obj.invoiceNumber, obj.buildDate.strftime('%d-%m-%Y'), obj.amount)
@@ -1802,8 +1815,10 @@ def add_sales_by_admin_api(request):
         except:
             return JsonResponse({'message': 'error'}, safe=False)
 
+
 class SalesByAdminListJson(BaseDatatableView):
-    order_columns = ['paymentID', 'partyID.name', 'invoiceNumber','amount', 'buildDate', 'createdBy.name','isApproved', 'approvedBy.name',
+    order_columns = ['paymentID', 'partyID.name', 'invoiceNumber', 'amount', 'buildDate', 'createdBy.name',
+                     'isApproved', 'approvedBy.name',
                      'datetime', 'remark'
                      ]
 
@@ -1815,12 +1830,15 @@ class SalesByAdminListJson(BaseDatatableView):
             sDate = datetime.strptime(startDateV, '%d/%m/%Y')
             eDate = datetime.strptime(endDateV, '%d/%m/%Y')
             if staffID == 'All':
-                return Sales.objects.select_related().filter(isDeleted__exact=False, buildDate__range=[sDate.date(),eDate.date()])
+                return Sales.objects.select_related().filter(isDeleted__exact=False,
+                                                             buildDate__range=[sDate.date(), eDate.date()])
             else:
-                return Sales.objects.select_related().filter(isDeleted__exact=False, buildDate__range=[sDate.date(),eDate.date()], createdBy_id=int(staffID))
+                return Sales.objects.select_related().filter(isDeleted__exact=False,
+                                                             buildDate__range=[sDate.date(), eDate.date()],
+                                                             createdBy_id=int(staffID))
         except:
             return Sales.objects.select_related().filter(isDeleted__exact=False,
-                                                              buildDate__icontains=datetime.today().date())
+                                                         buildDate__icontains=datetime.today().date())
 
     def filter_queryset(self, qs):
         search = self.request.GET.get('search[value]', None)
@@ -1828,7 +1846,7 @@ class SalesByAdminListJson(BaseDatatableView):
             qs = qs.filter(
                 Q(paymentID__icontains=search) | Q(partyID__name__icontains=search) | Q(
                     amount__icontains=search) | Q(
-                    invoiceNumber__icontains=search) | Q(createdBy__name__icontains=search)  | Q(
+                    invoiceNumber__icontains=search) | Q(createdBy__name__icontains=search) | Q(
                     remark__icontains=search)
                 | Q(datetime__icontains=search) | Q(buildDate__icontains=search)
 
@@ -1839,7 +1857,9 @@ class SalesByAdminListJson(BaseDatatableView):
     def prepare_results(self, qs):
         json_data = []
         for item in qs:
-            if 'Admin' in self.request.user.groups.values_list('name', flat=True) or 'Moderator' in self.request.user.groups.values_list('name', flat=True):
+            if 'Admin' in self.request.user.groups.values_list('name',
+                                                               flat=True) or 'Moderator' in self.request.user.groups.values_list(
+                'name', flat=True):
 
                 action = '''<button  data-inverted="" data-tooltip="Make Approval" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
                <i class="whatsapp icon"></i>
@@ -1854,7 +1874,6 @@ class SalesByAdminListJson(BaseDatatableView):
                 action = '''<div class="ui tiny label">
               Denied
             </div>'''
-
 
             try:
                 createdBy = item.createdBy.name
@@ -1891,20 +1910,22 @@ class SalesByAdminListJson(BaseDatatableView):
 
         return json_data
 
+
 class SalesByStaffListJson(BaseDatatableView):
-    order_columns = ['paymentID', 'partyID.name', 'invoiceNumber','amount', 'buildDate', 'createdBy.name',
+    order_columns = ['paymentID', 'partyID.name', 'invoiceNumber', 'amount', 'buildDate', 'createdBy.name',
                      'datetime', 'remark'
                      ]
 
     def get_initial_queryset(self):
         # if self.request.user.username == 'USER618':
-            return Sales.objects.select_related().filter(isDeleted__exact=False,
-                                                              buildDate__icontains=datetime.today().date())
-        #
-        # else:
-        #
-        #     return Sales.objects.select_related().filter(isDeleted__exact=False,
-        #                                                       buildDate__icontains=datetime.today().date(), createdBy__user_ID_id=self.request.user.pk)
+        return Sales.objects.select_related().filter(isDeleted__exact=False,
+                                                     buildDate__icontains=datetime.today().date())
+
+    #
+    # else:
+    #
+    #     return Sales.objects.select_related().filter(isDeleted__exact=False,
+    #                                                       buildDate__icontains=datetime.today().date(), createdBy__user_ID_id=self.request.user.pk)
 
     def filter_queryset(self, qs):
         search = self.request.GET.get('search[value]', None)
@@ -1912,7 +1933,7 @@ class SalesByStaffListJson(BaseDatatableView):
             qs = qs.filter(
                 Q(paymentID__icontains=search) | Q(partyID__name__icontains=search) | Q(
                     amount__icontains=search) | Q(
-                    invoiceNumber__icontains=search) | Q(createdBy__name__icontains=search)  | Q(
+                    invoiceNumber__icontains=search) | Q(createdBy__name__icontains=search) | Q(
                     remark__icontains=search)
                 | Q(datetime__icontains=search) | Q(buildDate__icontains=search)
 
@@ -1939,13 +1960,10 @@ class SalesByStaffListJson(BaseDatatableView):
               Denied
             </div>'''
 
-
             try:
                 createdBy = item.createdBy.name
             except:
                 createdBy = '-'
-
-
 
             json_data.append([
                 escape(item.paymentID),
@@ -1970,11 +1988,11 @@ def generate_sales_report(request):
     a_total = 0.0
     if staffID == 'All':
         col = Sales.objects.select_related().filter(buildDate__icontains=colDate.date(),
-                                                         isDeleted__exact=False).order_by('createdBy__name')
+                                                    isDeleted__exact=False).order_by('createdBy__name')
         staffName = 'All'
     else:
         col = Sales.objects.select_related().filter(buildDate__icontains=colDate.date(),
-                                                         isDeleted__exact=False, createdBy_id=int(staffID)).order_by(
+                                                    isDeleted__exact=False, createdBy_id=int(staffID)).order_by(
             'createdBy__name')
         user = StaffUser.objects.get(pk=int(staffID))
         staffName = user.name + ' - ' + user.partyGroupID.name
@@ -1997,6 +2015,7 @@ def generate_sales_report(request):
     HTML(string=html).write_pdf(response, stylesheets=[CSS(string='@page { size: A5; margin: .3cm ; }')])
     return response
 
+
 @transaction.atomic
 @csrf_exempt
 def delete_sales(request):
@@ -2009,8 +2028,6 @@ def delete_sales(request):
             return JsonResponse({'message': 'success'}, safe=False)
         except:
             return JsonResponse({'message': 'error'}, safe=False)
-
-
 
 
 @transaction.atomic
@@ -2029,9 +2046,9 @@ def update_sales_by_admin_api(request):
             # c = str(party).split('@')
             # cus = Party.objects.select_related().get(pk=int(c[1]))
             cus = Party.objects.select_related().get(pk=int(party))
-            obj = Sales.objects.get(pk = int(ID))
+            obj = Sales.objects.get(pk=int(ID))
             obj.partyID_id = cus.pk
-            obj.invoiceNumber = invoiceSeriesSelect+'/'+invoiceNo+'/'+invoiceYearSelect
+            obj.invoiceNumber = invoiceSeriesSelect + '/' + invoiceNo + '/' + invoiceYearSelect
             obj.amount = float(amount)
             obj.remark = remark
             obj.buildDate = datetime.strptime(colDate, '%d/%m/%Y')
@@ -2039,10 +2056,10 @@ def update_sales_by_admin_api(request):
             obj.createdBy_id = user.pk
             obj.save()
 
-
             return JsonResponse({'message': 'success'}, safe=False)
         except:
             return JsonResponse({'message': 'error'}, safe=False)
+
 
 @transaction.atomic
 @csrf_exempt
@@ -2056,7 +2073,8 @@ def send_message_sales(request):
             obj.approvedBy_id = user.pk
             obj.save()
             try:
-                msg = "Your order has been dispatched Ag. Bill No. {} Dt. {} Amt. Rs. {}, Please confirm received the material. If you have any queries about your order, Please feel free contact on this no 7005607770. Thanks, BSS".format(obj.invoiceNumber, obj.buildDate.strftime('%d-%m-%Y'), obj.amount)
+                msg = "Your order has been dispatched Ag. Bill No. {} Dt. {} Amt. Rs. {}, Please confirm received the material. If you have any queries about your order, Please feel free contact on this no 7005607770. Thanks, BSS".format(
+                    obj.invoiceNumber, obj.buildDate.strftime('%d-%m-%Y'), obj.amount)
 
                 # send_whatsapp_message(obj.partyID.phone, msg)
                 try:
@@ -2072,6 +2090,7 @@ def send_message_sales(request):
         except:
             return JsonResponse({'message': 'error'}, safe=False)
 
+
 @transaction.atomic
 @csrf_exempt
 def re_send_message_sales(request):
@@ -2084,7 +2103,7 @@ def re_send_message_sales(request):
                 if msg.used < msg.balance:
                     try:
                         r = requests.get(
-                            "https://apibuddy.in/api/send.php?number=91" + obj.phone + "&type=text&message=" + obj.message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
+                            BASE_URL_WHATSAPP + "send.php?number=91" + obj.phone + "&type=text&message=" + obj.message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
                             verify=False)
                         data = r.json()
 
@@ -2108,4 +2127,3 @@ def re_send_message_sales(request):
             return JsonResponse({'message': 'success'}, safe=False)
         except:
             return JsonResponse({'message': 'error'}, safe=False)
-
