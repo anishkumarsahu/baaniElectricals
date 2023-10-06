@@ -1081,7 +1081,7 @@ class CollectionByStaffListJson(BaseDatatableView):
 
 
 class CollectionByAdminListJson(BaseDatatableView):
-    order_columns = ['paymentID', 'partyID.name', 'paidAmount', 'modeOfPayment', 'collectedBy.name',
+    order_columns = ['paymentID', 'partyID.name', 'paidAmount', 'action', 'modeOfPayment', 'collectedBy.name',
                      'collectionDateTime', 'datetime',
                      'isApproved', 'approvedBy.name', 'bankID.name', 'detail', 'chequeDate', 'transferredPartyID',
                      'collectionAddress', 'remark'
@@ -1180,6 +1180,7 @@ class CollectionByAdminListJson(BaseDatatableView):
                 escape(item.paymentID),
                 escape(item.partyID.name),
                 formatINR(format(item.paidAmount, '.2f')),
+                action,
                 escape(item.modeOfPayment),
                 collectedBy,
                 escape(item.collectionDateTime.strftime('%d-%m-%Y')),
@@ -1192,7 +1193,6 @@ class CollectionByAdminListJson(BaseDatatableView):
                 escape(tparty),
                 escape(item.collectionAddress),
                 escape(item.remark),
-                action,
 
             ])
 
@@ -1817,7 +1817,7 @@ def add_sales_by_admin_api(request):
 
 
 class SalesByAdminListJson(BaseDatatableView):
-    order_columns = ['paymentID', 'partyID.name', 'invoiceNumber', 'amount', 'buildDate', 'createdBy.name',
+    order_columns = ['paymentID', 'partyID.name', 'invoiceNumber', 'amount', 'action', 'buildDate', 'createdBy.name',
                      'isApproved', 'approvedBy.name',
                      'datetime', 'remark'
                      ]
@@ -1898,13 +1898,13 @@ class SalesByAdminListJson(BaseDatatableView):
                 escape(item.partyID.name),
                 escape(item.invoiceNumber),
                 formatINR(format(item.amount, '.2f')),
+                action,
                 escape(item.buildDate.strftime('%d-%m-%Y')),
                 createdBy,
                 isApproved,
                 approvedBy,
                 escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
                 escape(item.remark),
-                action,
 
             ])
 

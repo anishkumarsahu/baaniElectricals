@@ -109,13 +109,14 @@
                                 <th>Party Name</th>
                                 <th>InvoiceNumber</th>
                                 <th>Amount</th>
+                                <th>Action</th>
                                 <th>InvoiceDate</th>
                                 <th>Created By</th>
                                 <th>IsApproved?</th>
                                 <th>ApprovedBy</th>
                                 <th>Added On</th>
                                 <th>Remark</th>
-                                <th>Action</th>
+
                             </tr>
                             </thead>
                             <tbody>
@@ -224,12 +225,12 @@
             {#stateSave: true,#}
             fixedColumns: {
                 left: 1,
-                right: 1
+
             },
             buttons: [{
                 extend: 'excel',
                 exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 7,8,9]
+                    columns: [0, 1, 2, 3, 5, 6, 7, 8, 9, 10]
                 }
             }
                 {% comment %}      , {
@@ -244,13 +245,14 @@
                 {"name": "partyID.name", "targets": 1, "orderable": true},
                 {"name": "invoiceNumber", "targets": 2, "orderable": true},
                 {"name": "amount", "targets": 3, "orderable": true},
-                {"name": "buildDate", "targets": 4, "orderable": true},
-                {"name": "createdBy.name", "targets": 5, "orderable": true},
-                {"name": "isApproved", "targets": 6, "orderable": true},
-                {"name": "approvedBy.name", "targets": 7, "orderable": true},
-                {"name": "datetime", "targets": 8, "orderable": true},
-                {"name": "remark", "targets": 9, "orderable": true},
-                {"name": "action", "targets": 10, "orderable": false},
+                {"name": "action", "targets": 4, "orderable": false},
+                {"name": "buildDate", "targets": 5, "orderable": true},
+                {"name": "createdBy.name", "targets": 6, "orderable": true},
+                {"name": "isApproved", "targets": 7, "orderable": true},
+                {"name": "approvedBy.name", "targets": 8, "orderable": true},
+                {"name": "datetime", "targets": 9, "orderable": true},
+                {"name": "remark", "targets": 10, "orderable": true},
+
 
             ],
             aaSorting: [[8, 'desc']],

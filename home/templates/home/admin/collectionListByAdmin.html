@@ -108,6 +108,7 @@
                                 <th>PaymentID</th>
                                 <th>Party Name</th>
                                 <th>Amount</th>
+                                <th>Action</th>
                                 <th>Collection Mode</th>
                                 <th>CollectedBy</th>
                                 <th>CollectionDate</th>
@@ -120,7 +121,7 @@
                                 <th>TPartyName</th>
                                 <th>Location</th>
                                 <th>Remark</th>
-                                <th>Action</th>
+
                             </tr>
                             </thead>
                             <tbody>
@@ -229,12 +230,11 @@
             {#stateSave: true,#}
             fixedColumns: {
                 left: 1,
-                right: 1
             },
             buttons: [{
                 extend: 'excel',
                 exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,12,13,14]
+                    columns: [0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
                 }
             }
                 {% comment %}      , {
@@ -248,19 +248,20 @@
                 {"name": "id", "targets": 0, "orderable": true},
                 {"name": "partyID.name", "targets": 1, "orderable": true},
                 {"name": "paidAmount", "targets": 2, "orderable": true},
-                {"name": "modeOfPayment", "targets": 3, "orderable": true},
-                {"name": "collectedBy.name", "targets": 4, "orderable": true},
-                {"name": "collectionDateTime", "targets": 5, "orderable": true},
-                {"name": "datetime", "targets": 6, "orderable": true},
-                {"name": "isApproved", "targets": 7, "orderable": true},
-                {"name": "approvedBy.name", "targets": 8, "orderable": true},
-                {"name": "bankID.name", "targets": 9, "orderable": true},
-                {"name": "detail", "targets": 10, "orderable": true},
-                {"name": "chequeDate", "targets": 11, "orderable": true},
-                {"name": "transferredPartyID", "targets": 12, "orderable": true},
-                {"name": "collectionAddress", "targets": 13, "orderable": true},
-                {"name": "remark", "targets": 14, "orderable": true},
-                {"name": "action", "targets": 15, "orderable": false},
+                {"name": "action", "targets": 3, "orderable": false},
+                {"name": "modeOfPayment", "targets": 4, "orderable": true},
+                {"name": "collectedBy.name", "targets": 5, "orderable": true},
+                {"name": "collectionDateTime", "targets": 6, "orderable": true},
+                {"name": "datetime", "targets": 7, "orderable": true},
+                {"name": "isApproved", "targets": 8, "orderable": true},
+                {"name": "approvedBy.name", "targets": 9, "orderable": true},
+                {"name": "bankID.name", "targets": 10, "orderable": true},
+                {"name": "detail", "targets": 11, "orderable": true},
+                {"name": "chequeDate", "targets": 12, "orderable": true},
+                {"name": "transferredPartyID", "targets": 13, "orderable": true},
+                {"name": "collectionAddress", "targets": 14, "orderable": true},
+                {"name": "remark", "targets": 15, "orderable": true},
+
 
             ],
             aaSorting: [[6, 'desc']],
