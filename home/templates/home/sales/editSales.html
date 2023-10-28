@@ -1,4 +1,3 @@
-
 {% extends 'home/admin/index.html' %}
 {% load custom_has_group_tag %}
 {% load static %}
@@ -109,6 +108,7 @@
                                             <div class="text" id="invoiceYearSelect">{{ year }}</div>
                                             <i class="dropdown icon"></i>
                                             <div class="menu">
+                                                <div class="item">23-24</div>
                                                 <div class="item">22-23</div>
                                             </div>
                                         </div>
@@ -134,11 +134,11 @@
                                         <option value="">Search By Party Name</option>
                                     </select>
                                 </div>
-                                 <div class="eight wide field required">
+                                <div class="eight wide field required">
                                     <label>Amount (₹ <a class="ui violet label" id="money">{{ obj.amount|convert }}</a>
                                         )</label>
                                     <input type="number" name="amount" id="amount" placeholder="Amount"
-                                            onkeyup="toIndianCurrency()" value="{{ obj.amount }}">
+                                           onkeyup="toIndianCurrency()" value="{{ obj.amount }}">
 
 
                                 </div>
@@ -202,7 +202,7 @@
         var today = new Date();
         $('#cDate')
             .calendar({
-                    initialDate: {{ obj.buildDate|date:'d' }} + '/' + {{ obj.buildDate|date:'m' }} + '/' + {{ obj.buildDate|date:'Y' }},
+                    initialDate: {{ obj.buildDate|date:'d' }} +'/' + {{ obj.buildDate|date:'m' }} +'/' + {{ obj.buildDate|date:'Y' }},
                     monthFirst: false,
                     type: 'date',
                     formatter: {
@@ -219,17 +219,17 @@
                 }
             );
 
-    $(loadDetail());
-    function loadDetail() {
+        $(loadDetail());
 
-        setTimeout(function(){
-                              $('#party').val("{{obj.partyID.pk}}").change();
+        function loadDetail() {
+
+            setTimeout(function () {
+                $('#party').val("{{obj.partyID.pk}}").change();
 
 
+            }, 2000);
 
-            },2000);
-
-    }
+        }
 
         function salesSave() {
             showLoading();
@@ -245,7 +245,7 @@
 
             debugger;
 
-            if (ID === '' ||party === '' || invoiceSeriesSelect === '' || invoiceNo === '' || invoiceYearSelect === ''|| colDate === ''|| amount === ''
+            if (ID === '' || party === '' || invoiceSeriesSelect === '' || invoiceNo === '' || invoiceYearSelect === '' || colDate === '' || amount === ''
             ) {
                 $('body')
                     .toast({
@@ -337,12 +337,12 @@
                     {#$('#party').val("{{ obj.partyID.name  }} - {% if obj.partyID.name %}{{obj.partyID.partyGroupID.name}}{% else %}N/A{% endif %} @ {{obj.partyID.pk}}").change();#}
                     $('#party').val("{{obj.partyID.pk}}").change();
 
-                      {% comment %}    setTimeout(function(){
-                              $('#party').val("{{ obj.partyID.name  }} - {% if obj.partyID.name %}{{obj.partyID.partyGroupID.name}}{% else %}N/A{% endif %} @ {{obj.partyID.pk}}").change();
+                    {% comment %}    setTimeout(function(){
+                            $('#party').val("{{ obj.partyID.name  }} - {% if obj.partyID.name %}{{obj.partyID.partyGroupID.name}}{% else %}N/A{% endif %} @ {{obj.partyID.pk}}").change();
 
 
 
-            },2000);{% endcomment %}
+          },2000);{% endcomment %}
 
                 },
 
