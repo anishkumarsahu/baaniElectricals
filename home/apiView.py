@@ -1917,9 +1917,27 @@ class SalesByStaffListJson(BaseDatatableView):
                      ]
 
     def get_initial_queryset(self):
-        # if self.request.user.username == 'USER618':
-        return Sales.objects.select_related().filter(isDeleted__exact=False,
-                                                     buildDate__icontains=datetime.today().date())
+        if self.request.user.username == 'USER376':
+            try:
+                startDateV = self.request.GET.get("startDate")
+                endDateV = self.request.GET.get("endDate")
+                staffID = self.request.GET.get("staffID")
+                sDate = datetime.strptime(startDateV, '%d/%m/%Y')
+                eDate = datetime.strptime(endDateV, '%d/%m/%Y')
+                if staffID == 'All':
+                    return Sales.objects.select_related().filter(isDeleted__exact=False,
+                                                                 buildDate__range=[sDate.date(), eDate.date()])
+                else:
+                    return Sales.objects.select_related().filter(isDeleted__exact=False,
+                                                                 buildDate__range=[sDate.date(), eDate.date()],
+                                                                 createdBy_id=int(staffID))
+            except:
+                return Sales.objects.select_related().filter(isDeleted__exact=False,
+                                                             buildDate__icontains=datetime.today().date())
+
+        else:
+            return Sales.objects.select_related().filter(isDeleted__exact=False,
+                                                         buildDate__icontains=datetime.today().date())
 
     #
     # else:

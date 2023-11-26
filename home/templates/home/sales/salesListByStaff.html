@@ -45,61 +45,61 @@
             <div class="ui tab " data-tab="user">
 
                 <div class="row" style="padding-left: 5px; padding-right: 5px">
+
+
                     <div class="">
-{% comment %}
-                        <div class="ui form">
-                            <form class="ui tiny form">
-                                <div class="fields">
-                                    <div class="four wide field" style="width: 30%">
-                                        <label>Start Date</label>
-                                        <div class="ui calendar" id="rangestart">
-                                            <div class="ui input left icon">
+                        {% if request.user.username == 'USER376' %}
+                            <div class="ui form">
+                                <form class="ui tiny form">
+                                    <div class="fields">
+                                        <div class="four wide field" style="width: 30%">
+                                            <label>Start Date</label>
+                                            <div class="ui calendar" id="rangestart">
+                                                <div class="ui input left icon">
 
-                                                <input class="" type="text" placeholder="Start Date"
-                                                       style="width:100%;"
-                                                       id="startDateF" onchange="ChangeDate()">
+                                                    <input class="" type="text" placeholder="Start Date"
+                                                           style="width:100%;"
+                                                           id="startDateF" onchange="ChangeDate()">
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="three wide field" style="width: 30%">
-                                        <label>End Date</label>
-                                        <div class="ui calendar" id="rangeend">
-                                            <div class="ui input left icon">
+                                        <div class="three wide field" style="width: 30%">
+                                            <label>End Date</label>
+                                            <div class="ui calendar" id="rangeend">
+                                                <div class="ui input left icon">
 
-                                                <input class="" type="text" placeholder="End Date"
-                                                       style="width:100%;"
-                                                       id="endDateF">
+                                                    <input class="" type="text" placeholder="End Date"
+                                                           style="width:100%;"
+                                                           id="endDateF">
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="three wide  field" style="width: 40%">
-                                        <label>Staff</label>
-                                        <select class="ui fluid search dropdown" id="staffID" onchange="ChangeDate()">
-                                            <option value="All">All</option>
-                                            {% for staff in staffs %}
-                                                <option value="{{ staff.id }}">{{ staff.name|capfirst }}
-                                                    - {{ staff.partyGroupID.name|capfirst }}  </option>
-                                            {% endfor %}
+                                        <div class="three wide  field" style="width: 40%">
+                                            <label>Staff</label>
+                                            <select class="ui fluid search dropdown" id="staffID"
+                                                    onchange="ChangeDate()">
+                                                <option value="All">All</option>
+                                                {% for staff in staffs %}
+                                                    <option value="{{ staff.id }}">{{ staff.name|capfirst }}
+                                                        - {{ staff.partyGroupID.name|capfirst }}  </option>
+                                                {% endfor %}
 
 
-                                        </select>
+                                            </select>
+                                        </div>
+                                        <div class="seven wide field">
+                                            <label>Action</label>
+                                            <button class="ui tiny active button" type="button"
+                                                    onclick="filterDetails()">
+                                                <i class="funnel dollar icon"></i>
+                                                Search
+                                            </button>
+
+                                        </div>
                                     </div>
-                                    <div class="seven wide field">
-                                        <label>Action</label>
-                                        <button class="ui tiny active button" type="button"
-                                                onclick="filterDetails()">
-                                            <i class="funnel dollar icon"></i>
-                                            Search
-                                        </button>
-                                        <a id="reportUrl"
-                                           href="{% url 'homeApp:generate_sales_report' %}"
-                                           style="float: right;"
-                                           class="teal tiny ui button">Download Report
-                                        </a>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>{% endcomment %}
+                                </form>
+                            </div>
+                        {% endif %}
                         <table class="ui unstackable  sortable celled very nowrap very small compact table"
                                id="UserTable"
                                style="margin-top: 5px;width: 100%">
@@ -317,10 +317,10 @@
         }
 
         function filterDetails() {
-            {#var startDate = $('#startDateF').val();#}
-            {#var endDate = $('#endDateF').val();#}
-            {#var staffID = $('#staffID').val();#}
-            {#userTab.ajax.url('{% url 'homeApp:SalesByAdminListJson' %}?startDate=' + startDate + '&endDate=' + endDate + '&staffID=' + staffID).load();#}
+            var startDate = $('#startDateF').val();
+            var endDate = $('#endDateF').val();
+            var staffID = $('#staffID').val();
+            userTab.ajax.url('{% url 'homeApp:SalesByStaffListJson' %}?startDate=' + startDate + '&endDate=' + endDate + '&staffID=' + staffID).load();
 
         }
 
