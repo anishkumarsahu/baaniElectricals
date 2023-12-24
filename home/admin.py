@@ -43,8 +43,9 @@ admin.site.register(Party, PartyAdmin)
 
 class CollectionAdmin(admin.ModelAdmin):
     search_fields = ['partyID', 'modeOfPayment', 'paidAmount', 'collectedBy', 'remark']
-    list_display = ['partyID', 'modeOfPayment', 'paidAmount','collectionDateTime', 'remark', 'collectionAddress', 'collectedBy',
-                    'approvedOn',
+    list_display = ['partyID', 'modeOfPayment', 'paidAmount', 'collectionDateTime', 'remark', 'collectionAddress',
+                    'collectedBy',
+                    'approvedOn', 'isTallied',
                     'latitude',
                     'longitude', 'isApproved', 'approvedBy', 'datetime']
 
@@ -67,23 +68,23 @@ admin.site.register(WhatsappMessage, MessageAdmin)
 
 
 class AttendanceAdmin(admin.ModelAdmin):
-    list_display = ['staffID', 'isLogIn', 'loginDateTime', 'login_remark', 'isLogOut', 'logoutDateTime',  'logout_remark', 'datetime', 'lastUpdatedOn', 'isDeleted']
+    list_display = ['staffID', 'isLogIn', 'loginDateTime', 'login_remark', 'isLogOut', 'logoutDateTime',
+                    'logout_remark', 'datetime', 'lastUpdatedOn', 'isDeleted']
 
 
 admin.site.register(Attendance, AttendanceAdmin)
 
 
-
 class MessageStatusAdmin(admin.ModelAdmin):
-    list_display = ['messageTo', 'phone', 'status', 'message','datetime', 'lastUpdatedOn', 'isDeleted']
+    list_display = ['messageTo', 'phone', 'status', 'message', 'datetime', 'lastUpdatedOn', 'isDeleted']
 
 
 admin.site.register(WhatsappMessageStatus, MessageStatusAdmin)
 
 
-
 class SalesAdmin(admin.ModelAdmin):
-    list_display = ['partyID', 'paymentID','buildDate', 'invoiceNumber', 'amount','remark','createdBy','datetime', 'lastUpdatedOn', 'isDeleted']
+    list_display = ['partyID', 'paymentID', 'buildDate', 'invoiceNumber', 'amount', 'remark', 'createdBy', 'datetime',
+                    'lastUpdatedOn', 'isDeleted']
 
 
 admin.site.register(Sales, SalesAdmin)

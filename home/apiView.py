@@ -838,6 +838,7 @@ def add_collection_by_staff_api(request):
             c = str(party).split('@')
             cus = Party.objects.select_related().get(pk=int(c[1]))
             obj = Collection()
+            obj.isTallied = False
             obj.partyID_id = cus.pk
             obj.modeOfPayment = paymentMode
             obj.paidAmount = float(amountPaid)
@@ -897,6 +898,7 @@ def add_collection_by_admin_api(request):
             cus = Party.objects.select_related().get(pk=int(c[1]))
             obj = Collection()
             obj.partyID_id = cus.pk
+            obj.isTallied = False
             obj.modeOfPayment = paymentMode
             obj.paidAmount = float(amountPaid)
             try:
@@ -1083,7 +1085,8 @@ class CollectionByStaffListJson(BaseDatatableView):
 class CollectionByAdminListJson(BaseDatatableView):
     order_columns = ['paymentID', 'partyID.name', 'paidAmount', 'action', 'modeOfPayment', 'collectedBy.name',
                      'collectionDateTime', 'datetime',
-                     'isApproved', 'approvedBy.name', 'bankID.name', 'detail', 'chequeDate', 'transferredPartyID',
+                     'isApproved', 'approvedBy.name', 'bankID.name', 'isTallied', 'detail', 'chequeDate',
+                     'transferredPartyID',
                      'collectionAddress', 'remark'
                      ]
 
@@ -1175,6 +1178,14 @@ class CollectionByAdminListJson(BaseDatatableView):
                 isApproved = '''<div class="ui tiny red label">
                   No
                 </div>'''
+            if item.isTallied == True:
+                isTallied = '''<div class="ui tiny green label">
+                            Yes
+                          </div>'''
+            else:
+                isTallied = '''<div class="ui tiny red label" data-tooltip="Enable Tally" data-position="left center" data-variation="mini" style="cursor:pointer"  onclick = "confirmTallyModel('{}')">
+                            No
+                          </div>'''.format(item.pk)
 
             json_data.append([
                 escape(item.paymentID),
@@ -1188,6 +1199,7 @@ class CollectionByAdminListJson(BaseDatatableView):
                 isApproved,
                 approvedBy,
                 escape(bank),
+                isTallied,
                 escape(item.detail),
                 escape(chequeDate),
                 escape(tparty),
@@ -2143,5 +2155,22 @@ def re_send_message_sales(request):
             except:
                 return JsonResponse({'message': 'error'}, safe=False)
             return JsonResponse({'message': 'success'}, safe=False)
+        except:
+            return JsonResponse({'message': 'error'}, safe=False)
+
+
+@transaction.atomic
+@csrf_exempt
+def enable_tally_post_api(request):
+    if request.method == 'POST':
+        try:
+            id = request.POST.get("tallyColID")
+            obj = Collection.objects.get(pk=int(id), isApproved__exact=True)
+            try:
+                obj.isTallied = True
+                obj.save()
+                return JsonResponse({'message': 'success'}, safe=False)
+            except:
+                return JsonResponse({'message': 'error'}, safe=False)
         except:
             return JsonResponse({'message': 'error'}, safe=False)

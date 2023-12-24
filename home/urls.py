@@ -1,6 +1,7 @@
 from django.urls import path
-from .views import *
+
 from .apiView import *
+from .views import *
 
 urlpatterns = [
     # pages
@@ -33,7 +34,8 @@ urlpatterns = [
     path('api/delete_collection/', delete_collection, name='delete_collection'),
     path('api/approve_collection/', approve_collection, name='approve_collection'),
     path('api/CollectionByAdminListJson/', CollectionByAdminListJson.as_view(), name='CollectionByAdminListJson'),
-    path('api/ChequeReminderCollectionListJson/', ChequeReminderCollectionListJson.as_view(), name='ChequeReminderCollectionListJson'),
+    path('api/ChequeReminderCollectionListJson/', ChequeReminderCollectionListJson.as_view(),
+         name='ChequeReminderCollectionListJson'),
 
     # # api Staff
     path('api/add_staff_api/', add_staff_api, name='add_staff_api'),
@@ -63,7 +65,8 @@ urlpatterns = [
     path('api/edit_party_api/', edit_party_api, name='edit_party_api'),
     path('api/delete_party/', delete_party, name='delete_party'),
     path('api/list_party_api/', list_party_api, name='list_party_api'),
-    path('api/list_party_by_executive_or_station_api/', list_party_by_executive_or_station_api, name='list_party_by_executive_or_station_api'),
+    path('api/list_party_by_executive_or_station_api/', list_party_by_executive_or_station_api,
+         name='list_party_by_executive_or_station_api'),
 
     # Collection
     path('api/add_collection_by_staff_api/', add_collection_by_staff_api, name='add_collection_by_staff_api'),
@@ -89,8 +92,10 @@ urlpatterns = [
     path('attendance_report/', attendance_report, name='attendance_report'),
     path('attendance_report_admin/', attendance_report_admin, name='attendance_report_admin'),
     path('api/add_attendance_api/', add_attendance_api, name='add_attendance_api'),
-    path('api/generate_attendance_pdf_staff_report/', generate_attendance_pdf_staff_report, name='generate_attendance_pdf_staff_report'),
-    path('api/generate_attendance_pdf_admin_report/', generate_attendance_pdf_admin_report, name='generate_attendance_pdf_admin_report'),
+    path('api/generate_attendance_pdf_staff_report/', generate_attendance_pdf_staff_report,
+         name='generate_attendance_pdf_staff_report'),
+    path('api/generate_attendance_pdf_admin_report/', generate_attendance_pdf_admin_report,
+         name='generate_attendance_pdf_admin_report'),
     path('api/StaffAttendanceListJson/', StaffAttendanceListJson.as_view(), name='StaffAttendanceListJson'),
     path('api/AdminAttendanceListJson/', AdminAttendanceListJson.as_view(), name='AdminAttendanceListJson'),
 
@@ -111,5 +116,6 @@ urlpatterns = [
     path('message_list/', message_list, name='message_list'),
     path('api/MessageListJson/', MessageListJson.as_view(), name='MessageListJson'),
     path('api/re_send_message_sales/', re_send_message_sales, name='re_send_message_sales'),
+    path('api/enable_tally_post_api/', enable_tally_post_api, name='enable_tally_post_api'),
 
 ]

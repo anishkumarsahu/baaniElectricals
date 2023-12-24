@@ -109,13 +109,14 @@
                                 <th>Party Name</th>
                                 <th>Amount</th>
                                 <th>Action</th>
-                                <th>Collection Mode</th>
+                                <th>ColMode</th>
                                 <th>CollectedBy</th>
                                 <th>CollectionDate</th>
                                 <th>Added On</th>
                                 <th>IsApproved</th>
                                 <th>ApprovedBy</th>
                                 <th>Bank</th>
+                                <th>Tally</th>
                                 <th>Detail</th>
                                 <th>ChequeDate</th>
                                 <th>TPartyName</th>
@@ -180,6 +181,30 @@
 
         </div>
     </div>
+       <div class="ui mini modal" id="TallyModal">
+        <div class="header">
+            Enable Tally
+        </div>
+        <div class="content">
+            <p>Are you sure you want to enable Tally?</p>
+            <a class="ui mini red label">Note: Tally will be enabled only after the collection is approved</a>
+        </div>
+        <input type="hidden" id="tallyColID">
+        <div class="actions">
+            <div class="ui negative button">
+                No
+            </div>
+            <button class="ui green right labeled icon button saveBtn" onclick="confirmTally()">
+                Yes
+                <i class="checkmark icon"></i>
+            </button>
+            <button style="display: none;" class="ui teal right labeled icon button saveBtnLoad">
+                Saving ....
+                <i class="checkmark icon"></i>
+            </button>
+
+        </div>
+    </div>
 {% endblock %}
 
 {% block js %}
@@ -234,7 +259,7 @@
             buttons: [{
                 extend: 'excel',
                 exportOptions: {
-                    columns: [0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+                    columns: [0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,16]
                 }
             }
                 {% comment %}      , {
@@ -256,11 +281,12 @@
                 {"name": "isApproved", "targets": 8, "orderable": true},
                 {"name": "approvedBy.name", "targets": 9, "orderable": true},
                 {"name": "bankID.name", "targets": 10, "orderable": true},
-                {"name": "detail", "targets": 11, "orderable": true},
-                {"name": "chequeDate", "targets": 12, "orderable": true},
-                {"name": "transferredPartyID", "targets": 13, "orderable": true},
-                {"name": "collectionAddress", "targets": 14, "orderable": true},
-                {"name": "remark", "targets": 15, "orderable": true},
+                {"name": "isTallied", "targets": 11, "orderable": true},
+                {"name": "detail", "targets": 12, "orderable": true},
+                {"name": "chequeDate", "targets": 13, "orderable": true},
+                {"name": "transferredPartyID", "targets": 14, "orderable": true},
+                {"name": "collectionAddress", "targets": 15, "orderable": true},
+                {"name": "remark", "targets": 16, "orderable": true},
 
 
             ],
@@ -404,6 +430,65 @@
             var staffID = $('#staffID').val();
             $("#reportUrl").attr("href", "{% url 'homeApp:generate_collection_report' %}?cDate=" + startDateF + '&staffID=' + staffID);
         }
+        function confirmTallyModel(id) {
+            $('#TallyModal').modal('show');
+            $('#tallyColID').val('' + id);
+        }
+        
+          function confirmTally() {
+            showLoading();
+            var id = $('#tallyColID').val();
+            var formdata = new FormData();
+            formdata.append('tallyColID', id);
+
+            $.ajax({
+                url: "{% url 'homeApp:enable_tally_post_api' %}",
+                type: "post",
+                data: formdata,
+                contentType: false,
+                cache: false,
+                processData: false,
+
+                success: function (response) {
+                    if (response.message === 'success') {
+                        $('body')
+                            .toast({
+                                class: 'success',
+                                message: 'Tally Enabled Successfully.'
+                            })
+                        ;
+
+                        $('#TallyModal').modal('hide');
+                        userTab.ajax.reload(null, false);
+                        hideLoading();
+                    } else {
+                        $('body')
+                            .toast({
+                                class: 'error',
+                                message: 'An error occurred !'
+                            })
+                        ;
+                        $('#TallyModal').modal('hide');
+                        hideLoading();
+                    }
+
+                    return response;
+                },
+                error: function () {
+                    $('body')
+                        .toast({
+                            class: 'error',
+                            message: 'An error occurred !'
+                        })
+                    ;
+                    hideLoading();
+                }
+
+            });
+
+        }
+
+        
     </script>
 
 {% endblock %}

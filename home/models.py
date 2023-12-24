@@ -112,6 +112,7 @@ class Collection(models.Model):
     latitude = models.CharField(max_length=200, default='0.0')
     longitude = models.CharField(max_length=200, default='0.0')
     isApproved = models.BooleanField(default=False)
+    isTallied = models.BooleanField(default=True)
     approvedBy = models.ForeignKey(StaffUser, blank=True, null=True, on_delete=models.SET_NULL,
                                    related_name='ApprovedBy')
     datetime = models.DateTimeField(auto_now_add=True, auto_now=False)
