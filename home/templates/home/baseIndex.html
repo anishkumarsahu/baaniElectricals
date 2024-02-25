@@ -219,7 +219,21 @@ admin and moderator side bar
 
             </div>
         </div>
-                <div class="item">
+        <div class="item">
+            <div class="header">
+                Party
+            </div>
+            <div class="menu">
+                <a class="item" href="{% url 'homeApp:party_group_list' %}">
+                    <div><i class="user friends icon"></i>Party Group List</div>
+                </a>
+                <a class="item" href="{% url 'homeApp:party_list' %}">
+                    <div><i class="address book icon"></i>Party List</div>
+                </a>
+
+            </div>
+        </div>
+          {% comment %}      <div class="item">
             <div class="header">
                 Attendance
             </div>
@@ -232,7 +246,7 @@ admin and moderator side bar
                 </a>
 
             </div>
-        </div>
+        </div>{% endcomment %}
 
         <div class="item">
             <div class="header">
@@ -406,6 +420,61 @@ Collection side bar
         </div>
     {% endif %}
 
+   {% if request.user|has_group:"CashCounter" %}
+        <div class="item">
+            <div class="header">General</div>
+            <div class="menu">
+                <a class="item" href="{% url 'homeApp:staff_home' %}">
+                    <div>
+                        <i class="tachometer alternate icon"></i>
+                        Dashboard
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div class="item">
+            <div class="header">
+                Cash Counter
+            </div>
+            <div class="menu">
+                <a class="item" href="{% url 'homeApp:cash_counter' %}">
+                    <div><i class="calendar check icon"></i>Today's Counter</div>
+                </a>
+                <a class="item" href="{% url 'homeApp:attendance_report' %}">
+                    <div><i class="calendar alternate icon"></i>Cash Counter Report</div>
+                </a>
+
+            </div>
+        </div>
+           <div class="item">
+            <div class="header">
+                Sales
+            </div>
+            <div class="menu">
+                <a class="item" href="{% url 'homeApp:add_sales' %}">
+                    <div><i class="shopping cart icon"></i>Add Sale</div>
+                </a>
+                <a class="item" href="{% url 'homeApp:my_sales_list' %}">
+                    <div><i class="book icon"></i>Sales List</div>
+                </a>
+
+            </div>
+        </div>
+
+        <div class="item">
+            <div class="header">
+                Profile
+            </div>
+            <div class="menu">
+                <a class="item" href="{% url 'homeApp:my_profile_collection' %}">
+                    <div><i class="user icon"></i>My Profile</div>
+                </a>
+                <a class="item" href="{% url 'homeApp:logout' %}">
+                    <div><i class="sign out alternate icon"></i>Logout</div>
+                </a>
+            </div>
+        </div>
+    {% endif %}
 
     <div class="ui segment bgColor inverted">
         <div class="ui tiny olive inverted progress">
@@ -415,7 +484,7 @@ Collection side bar
 
         <div class="ui tiny teal inverted progress">
             <div class="bar" style="width:78%"></div>
-            <div class="label">v 1.5.2</div>
+            <div class="label">v 2.0.1</div>
         </div>
     </div>
 </div>

@@ -118,4 +118,9 @@ urlpatterns = [
     path('api/re_send_message_sales/', re_send_message_sales, name='re_send_message_sales'),
     path('api/enable_tally_post_api/', enable_tally_post_api, name='enable_tally_post_api'),
 
+    # cashCounter
+    path('cash_counter_home/', cash_counter_home, name='cash_counter_home'),
+    path('cash_counter/', cash_counter, name='cash_counter'),
+    path('api/add_cash_counter_entry_api/', add_cash_counter_entry_api, name='add_cash_counter_entry_api'),
+
 ]

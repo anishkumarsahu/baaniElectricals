@@ -1,19 +1,18 @@
-import calendar
-import os
-from datetime import datetime, timedelta
-from functools import wraps
 import csv
+import os
+from datetime import datetime
+from functools import wraps
+
+from django.contrib.auth import logout, authenticate, login
+from django.http import JsonResponse, HttpResponse
+from django.shortcuts import render, redirect, get_object_or_404
+# Create your views here.
+from django.views.decorators.csrf import csrf_exempt
+
 # import xlwt
 from activation.models import *
 from activation.views import is_activated
-from dateutil.relativedelta import relativedelta
-from django.contrib.auth import logout, authenticate, login
-from django.db.models import Max, Sum
-from django.http import JsonResponse, HttpResponse
-from django.shortcuts import render, redirect, get_object_or_404
 from .models import *
-# Create your views here.
-from django.views.decorators.csrf import csrf_exempt
 
 
 # def login_or_logout(request, type):
@@ -150,22 +149,11 @@ def postLogin(request):
 
         if user is not None:
             login(request, user)
-            # login_or_logout(request, 'Login')
-            if 'Admin' in request.user.groups.values_list('name',
-                                                          flat=True) or 'Moderator' in request.user.groups.values_list(
-                    'name', flat=True):
+            user_groups = request.user.groups.values_list('name', flat=True)
+            if 'Admin' in user_groups or 'Moderator' in user_groups or 'Collection' in user_groups or 'NormalStaff' in user_groups or 'CashCounter' in user_groups:
                 return JsonResponse({'message': 'success', 'data': '/home/'}, safe=False)
-            elif 'Collection' in request.user.groups.values_list('name', flat=True):
-                return JsonResponse({'message': 'success', 'data': '/home/'}, safe=False)
-            elif 'NormalStaff' in request.user.groups.values_list('name', flat=True):
-                return JsonResponse({'message': 'success', 'data': '/home/'}, safe=False)
-        else:
-            return JsonResponse({'message': 'fail'}, safe=False)
-
-        # else:
-        #     return JsonResponse({'message': 'fail'}, safe=False)
-    else:
         return JsonResponse({'message': 'fail'}, safe=False)
+    return JsonResponse({'message': 'fail'}, safe=False)
 
 
 #
@@ -173,12 +161,14 @@ def homepage(request):
     if request.user.is_authenticated:
         if 'Admin' in request.user.groups.values_list('name',
                                                       flat=True) or 'Moderator' in request.user.groups.values_list(
-                'name', flat=True):
+            'name', flat=True):
             return redirect('/admin_home/')
         elif 'Collection' in request.user.groups.values_list('name', flat=True):
             return redirect('/collection_home/')
         elif 'NormalStaff' in request.user.groups.values_list('name', flat=True):
             return redirect('/staff_home/')
+        elif 'CashCounter' in request.user.groups.values_list('name', flat=True):
+            return redirect('/cash_counter_home/')
         else:
             return render(request, 'home/login.html')
 
@@ -211,6 +201,7 @@ def collection_list(request):
     }
     return render(request, 'home/admin/collectionListByAdmin.html', context)
 
+
 @is_activated()
 @check_two_group('Admin', 'Moderator')
 def cheque_reminder_list(request):
@@ -219,7 +210,6 @@ def cheque_reminder_list(request):
         'staffs': staffs
     }
     return render(request, 'home/admin/collectionListChequeReminder.html', context)
-
 
 
 @check_two_group('Admin', 'Moderator')
@@ -329,10 +319,11 @@ def attendance_report_admin(request):
     else:
         return redirect('/')
 
+
 # ----------------------------- Sales ----------------------
 def add_sales(request):
-
     return render(request, 'home/sales/addSales.html')
+
 
 @is_activated()
 @check_two_group('Admin', 'Moderator')
@@ -350,8 +341,6 @@ def my_sales_list(request):
     return render(request, 'home/sales/salesListByStaff.html', context)
 
 
-
-
 def edit_sales(request, id=None):
     obj = get_object_or_404(Sales, pk=id)
     invoice = obj.invoiceNumber
@@ -359,14 +348,25 @@ def edit_sales(request, id=None):
 
     context = {
         'obj': obj,
-        'series':splitVoice[0],
-        'number':splitVoice[1],
-        'year':splitVoice[2],
+        'series': splitVoice[0],
+        'number': splitVoice[1],
+        'year': splitVoice[2],
     }
     return render(request, 'home/sales/editSales.html', context)
 
 
-#-----------------------Message---------------------
+# -----------------------Message---------------------
 @check_two_group('Admin', 'Moderator')
 def message_list(request):
     return render(request, 'home/messageList.html')
+
+
+# -----------------------CashCounter---------------------
+@check_group('CashCounter')
+def cash_counter_home(request):
+    return render(request, 'home/cashCounter/indexCashCounter.html')
+
+
+@check_group('CashCounter')
+def cash_counter(request):
+    return render(request, 'home/cashCounter/todaysCounter.html')

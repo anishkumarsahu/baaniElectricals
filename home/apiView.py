@@ -18,7 +18,7 @@ from weasyprint import CSS, HTML
 
 from home.models import *
 
-BASE_URL_WHATSAPP = "https://server1.betablaster.live/api/"
+BASE_URL_WHATSAPP = "https://node3.betablaster.in/api/"
 
 
 class LocationThread(threading.Thread):
@@ -67,7 +67,7 @@ class MessageThread(threading.Thread):
                 try:
 
                     r = requests.get(
-                        BASE_URL_WHATSAPP + "send.php?number=91" + self.number + "&type=text&message=" + self.message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
+                        BASE_URL_WHATSAPP + "send?number=91" + self.number + "&type=text&message=" + self.message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
                         verify=False)
                     data = r.json()
                     obj = WhatsappMessageStatus()
@@ -135,7 +135,7 @@ def send_whatsapp_message(number, message):
     msg = WhatsappMessage.objects.filter(isDeleted__exact=False).last()
     if msg.used < msg.balance:
         r = requests.get(
-            BASE_URL_WHATSAPP + "send.php?number=91" + number + "&type=text&message=" + message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
+            BASE_URL_WHATSAPP + "send?number=91" + number + "&type=text&message=" + message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
             verify=False)
         data = r.json()
         msg.used = (msg.used + 1)
@@ -2133,10 +2133,9 @@ def re_send_message_sales(request):
                 if msg.used < msg.balance:
                     try:
                         r = requests.get(
-                            BASE_URL_WHATSAPP + "send.php?number=91" + obj.phone + "&type=text&message=" + obj.message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
+                            BASE_URL_WHATSAPP + "send?number=91" + obj.phone + "&type=text&message=" + obj.message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
                             verify=False)
                         data = r.json()
-
                         if data['status'] == 'success':
                             obj.status = 'Success'
                             msg.used = (msg.used + 1)
@@ -2172,5 +2171,45 @@ def enable_tally_post_api(request):
                 return JsonResponse({'message': 'success'}, safe=False)
             except:
                 return JsonResponse({'message': 'error'}, safe=False)
+        except:
+            return JsonResponse({'message': 'error'}, safe=False)
+
+
+# cash counter api
+@transaction.atomic
+@csrf_exempt
+def add_cash_counter_entry_api(request):
+    if request.method == 'POST':
+        try:
+            invoiceSeriesSelect = request.POST.get("invoiceSeriesSelect")
+            invoiceNo = request.POST.get("invoiceNo")
+            invoiceYearSelect = request.POST.get("invoiceYearSelect")
+            party = request.POST.get("party")
+            amount = request.POST.get("amount")
+            remark = request.POST.get("remark")
+            amountMixCash = request.POST.get("amountMixCash")
+            amountMixCard = request.POST.get("amountMixCard")
+            mode = request.POST.get("mode")
+            obj = CashCounter()
+            if mode == "Credit" or mode == "Collection" or mode == "Advance":
+                c = str(party).split('@')
+                cus = Party.objects.select_related().get(pk=int(c[1]))
+                obj.partyID_id = cus.pk
+            if mode == "Cash" or mode == "Mix" or mode == "Card" or mode == "Credit" or mode == "Return":
+                obj.invoiceNumber = invoiceSeriesSelect + '/' + invoiceNo + '/' + invoiceYearSelect
+            if mode == "Mix":
+                obj.mixCashAmount = float(amountMixCash)
+                obj.mixCardAmount = float(amountMixCard)
+            else:
+                obj.amount = float(amount)
+            obj.mode = mode
+            obj.remark = remark
+            obj.entryDate = datetime.now()
+            user = StaffUser.objects.get(user_ID_id=request.user.pk)
+            obj.createdBy_id = user.pk
+            obj.save()
+            obj.counterID = 'CC' + str(obj.pk).zfill(8)
+            obj.save()
+            return JsonResponse({'message': 'success'}, safe=False)
         except:
             return JsonResponse({'message': 'error'}, safe=False)

@@ -88,3 +88,12 @@ class SalesAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Sales, SalesAdmin)
+
+
+class CashCounterAdmin(admin.ModelAdmin):
+    list_display = ['counterID', 'partyID', 'invoiceNumber', 'mode', 'amount', 'mixCashAmount', 'mixCardAmount',
+                    'remark', 'createdBy', 'entryDate', 'datetime',
+                    'lastUpdatedOn', 'isDeleted']
+
+
+admin.site.register(CashCounter, CashCounterAdmin)

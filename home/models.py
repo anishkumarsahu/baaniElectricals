@@ -226,3 +226,26 @@ class Sales(models.Model):
 
     class Meta:
         verbose_name_plural = 'K) Sales List'
+
+
+class CashCounter(models.Model):
+    partyID = models.ForeignKey(Party, blank=True, null=True, on_delete=models.SET_NULL)
+    counterID = models.CharField(max_length=200, blank=True, null=True)
+    invoiceNumber = models.CharField(max_length=200, blank=True, null=True)
+    mode = models.CharField(max_length=200, blank=True, null=True)
+    amount = models.FloatField(default=0.0)
+    mixCashAmount = models.FloatField(default=0.0)
+    mixCardAmount = models.FloatField(default=0.0)
+    remark = models.CharField(max_length=500, blank=True, null=True)
+    createdBy = models.ForeignKey(StaffUser, blank=True, null=True, on_delete=models.SET_NULL,
+                                  related_name='createdByStaffCashCounter')
+    entryDate = models.DateTimeField(blank=True, null=True)
+    datetime = models.DateTimeField(auto_now_add=True, auto_now=False)
+    lastUpdatedOn = models.DateTimeField(auto_now_add=False, auto_now=True)
+    isDeleted = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.mode
+
+    class Meta:
+        verbose_name_plural = 'L) Cash Counter List'
