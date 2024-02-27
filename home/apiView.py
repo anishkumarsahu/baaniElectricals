@@ -6,7 +6,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import Group
 from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
@@ -2213,3 +2213,691 @@ def add_cash_counter_entry_api(request):
             return JsonResponse({'message': 'success'}, safe=False)
         except:
             return JsonResponse({'message': 'error'}, safe=False)
+
+
+class CashCounterByStaffListJson(BaseDatatableView):
+    order_columns = ['counterID', 'invoiceNumber', 'amount', 'createdBy.name',
+                     'datetime', 'remark'
+                     ]
+
+    def get_initial_queryset(self):
+
+        if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                               datetime__icontains=datetime.today().date(),
+                                                               mode__iexact="Cash",
+                                                               createdBy__user_ID_id=self.request.user.pk)
+        else:
+            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                               datetime__icontains=datetime.today().date(),
+                                                               mode__iexact="Cash")
+
+    def filter_queryset(self, qs):
+        search = self.request.GET.get('search[value]', None)
+        if search:
+            qs = qs.filter(
+                Q(counterID__icontains=search) | Q(
+                    amount__icontains=search) | Q(
+                    invoiceNumber__icontains=search) | Q(createdBy__name__icontains=search) | Q(
+                    remark__icontains=search)
+                | Q(datetime__icontains=search)
+
+            )
+
+        return qs
+
+    def prepare_results(self, qs):
+        json_data = []
+        for item in qs:
+            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+
+                action = '''<button  data-inverted="" data-tooltip="Send Message" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
+               <i class="whatsapp icon"></i>
+              </button>
+              <a href="/edit_sales/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
+                <i class="pen icon"></i>
+              </a>
+              <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
+                <i class="trash alternate icon"></i>
+              </button>'''.format(item.pk, item.pk, item.pk),
+            else:
+                action = '''<div class="ui tiny label">
+              Denied
+            </div>'''
+
+            try:
+                createdBy = item.createdBy.name
+            except:
+                createdBy = '-'
+
+            json_data.append([
+                escape(item.counterID),
+                escape(item.invoiceNumber),
+                formatINR(format(item.amount, '.0f')),
+                createdBy,
+                escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
+                escape(item.remark),
+                action,
+
+            ])
+
+        return json_data
+
+
+class CardCounterByStaffListJson(BaseDatatableView):
+    order_columns = ['counterID', 'invoiceNumber', 'amount', 'createdBy.name',
+                     'datetime', 'remark'
+                     ]
+
+    def get_initial_queryset(self):
+        if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                               datetime__icontains=datetime.today().date(),
+                                                               mode__iexact="Card",
+                                                               createdBy__user_ID_id=self.request.user.pk)
+        else:
+            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                               datetime__icontains=datetime.today().date(),
+                                                               mode__iexact="Card")
+
+    def filter_queryset(self, qs):
+        search = self.request.GET.get('search[value]', None)
+        if search:
+            qs = qs.filter(
+                Q(counterID__icontains=search) | Q(
+                    amount__icontains=search) | Q(
+                    invoiceNumber__icontains=search) | Q(createdBy__name__icontains=search) | Q(
+                    remark__icontains=search)
+                | Q(datetime__icontains=search)
+
+            )
+
+        return qs
+
+    def prepare_results(self, qs):
+        json_data = []
+        for item in qs:
+            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+
+                action = '''<button  data-inverted="" data-tooltip="Send Message" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
+               <i class="whatsapp icon"></i>
+              </button>
+              <a href="/edit_sales/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
+                <i class="pen icon"></i>
+              </a>
+              <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
+                <i class="trash alternate icon"></i>
+              </button>'''.format(item.pk, item.pk, item.pk),
+            else:
+                action = '''<div class="ui tiny label">
+              Denied
+            </div>'''
+
+            try:
+                createdBy = item.createdBy.name
+            except:
+                createdBy = '-'
+
+            json_data.append([
+                escape(item.counterID),
+                escape(item.invoiceNumber),
+                formatINR(format(item.amount, '.0f')),
+                createdBy,
+                escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
+                escape(item.remark),
+                action,
+
+            ])
+
+        return json_data
+
+
+class ReturnCounterByStaffListJson(BaseDatatableView):
+    order_columns = ['counterID', 'invoiceNumber', 'amount', 'createdBy.name',
+                     'datetime', 'remark'
+                     ]
+
+    def get_initial_queryset(self):
+        if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                               datetime__icontains=datetime.today().date(),
+                                                               mode__iexact="Return",
+                                                               createdBy__user_ID_id=self.request.user.pk)
+        else:
+            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                               datetime__icontains=datetime.today().date(),
+                                                               mode__iexact="Return")
+
+    def filter_queryset(self, qs):
+        search = self.request.GET.get('search[value]', None)
+        if search:
+            qs = qs.filter(
+                Q(counterID__icontains=search) | Q(
+                    amount__icontains=search) | Q(
+                    invoiceNumber__icontains=search) | Q(createdBy__name__icontains=search) | Q(
+                    remark__icontains=search)
+                | Q(datetime__icontains=search)
+
+            )
+
+        return qs
+
+    def prepare_results(self, qs):
+        json_data = []
+        for item in qs:
+            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+
+                action = '''<button  data-inverted="" data-tooltip="Send Message" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
+               <i class="whatsapp icon"></i>
+              </button>
+              <a href="/edit_sales/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
+                <i class="pen icon"></i>
+              </a>
+              <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
+                <i class="trash alternate icon"></i>
+              </button>'''.format(item.pk, item.pk, item.pk),
+            else:
+                action = '''<div class="ui tiny label">
+              Denied
+            </div>'''
+
+            try:
+                createdBy = item.createdBy.name
+            except:
+                createdBy = '-'
+
+            json_data.append([
+                escape(item.counterID),
+                escape(item.invoiceNumber),
+                formatINR(format(item.amount, '.0f')),
+                createdBy,
+                escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
+                escape(item.remark),
+                action,
+
+            ])
+
+        return json_data
+
+
+class CreditCounterByStaffListJson(BaseDatatableView):
+    order_columns = ['counterID', 'partyID.name', 'invoiceNumber', 'amount', 'createdBy.name',
+                     'datetime', 'remark'
+                     ]
+
+    def get_initial_queryset(self):
+        if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                               datetime__icontains=datetime.today().date(),
+                                                               mode__iexact="Credit",
+                                                               createdBy__user_ID_id=self.request.user.pk)
+        else:
+            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                               datetime__icontains=datetime.today().date(),
+                                                               mode__iexact="Credit")
+
+    def filter_queryset(self, qs):
+        search = self.request.GET.get('search[value]', None)
+        if search:
+            qs = qs.filter(
+                Q(counterID__icontains=search) | Q(
+                    partyID__name__icontains=search) | Q(
+                    amount__icontains=search) | Q(
+                    invoiceNumber__icontains=search) | Q(createdBy__name__icontains=search) | Q(
+                    remark__icontains=search)
+                | Q(datetime__icontains=search)
+
+            )
+
+        return qs
+
+    def prepare_results(self, qs):
+        json_data = []
+        for item in qs:
+            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+
+                action = '''<button  data-inverted="" data-tooltip="Send Message" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
+               <i class="whatsapp icon"></i>
+              </button>
+              <a href="/edit_sales/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
+                <i class="pen icon"></i>
+              </a>
+              <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
+                <i class="trash alternate icon"></i>
+              </button>'''.format(item.pk, item.pk, item.pk),
+            else:
+                action = '''<div class="ui tiny label">
+              Denied
+            </div>'''
+
+            try:
+                createdBy = item.createdBy.name
+            except:
+                createdBy = '-'
+            try:
+                party = item.partyID.name
+            except:
+                party = 'N/A'
+
+            json_data.append([
+                escape(item.counterID),
+                escape(party),
+                escape(item.invoiceNumber),
+                formatINR(format(item.amount, '.0f')),
+                createdBy,
+                escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
+                escape(item.remark),
+                action,
+
+            ])
+
+        return json_data
+
+
+class MixCounterByStaffListJson(BaseDatatableView):
+    order_columns = ['counterID', 'invoiceNumber', 'mixCashAmount', 'mixCardAmount', 'createdBy.name',
+                     'datetime', 'remark'
+                     ]
+
+    def get_initial_queryset(self):
+        if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                               datetime__icontains=datetime.today().date(),
+                                                               mode__iexact="Mix",
+                                                               createdBy__user_ID_id=self.request.user.pk)
+        else:
+            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                               datetime__icontains=datetime.today().date(),
+                                                               mode__iexact="Mix")
+
+    def filter_queryset(self, qs):
+        search = self.request.GET.get('search[value]', None)
+        if search:
+            qs = qs.filter(
+                Q(counterID__icontains=search) | Q(
+                    mixCashAmount__icontains=search) | Q(
+                    mixCardAmount__icontains=search) | Q(
+                    invoiceNumber__icontains=search) | Q(createdBy__name__icontains=search) | Q(
+                    remark__icontains=search)
+                | Q(datetime__icontains=search)
+
+            )
+
+        return qs
+
+    def prepare_results(self, qs):
+        json_data = []
+        for item in qs:
+            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+
+                action = '''<button  data-inverted="" data-tooltip="Send Message" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
+               <i class="whatsapp icon"></i>
+              </button>
+              <a href="/edit_sales/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
+                <i class="pen icon"></i>
+              </a>
+              <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
+                <i class="trash alternate icon"></i>
+              </button>'''.format(item.pk, item.pk, item.pk),
+            else:
+                action = '''<div class="ui tiny label">
+              Denied
+            </div>'''
+
+            try:
+                createdBy = item.createdBy.name
+            except:
+                createdBy = '-'
+
+            json_data.append([
+                escape(item.counterID),
+                escape(item.invoiceNumber),
+                formatINR(format(item.mixCashAmount, '.0f')),
+                formatINR(format(item.mixCardAmount, '.0f')),
+                createdBy,
+                escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
+                escape(item.remark),
+                action,
+
+            ])
+
+        return json_data
+
+
+class CollectionCounterByStaffListJson(BaseDatatableView):
+    order_columns = ['counterID', 'partyID.name', 'amount', 'createdBy.name',
+                     'datetime', 'remark'
+                     ]
+
+    def get_initial_queryset(self):
+        if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                               datetime__icontains=datetime.today().date(),
+                                                               mode__iexact="Collection",
+                                                               createdBy__user_ID_id=self.request.user.pk)
+        else:
+            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                               datetime__icontains=datetime.today().date(),
+                                                               mode__iexact="Collection")
+
+    def filter_queryset(self, qs):
+        search = self.request.GET.get('search[value]', None)
+        if search:
+            qs = qs.filter(
+                Q(counterID__icontains=search) | Q(
+                    partyID__name__icontains=search) | Q(
+                    amount__icontains=search) | Q(createdBy__name__icontains=search) | Q(
+                    remark__icontains=search)
+                | Q(datetime__icontains=search)
+
+            )
+
+        return qs
+
+    def prepare_results(self, qs):
+        json_data = []
+        for item in qs:
+            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+
+                action = '''<button  data-inverted="" data-tooltip="Send Message" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
+               <i class="whatsapp icon"></i>
+              </button>
+              <a href="/edit_sales/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
+                <i class="pen icon"></i>
+              </a>
+              <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
+                <i class="trash alternate icon"></i>
+              </button>'''.format(item.pk, item.pk, item.pk),
+            else:
+                action = '''<div class="ui tiny label">
+              Denied
+            </div>'''
+
+            try:
+                createdBy = item.createdBy.name
+            except:
+                createdBy = '-'
+            try:
+                party = item.partyID.name
+            except:
+                party = 'N/A'
+
+            json_data.append([
+                escape(item.counterID),
+                escape(party),
+                formatINR(format(item.amount, '.0f')),
+                createdBy,
+                escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
+                escape(item.remark),
+                action,
+
+            ])
+
+        return json_data
+
+
+class AdvanceCounterByStaffListJson(BaseDatatableView):
+    order_columns = ['counterID', 'partyID.name', 'amount', 'createdBy.name',
+                     'datetime', 'remark'
+                     ]
+
+    def get_initial_queryset(self):
+        if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                               datetime__icontains=datetime.today().date(),
+                                                               mode__iexact="Advance",
+                                                               createdBy__user_ID_id=self.request.user.pk)
+        else:
+            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                               datetime__icontains=datetime.today().date(),
+                                                               mode__iexact="Advance")
+
+    def filter_queryset(self, qs):
+        search = self.request.GET.get('search[value]', None)
+        if search:
+            qs = qs.filter(
+                Q(counterID__icontains=search) | Q(
+                    partyID__name__icontains=search) | Q(
+                    amount__icontains=search) | Q(createdBy__name__icontains=search) | Q(
+                    remark__icontains=search)
+                | Q(datetime__icontains=search)
+
+            )
+
+        return qs
+
+    def prepare_results(self, qs):
+        json_data = []
+        for item in qs:
+            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+
+                action = '''<button  data-inverted="" data-tooltip="Send Message" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
+               <i class="whatsapp icon"></i>
+              </button>
+              <a href="/edit_sales/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
+                <i class="pen icon"></i>
+              </a>
+              <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
+                <i class="trash alternate icon"></i>
+              </button>'''.format(item.pk, item.pk, item.pk),
+            else:
+                action = '''<div class="ui tiny label">
+              Denied
+            </div>'''
+
+            try:
+                createdBy = item.createdBy.name
+            except:
+                createdBy = '-'
+            try:
+                party = item.partyID.name
+            except:
+                party = 'N/A'
+
+            json_data.append([
+                escape(item.counterID),
+                escape(party),
+                formatINR(format(item.amount, '.0f')),
+                createdBy,
+                escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
+                escape(item.remark),
+                action,
+
+            ])
+
+        return json_data
+
+
+class ExpenseCounterByStaffListJson(BaseDatatableView):
+    order_columns = ['counterID', 'remark', 'amount', 'createdBy.name',
+                     'datetime'
+                     ]
+
+    def get_initial_queryset(self):
+        if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                               datetime__icontains=datetime.today().date(),
+                                                               mode__iexact="Expense",
+                                                               createdBy__user_ID_id=self.request.user.pk)
+        else:
+            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                               datetime__icontains=datetime.today().date(),
+                                                               mode__iexact="Expense")
+
+    def filter_queryset(self, qs):
+        search = self.request.GET.get('search[value]', None)
+        if search:
+            qs = qs.filter(
+                Q(counterID__icontains=search) | Q(
+                    amount__icontains=search) | Q(createdBy__name__icontains=search) | Q(
+                    remark__icontains=search)
+                | Q(datetime__icontains=search)
+
+            )
+
+        return qs
+
+    def prepare_results(self, qs):
+        json_data = []
+        for item in qs:
+            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+
+                action = '''<button  data-inverted="" data-tooltip="Send Message" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
+               <i class="whatsapp icon"></i>
+              </button>
+              <a href="/edit_sales/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
+                <i class="pen icon"></i>
+              </a>
+              <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
+                <i class="trash alternate icon"></i>
+              </button>'''.format(item.pk, item.pk, item.pk),
+            else:
+                action = '''<div class="ui tiny label">
+              Denied
+            </div>'''
+
+            try:
+                createdBy = item.createdBy.name
+            except:
+                createdBy = '-'
+
+            json_data.append([
+                escape(item.counterID),
+                escape(item.remark),
+                formatINR(format(item.amount, '.0f')),
+                createdBy,
+                escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
+                action,
+
+            ])
+
+        return json_data
+
+
+def get_cash_counter_dashboard_report_api(request):
+    cash_total = CashCounter.objects.filter(
+        mode="Cash",
+        isDeleted=False,
+        datetime__icontains=datetime.today().date(),
+        createdBy__user_ID=request.user.pk
+    ).aggregate(amount=Sum('amount'))['amount'] or 0.0
+    card_total = CashCounter.objects.filter(
+        mode="Card",
+        isDeleted=False,
+        datetime__icontains=datetime.today().date(),
+        createdBy__user_ID=request.user.pk
+    ).aggregate(amount=Sum('amount'))['amount'] or 0.0
+    credit_total = CashCounter.objects.filter(
+        mode="Credit",
+        isDeleted=False,
+        datetime__icontains=datetime.today().date(),
+        createdBy__user_ID=request.user.pk
+    ).aggregate(amount=Sum('amount'))['amount'] or 0.0
+    collection_total = CashCounter.objects.filter(
+        mode="Collection",
+        isDeleted=False,
+        datetime__icontains=datetime.today().date(),
+        createdBy__user_ID=request.user.pk
+    ).aggregate(amount=Sum('amount'))['amount'] or 0.0
+    expense_total = CashCounter.objects.filter(
+        mode="Expense",
+        isDeleted=False,
+        datetime__icontains=datetime.today().date(),
+        createdBy__user_ID=request.user.pk
+    ).aggregate(amount=Sum('amount'))['amount'] or 0.0
+    advance_total = CashCounter.objects.filter(
+        mode="Advance",
+        isDeleted=False,
+        datetime__icontains=datetime.today().date(),
+        createdBy__user_ID=request.user.pk
+    ).aggregate(amount=Sum('amount'))['amount'] or 0.0
+    return_total = CashCounter.objects.filter(
+        mode="Return",
+        isDeleted=False,
+        datetime__icontains=datetime.today().date(),
+        createdBy__user_ID=request.user.pk
+    ).aggregate(amount=Sum('amount'))['amount'] or 0.0
+    mix_cash_total = CashCounter.objects.filter(
+        mode="Mix",
+        isDeleted=False,
+        datetime__icontains=datetime.today().date(),
+        createdBy__user_ID=request.user.pk
+    ).aggregate(amount=Sum('mixCashAmount'))['amount'] or 0.0
+    mix_card_total = CashCounter.objects.filter(
+        mode="Mix",
+        isDeleted=False,
+        datetime__icontains=datetime.today().date(),
+        createdBy__user_ID=request.user.pk
+    ).aggregate(amount=Sum('mixCardAmount'))['amount'] or 0.0
+    data = {
+        'cash_total': formatINR(cash_total),
+        'card_total': formatINR(card_total),
+        'credit_total': formatINR(credit_total),
+        'collection_total': formatINR(collection_total),
+        'expense_total': formatINR(expense_total),
+        'advance_total': formatINR(advance_total),
+        'return_total': formatINR(return_total),
+        'mix_cash_total': formatINR(mix_cash_total),
+        'mix_card_total': formatINR(mix_card_total)
+    }
+    return JsonResponse({'data': data}, safe=False)
+
+
+def get_cash_counter_dashboard_report_admin_api(request):
+    cash_total = CashCounter.objects.filter(
+        mode="Cash",
+        isDeleted=False,
+        datetime__icontains=datetime.today().date()
+    ).aggregate(amount=Sum('amount'))['amount'] or 0.0
+    card_total = CashCounter.objects.filter(
+        mode="Card",
+        isDeleted=False,
+        datetime__icontains=datetime.today().date(),
+    ).aggregate(amount=Sum('amount'))['amount'] or 0.0
+    credit_total = CashCounter.objects.filter(
+        mode="Credit",
+        isDeleted=False,
+        datetime__icontains=datetime.today().date()
+    ).aggregate(amount=Sum('amount'))['amount'] or 0.0
+    collection_total = CashCounter.objects.filter(
+        mode="Collection",
+        isDeleted=False,
+        datetime__icontains=datetime.today().date()
+    ).aggregate(amount=Sum('amount'))['amount'] or 0.0
+    expense_total = CashCounter.objects.filter(
+        mode="Expense",
+        isDeleted=False,
+        datetime__icontains=datetime.today().date()
+    ).aggregate(amount=Sum('amount'))['amount'] or 0.0
+    advance_total = CashCounter.objects.filter(
+        mode="Advance",
+        isDeleted=False,
+        datetime__icontains=datetime.today().date()
+    ).aggregate(amount=Sum('amount'))['amount'] or 0.0
+    return_total = CashCounter.objects.filter(
+        mode="Return",
+        isDeleted=False,
+        datetime__icontains=datetime.today().date()
+    ).aggregate(amount=Sum('amount'))['amount'] or 0.0
+    mix_cash_total = CashCounter.objects.filter(
+        mode="Mix",
+        isDeleted=False,
+        datetime__icontains=datetime.today().date()
+    ).aggregate(amount=Sum('mixCashAmount'))['amount'] or 0.0
+    mix_card_total = CashCounter.objects.filter(
+        mode="Mix",
+        isDeleted=False,
+        datetime__icontains=datetime.today().date()
+    ).aggregate(amount=Sum('mixCardAmount'))['amount'] or 0.0
+    data = {
+        'cash_total': formatINR(cash_total),
+        'card_total': formatINR(card_total),
+        'credit_total': formatINR(credit_total),
+        'collection_total': formatINR(collection_total),
+        'expense_total': formatINR(expense_total),
+        'advance_total': formatINR(advance_total),
+        'return_total': formatINR(return_total),
+        'mix_cash_total': formatINR(mix_cash_total),
+        'mix_card_total': formatINR(mix_card_total)
+    }
+    return JsonResponse({'data': data}, safe=False)

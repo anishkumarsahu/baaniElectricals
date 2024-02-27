@@ -370,3 +370,8 @@ def cash_counter_home(request):
 @check_group('CashCounter')
 def cash_counter(request):
     return render(request, 'home/cashCounter/todaysCounter.html')
+
+
+@check_group('CashCounter')
+def my_cash_counter_list(request):
+    return render(request, 'home/cashCounter/cashCounterListByStaff.html')
