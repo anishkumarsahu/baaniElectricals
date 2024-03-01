@@ -1,5 +1,6 @@
 {% extends 'home/cashCounter/indexCashCounter.html' %}
 {% load static %}
+{% load custom_has_group_tag %}
 {% block title %}
     <title>Cash Counter List</title>
 {% endblock %}
@@ -47,7 +48,7 @@
 
 
                     <div class="">
-                        {% if request.user.username == 'USER376' %}
+                           {% if request.user|has_group:"Admin" or request.user|has_group:"Moderator" %}
                             <div class="ui form">
                                 <form class="ui tiny form">
                                     <div class="fields">
@@ -73,7 +74,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="three wide  field" style="width: 40%">
+                                    {% comment %}    <div class="three wide  field" style="width: 40%">
                                             <label>Staff</label>
                                             <select class="ui fluid search dropdown" id="staffID"
                                                     onchange="ChangeDate()">
@@ -85,7 +86,7 @@
 
 
                                             </select>
-                                        </div>
+                                        </div>{% endcomment %}
                                         <div class="seven wide field">
                                             <label>Action</label>
                                             <button class="ui tiny active button" type="button"
@@ -292,6 +293,28 @@
             </div>
         </div>
     </div>
+             <div class="ui basic modal custom" id="deleteUser">
+                    <div class="ui icon header">
+                        <i class="archive icon"></i>
+                        This Counter will be Deleted
+                    </div>
+                    <div class="content">
+                        <p style="text-align: center">The detail will be deleted, are you sure to delete this
+                            Counter detail?</p>
+                    </div>
+                    <div class="actions">
+                        <div class="ui red basic cancel inverted button">
+                            <i class="remove icon"></i>
+                            No
+                        </div>
+                        <input type="hidden" id="UserID">
+                        <div class="ui green ok inverted button" onclick="deleteUser()">
+                            <i class="checkmark icon"></i>
+                            Yes
+                        </div>
+                    </div>
+                </div>
+
 
 {% endblock %}
 
@@ -660,7 +683,7 @@
             formdata.append('userID', id);
 
             $.ajax({
-                url: "{% url 'homeApp:delete_sales' %}",
+                url: "{% url 'homeApp:delete_cash_counter' %}",
                 type: "post",
                 data: formdata,
                 contentType: false,
@@ -672,12 +695,19 @@
                         $('body')
                             .toast({
                                 class: 'success',
-                                message: 'Sales Detail Deleted Successfully.'
+                                message: 'Counter Detail Deleted Successfully.'
                             })
                         ;
 
 
-                        userTab.ajax.reload(null, false);
+                        cashTab.ajax.reload(null, false);
+                        cardTab.ajax.reload(null, false);
+                        collectionTab.ajax.reload(null, false);
+                        mixTab.ajax.reload(null, false);
+                        creditTab.ajax.reload(null, false);
+                        returnTab.ajax.reload(null, false);
+                        expenseTab.ajax.reload(null, false);
+                        advanceTab.ajax.reload(null, false);
                         hideLoading();
                     } else {
                         $('body')
@@ -708,7 +738,14 @@
             var startDate = $('#startDateF').val();
             var endDate = $('#endDateF').val();
             var staffID = $('#staffID').val();
-            userTab.ajax.url('{% url 'homeApp:SalesByStaffListJson' %}?startDate=' + startDate + '&endDate=' + endDate + '&staffID=' + staffID).load();
+            cashTab.ajax.url('{% url 'homeApp:CashCounterByStaffListJson' %}?startDate=' + startDate + '&endDate=' + endDate + '&staffID=' + staffID).load();
+            cardTab.ajax.url('{% url 'homeApp:CardCounterByStaffListJson' %}?startDate=' + startDate + '&endDate=' + endDate + '&staffID=' + staffID).load();
+            mixTab.ajax.url('{% url 'homeApp:MixCounterByStaffListJson' %}?startDate=' + startDate + '&endDate=' + endDate + '&staffID=' + staffID).load();
+            collectionTab.ajax.url('{% url 'homeApp:CollectionCounterByStaffListJson' %}?startDate=' + startDate + '&endDate=' + endDate + '&staffID=' + staffID).load();
+            expenseTab.ajax.url('{% url 'homeApp:ExpenseCounterByStaffListJson' %}?startDate=' + startDate + '&endDate=' + endDate + '&staffID=' + staffID).load();
+            advanceTab.ajax.url('{% url 'homeApp:AdvanceCounterByStaffListJson' %}?startDate=' + startDate + '&endDate=' + endDate + '&staffID=' + staffID).load();
+            returnTab.ajax.url('{% url 'homeApp:ReturnCounterByStaffListJson' %}?startDate=' + startDate + '&endDate=' + endDate + '&staffID=' + staffID).load();
+            creditTab.ajax.url('{% url 'homeApp:CreditCounterByStaffListJson' %}?startDate=' + startDate + '&endDate=' + endDate + '&staffID=' + staffID).load();
 
         }
 

@@ -27,13 +27,14 @@ from .models import *
 #         pass
 
 
-def check_group(group_name):
+def check_group(*group_names):
     def _check_group(view_func):
         @wraps(view_func)
         def wrapper(request, *args, **kwargs):
-            if not request.user.groups.filter(name=group_name).exists():
-                return redirect('/')
-            return view_func(request, *args, **kwargs)
+            for group_name in group_names:
+                if request.user.groups.filter(name=group_name).exists():
+                    return view_func(request, *args, **kwargs)
+            return redirect('/')
 
         return wrapper
 
@@ -367,11 +368,35 @@ def cash_counter_home(request):
     return render(request, 'home/cashCounter/indexCashCounter.html')
 
 
-@check_group('CashCounter')
+@check_group('CashCounter', 'Admin', 'Moderator')
 def cash_counter(request):
     return render(request, 'home/cashCounter/todaysCounter.html')
 
 
-@check_group('CashCounter')
+@check_group('CashCounter', 'Admin', 'Moderator')
 def my_cash_counter_list(request):
     return render(request, 'home/cashCounter/cashCounterListByStaff.html')
+
+
+@check_group('CashCounter', 'Admin', 'Moderator')
+def edit_cash_counter(request, id=None):
+    obj = get_object_or_404(CashCounter, pk=id)
+    invoice = obj.invoiceNumber
+    try:
+        splitVoice = invoice.split('/')
+        context = {
+            'obj': obj,
+            'series': splitVoice[0],
+            'number': splitVoice[1],
+            'year': splitVoice[2],
+        }
+
+    except:
+        context = {
+            'obj': obj,
+            'series': "",
+            'number': "",
+            'year': "",
+        }
+
+    return render(request, 'home/cashCounter/editCashCounter.html', context)

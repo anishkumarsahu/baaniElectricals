@@ -2222,14 +2222,27 @@ class CashCounterByStaffListJson(BaseDatatableView):
 
     def get_initial_queryset(self):
 
-        if 'Admin' in self.request.user.groups.values_list('name', flat=True):
-            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                               datetime__icontains=datetime.today().date(),
-                                                               mode__iexact="Cash",
-                                                               createdBy__user_ID_id=self.request.user.pk)
+        if 'Admin' in self.request.user.groups.values_list('name',
+                                                           flat=True) or 'Moderator' in self.request.user.groups.values_list(
+            'name', flat=True):
+            try:
+                startDateV = self.request.GET.get("startDate")
+                endDateV = self.request.GET.get("endDate")
+                sDate = datetime.strptime(startDateV, '%d/%m/%Y')
+                eDate = datetime.strptime(endDateV, '%d/%m/%Y')
+
+                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                                   datetime__range=[sDate.date(), eDate.date()],
+                                                                   mode__iexact="Cash")
+
+            except:
+                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                                   datetime__icontains=datetime.today().date(),
+                                                                   mode__iexact="Cash")
         else:
             return CashCounter.objects.select_related().filter(isDeleted__exact=False,
                                                                datetime__icontains=datetime.today().date(),
+                                                               createdBy__user_ID_id=self.request.user.pk,
                                                                mode__iexact="Cash")
 
     def filter_queryset(self, qs):
@@ -2251,10 +2264,8 @@ class CashCounterByStaffListJson(BaseDatatableView):
         for item in qs:
             if 'Admin' in self.request.user.groups.values_list('name', flat=True):
 
-                action = '''<button  data-inverted="" data-tooltip="Send Message" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
-               <i class="whatsapp icon"></i>
-              </button>
-              <a href="/edit_sales/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
+                action = '''
+              <a href="/edit_cash_counter/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
                 <i class="pen icon"></i>
               </a>
               <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
@@ -2290,15 +2301,29 @@ class CardCounterByStaffListJson(BaseDatatableView):
                      ]
 
     def get_initial_queryset(self):
-        if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+        if 'Admin' in self.request.user.groups.values_list('name',
+                                                           flat=True) or 'Moderator' in self.request.user.groups.values_list(
+            'name', flat=True):
+            try:
+                startDateV = self.request.GET.get("startDate")
+                endDateV = self.request.GET.get("endDate")
+                sDate = datetime.strptime(startDateV, '%d/%m/%Y')
+                eDate = datetime.strptime(endDateV, '%d/%m/%Y')
+
+                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                                   datetime__range=[sDate.date(), eDate.date()],
+                                                                   mode__iexact="Card")
+
+            except:
+                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                                   datetime__icontains=datetime.today().date(),
+                                                                   mode__iexact="Card")
+
+        else:
             return CashCounter.objects.select_related().filter(isDeleted__exact=False,
                                                                datetime__icontains=datetime.today().date(),
                                                                mode__iexact="Card",
                                                                createdBy__user_ID_id=self.request.user.pk)
-        else:
-            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                               datetime__icontains=datetime.today().date(),
-                                                               mode__iexact="Card")
 
     def filter_queryset(self, qs):
         search = self.request.GET.get('search[value]', None)
@@ -2319,10 +2344,8 @@ class CardCounterByStaffListJson(BaseDatatableView):
         for item in qs:
             if 'Admin' in self.request.user.groups.values_list('name', flat=True):
 
-                action = '''<button  data-inverted="" data-tooltip="Send Message" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
-               <i class="whatsapp icon"></i>
-              </button>
-              <a href="/edit_sales/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
+                action = '''
+              <a href="/edit_cash_counter/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
                 <i class="pen icon"></i>
               </a>
               <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
@@ -2358,15 +2381,28 @@ class ReturnCounterByStaffListJson(BaseDatatableView):
                      ]
 
     def get_initial_queryset(self):
-        if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+        if 'Admin' in self.request.user.groups.values_list('name',
+                                                           flat=True) or 'Moderator' in self.request.user.groups.values_list(
+            'name', flat=True):
+            try:
+                startDateV = self.request.GET.get("startDate")
+                endDateV = self.request.GET.get("endDate")
+                sDate = datetime.strptime(startDateV, '%d/%m/%Y')
+                eDate = datetime.strptime(endDateV, '%d/%m/%Y')
+
+                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                                   datetime__range=[sDate.date(), eDate.date()],
+                                                                   mode__iexact="Return")
+
+            except:
+                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                                   datetime__icontains=datetime.today().date(),
+                                                                   mode__iexact="Return")
+        else:
             return CashCounter.objects.select_related().filter(isDeleted__exact=False,
                                                                datetime__icontains=datetime.today().date(),
                                                                mode__iexact="Return",
                                                                createdBy__user_ID_id=self.request.user.pk)
-        else:
-            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                               datetime__icontains=datetime.today().date(),
-                                                               mode__iexact="Return")
 
     def filter_queryset(self, qs):
         search = self.request.GET.get('search[value]', None)
@@ -2387,10 +2423,8 @@ class ReturnCounterByStaffListJson(BaseDatatableView):
         for item in qs:
             if 'Admin' in self.request.user.groups.values_list('name', flat=True):
 
-                action = '''<button  data-inverted="" data-tooltip="Send Message" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
-               <i class="whatsapp icon"></i>
-              </button>
-              <a href="/edit_sales/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
+                action = '''
+              <a href="/edit_cash_counter/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
                 <i class="pen icon"></i>
               </a>
               <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
@@ -2426,15 +2460,28 @@ class CreditCounterByStaffListJson(BaseDatatableView):
                      ]
 
     def get_initial_queryset(self):
-        if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+        if 'Admin' in self.request.user.groups.values_list('name',
+                                                           flat=True) or 'Moderator' in self.request.user.groups.values_list(
+            'name', flat=True):
+            try:
+                startDateV = self.request.GET.get("startDate")
+                endDateV = self.request.GET.get("endDate")
+                sDate = datetime.strptime(startDateV, '%d/%m/%Y')
+                eDate = datetime.strptime(endDateV, '%d/%m/%Y')
+
+                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                                   datetime__range=[sDate.date(), eDate.date()],
+                                                                   mode__iexact="Credit")
+
+            except:
+                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                                   datetime__icontains=datetime.today().date(),
+                                                                   mode__iexact="Credit")
+        else:
             return CashCounter.objects.select_related().filter(isDeleted__exact=False,
                                                                datetime__icontains=datetime.today().date(),
                                                                mode__iexact="Credit",
                                                                createdBy__user_ID_id=self.request.user.pk)
-        else:
-            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                               datetime__icontains=datetime.today().date(),
-                                                               mode__iexact="Credit")
 
     def filter_queryset(self, qs):
         search = self.request.GET.get('search[value]', None)
@@ -2456,10 +2503,8 @@ class CreditCounterByStaffListJson(BaseDatatableView):
         for item in qs:
             if 'Admin' in self.request.user.groups.values_list('name', flat=True):
 
-                action = '''<button  data-inverted="" data-tooltip="Send Message" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
-               <i class="whatsapp icon"></i>
-              </button>
-              <a href="/edit_sales/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
+                action = '''
+              <a href="/edit_cash_counter/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
                 <i class="pen icon"></i>
               </a>
               <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
@@ -2500,14 +2545,28 @@ class MixCounterByStaffListJson(BaseDatatableView):
                      ]
 
     def get_initial_queryset(self):
-        if 'Admin' in self.request.user.groups.values_list('name', flat=True):
-            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                               datetime__icontains=datetime.today().date(),
-                                                               mode__iexact="Mix",
-                                                               createdBy__user_ID_id=self.request.user.pk)
+        if 'Admin' in self.request.user.groups.values_list('name',
+                                                           flat=True) or 'Moderator' in self.request.user.groups.values_list(
+            'name', flat=True):
+            try:
+                startDateV = self.request.GET.get("startDate")
+                endDateV = self.request.GET.get("endDate")
+                sDate = datetime.strptime(startDateV, '%d/%m/%Y')
+                eDate = datetime.strptime(endDateV, '%d/%m/%Y')
+
+                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                                   datetime__range=[sDate.date(), eDate.date()],
+                                                                   mode__iexact="Mix")
+
+            except:
+                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                                   datetime__icontains=datetime.today().date(),
+                                                                   mode__iexact="Mix",
+                                                                   createdBy__user_ID_id=self.request.user.pk)
         else:
             return CashCounter.objects.select_related().filter(isDeleted__exact=False,
                                                                datetime__icontains=datetime.today().date(),
+                                                               createdBy__user_ID_id=self.request.user.pk,
                                                                mode__iexact="Mix")
 
     def filter_queryset(self, qs):
@@ -2530,10 +2589,8 @@ class MixCounterByStaffListJson(BaseDatatableView):
         for item in qs:
             if 'Admin' in self.request.user.groups.values_list('name', flat=True):
 
-                action = '''<button  data-inverted="" data-tooltip="Send Message" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
-               <i class="whatsapp icon"></i>
-              </button>
-              <a href="/edit_sales/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
+                action = '''
+              <a href="/edit_cash_counter/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
                 <i class="pen icon"></i>
               </a>
               <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
@@ -2570,15 +2627,28 @@ class CollectionCounterByStaffListJson(BaseDatatableView):
                      ]
 
     def get_initial_queryset(self):
-        if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+        if 'Admin' in self.request.user.groups.values_list('name',
+                                                           flat=True) or 'Moderator' in self.request.user.groups.values_list(
+            'name', flat=True):
+            try:
+                startDateV = self.request.GET.get("startDate")
+                endDateV = self.request.GET.get("endDate")
+                sDate = datetime.strptime(startDateV, '%d/%m/%Y')
+                eDate = datetime.strptime(endDateV, '%d/%m/%Y')
+
+                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                                   datetime__range=[sDate.date(), eDate.date()],
+                                                                   mode__iexact="Collection")
+
+            except:
+                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                                   datetime__icontains=datetime.today().date(),
+                                                                   mode__iexact="Collection")
+        else:
             return CashCounter.objects.select_related().filter(isDeleted__exact=False,
                                                                datetime__icontains=datetime.today().date(),
                                                                mode__iexact="Collection",
                                                                createdBy__user_ID_id=self.request.user.pk)
-        else:
-            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                               datetime__icontains=datetime.today().date(),
-                                                               mode__iexact="Collection")
 
     def filter_queryset(self, qs):
         search = self.request.GET.get('search[value]', None)
@@ -2599,10 +2669,8 @@ class CollectionCounterByStaffListJson(BaseDatatableView):
         for item in qs:
             if 'Admin' in self.request.user.groups.values_list('name', flat=True):
 
-                action = '''<button  data-inverted="" data-tooltip="Send Message" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
-               <i class="whatsapp icon"></i>
-              </button>
-              <a href="/edit_sales/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
+                action = '''
+              <a href="/edit_cash_counter/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
                 <i class="pen icon"></i>
               </a>
               <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
@@ -2642,15 +2710,28 @@ class AdvanceCounterByStaffListJson(BaseDatatableView):
                      ]
 
     def get_initial_queryset(self):
-        if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+        if 'Admin' in self.request.user.groups.values_list('name',
+                                                           flat=True) or 'Moderator' in self.request.user.groups.values_list(
+            'name', flat=True):
+            try:
+                startDateV = self.request.GET.get("startDate")
+                endDateV = self.request.GET.get("endDate")
+                sDate = datetime.strptime(startDateV, '%d/%m/%Y')
+                eDate = datetime.strptime(endDateV, '%d/%m/%Y')
+
+                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                                   datetime__range=[sDate.date(), eDate.date()],
+                                                                   mode__iexact="Advance")
+
+            except:
+                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                                   datetime__icontains=datetime.today().date(),
+                                                                   mode__iexact="Advance")
+        else:
             return CashCounter.objects.select_related().filter(isDeleted__exact=False,
                                                                datetime__icontains=datetime.today().date(),
                                                                mode__iexact="Advance",
                                                                createdBy__user_ID_id=self.request.user.pk)
-        else:
-            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                               datetime__icontains=datetime.today().date(),
-                                                               mode__iexact="Advance")
 
     def filter_queryset(self, qs):
         search = self.request.GET.get('search[value]', None)
@@ -2671,10 +2752,8 @@ class AdvanceCounterByStaffListJson(BaseDatatableView):
         for item in qs:
             if 'Admin' in self.request.user.groups.values_list('name', flat=True):
 
-                action = '''<button  data-inverted="" data-tooltip="Send Message" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
-               <i class="whatsapp icon"></i>
-              </button>
-              <a href="/edit_sales/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
+                action = '''
+              <a href="/edit_cash_counter/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
                 <i class="pen icon"></i>
               </a>
               <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
@@ -2714,15 +2793,28 @@ class ExpenseCounterByStaffListJson(BaseDatatableView):
                      ]
 
     def get_initial_queryset(self):
-        if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+        if 'Admin' in self.request.user.groups.values_list('name',
+                                                           flat=True) or 'Moderator' in self.request.user.groups.values_list(
+            'name', flat=True):
+            try:
+                startDateV = self.request.GET.get("startDate")
+                endDateV = self.request.GET.get("endDate")
+                sDate = datetime.strptime(startDateV, '%d/%m/%Y')
+                eDate = datetime.strptime(endDateV, '%d/%m/%Y')
+
+                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                                   datetime__range=[sDate.date(), eDate.date()],
+                                                                   mode__iexact="Expense")
+
+            except:
+                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                                   datetime__icontains=datetime.today().date(),
+                                                                   mode__iexact="Expense")
+        else:
             return CashCounter.objects.select_related().filter(isDeleted__exact=False,
                                                                datetime__icontains=datetime.today().date(),
                                                                mode__iexact="Expense",
                                                                createdBy__user_ID_id=self.request.user.pk)
-        else:
-            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                               datetime__icontains=datetime.today().date(),
-                                                               mode__iexact="Expense")
 
     def filter_queryset(self, qs):
         search = self.request.GET.get('search[value]', None)
@@ -2742,10 +2834,8 @@ class ExpenseCounterByStaffListJson(BaseDatatableView):
         for item in qs:
             if 'Admin' in self.request.user.groups.values_list('name', flat=True):
 
-                action = '''<button  data-inverted="" data-tooltip="Send Message" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
-               <i class="whatsapp icon"></i>
-              </button>
-              <a href="/edit_sales/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
+                action = '''
+              <a href="/edit_cash_counter/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
                 <i class="pen icon"></i>
               </a>
               <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
@@ -2901,3 +2991,54 @@ def get_cash_counter_dashboard_report_admin_api(request):
         'mix_card_total': formatINR(mix_card_total)
     }
     return JsonResponse({'data': data}, safe=False)
+
+
+@transaction.atomic
+@csrf_exempt
+def delete_cash_counter(request):
+    if request.method == 'POST':
+        try:
+            id = request.POST.get("userID")
+            obj = CashCounter.objects.get(pk=int(id))
+            obj.isDeleted = True
+            obj.save()
+            return JsonResponse({'message': 'success'}, safe=False)
+        except:
+            return JsonResponse({'message': 'error'}, safe=False)
+
+
+@transaction.atomic
+@csrf_exempt
+def update_cash_counter_by_admin_api(request):
+    if request.method == 'POST':
+        try:
+            invoiceSeriesSelect = request.POST.get("invoiceSeriesSelect")
+            invoiceNo = request.POST.get("invoiceNo")
+            invoiceYearSelect = request.POST.get("invoiceYearSelect")
+            party = request.POST.get("party")
+            amount = request.POST.get("amount")
+            remark = request.POST.get("remark")
+            amountMixCash = request.POST.get("amountMixCash")
+            amountMixCard = request.POST.get("amountMixCard")
+            mode = request.POST.get("mode")
+            editID = request.POST.get("editID")
+            obj = CashCounter.objects.get(pk=int(editID))
+            if mode == "Credit" or mode == "Collection" or mode == "Advance":
+                cus = Party.objects.select_related().get(pk=int(party))
+                obj.partyID_id = cus.pk
+            if mode == "Cash" or mode == "Mix" or mode == "Card" or mode == "Credit" or mode == "Return":
+                obj.invoiceNumber = invoiceSeriesSelect + '/' + invoiceNo + '/' + invoiceYearSelect
+            if mode == "Mix":
+                obj.mixCashAmount = float(amountMixCash)
+                obj.mixCardAmount = float(amountMixCard)
+            else:
+                obj.amount = float(amount)
+            obj.mode = mode
+            obj.remark = remark
+            obj.entryDate = datetime.now()
+            user = StaffUser.objects.get(user_ID_id=request.user.pk)
+            obj.createdBy_id = user.pk
+            obj.save()
+            return JsonResponse({'message': 'success'}, safe=False)
+        except:
+            return JsonResponse({'message': 'error'}, safe=False)

@@ -121,6 +121,7 @@ urlpatterns = [
     # cashCounter
     path('cash_counter_home/', cash_counter_home, name='cash_counter_home'),
     path('cash_counter/', cash_counter, name='cash_counter'),
+    path('edit_cash_counter/<int:id>/', edit_cash_counter, name='edit_cash_counter'),
     path('my_cash_counter_list/', my_cash_counter_list, name='my_cash_counter_list'),
     path('api/add_cash_counter_entry_api/', add_cash_counter_entry_api, name='add_cash_counter_entry_api'),
     path('api/CashCounterByStaffListJson/', CashCounterByStaffListJson.as_view(), name='CashCounterByStaffListJson'),
@@ -140,5 +141,8 @@ urlpatterns = [
          name='get_cash_counter_dashboard_report_api'),
     path('api/get_cash_counter_dashboard_report_admin_api/', get_cash_counter_dashboard_report_admin_api,
          name='get_cash_counter_dashboard_report_admin_api'),
+    path('api/delete_cash_counter/', delete_cash_counter, name='delete_cash_counter'),
+    path('api/update_cash_counter_by_admin_api/', update_cash_counter_by_admin_api,
+         name='update_cash_counter_by_admin_api'),
 
 ]
