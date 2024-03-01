@@ -2232,7 +2232,8 @@ class CashCounterByStaffListJson(BaseDatatableView):
                 eDate = datetime.strptime(endDateV, '%d/%m/%Y')
 
                 return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                                   datetime__range=[sDate.date(), eDate.date()],
+                                                                   datetime__range=[sDate.date(),
+                                                                                    eDate.date() + timedelta(days=1)],
                                                                    mode__iexact="Cash")
 
             except:
@@ -2311,7 +2312,8 @@ class CardCounterByStaffListJson(BaseDatatableView):
                 eDate = datetime.strptime(endDateV, '%d/%m/%Y')
 
                 return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                                   datetime__range=[sDate.date(), eDate.date()],
+                                                                   datetime__range=[sDate.date(),
+                                                                                    eDate.date() + timedelta(days=1)],
                                                                    mode__iexact="Card")
 
             except:
@@ -2391,7 +2393,8 @@ class ReturnCounterByStaffListJson(BaseDatatableView):
                 eDate = datetime.strptime(endDateV, '%d/%m/%Y')
 
                 return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                                   datetime__range=[sDate.date(), eDate.date()],
+                                                                   datetime__range=[sDate.date(),
+                                                                                    eDate.date() + timedelta(days=1)],
                                                                    mode__iexact="Return")
 
             except:
@@ -2470,7 +2473,8 @@ class CreditCounterByStaffListJson(BaseDatatableView):
                 eDate = datetime.strptime(endDateV, '%d/%m/%Y')
 
                 return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                                   datetime__range=[sDate.date(), eDate.date()],
+                                                                   datetime__range=[sDate.date(),
+                                                                                    eDate.date() + timedelta(days=1)],
                                                                    mode__iexact="Credit")
 
             except:
@@ -2555,7 +2559,8 @@ class MixCounterByStaffListJson(BaseDatatableView):
                 eDate = datetime.strptime(endDateV, '%d/%m/%Y')
 
                 return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                                   datetime__range=[sDate.date(), eDate.date()],
+                                                                   datetime__range=[sDate.date(),
+                                                                                    eDate.date() + timedelta(days=1)],
                                                                    mode__iexact="Mix")
 
             except:
@@ -2637,7 +2642,8 @@ class CollectionCounterByStaffListJson(BaseDatatableView):
                 eDate = datetime.strptime(endDateV, '%d/%m/%Y')
 
                 return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                                   datetime__range=[sDate.date(), eDate.date()],
+                                                                   datetime__range=[sDate.date(),
+                                                                                    eDate.date() + timedelta(days=1)],
                                                                    mode__iexact="Collection")
 
             except:
@@ -2720,7 +2726,8 @@ class AdvanceCounterByStaffListJson(BaseDatatableView):
                 eDate = datetime.strptime(endDateV, '%d/%m/%Y')
 
                 return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                                   datetime__range=[sDate.date(), eDate.date()],
+                                                                   datetime__range=[sDate.date(),
+                                                                                    eDate.date() + timedelta(days=1)],
                                                                    mode__iexact="Advance")
 
             except:
@@ -2803,7 +2810,8 @@ class ExpenseCounterByStaffListJson(BaseDatatableView):
                 eDate = datetime.strptime(endDateV, '%d/%m/%Y')
 
                 return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                                   datetime__range=[sDate.date(), eDate.date()],
+                                                                   datetime__range=[sDate.date(),
+                                                                                    eDate.date() + timedelta(days=1)],
                                                                    mode__iexact="Expense")
 
             except:
@@ -3042,3 +3050,64 @@ def update_cash_counter_by_admin_api(request):
             return JsonResponse({'message': 'success'}, safe=False)
         except:
             return JsonResponse({'message': 'error'}, safe=False)
+
+
+def generate_cash_counter_report(request):
+    cDate = request.GET.get('cDate')
+    staffID = request.GET.get('staffID')
+    colDate = datetime.strptime(cDate, '%d/%m/%Y')
+    cash_total = 0.0
+    card_total = 0.0
+    credit_total = 0.0
+    return_total = 0.0
+    expense_total = 0.0
+    advance_total = 0.0
+    mix_cash_total = 0.0
+    mix_card_total = 0.0
+    collection_total = 0.0
+
+    col = CashCounter.objects.select_related().filter(datetime__icontains=colDate.date(),
+                                                      isDeleted__exact=False).order_by(
+        'mode')
+    for a in col:
+        if a.mode == 'Cash':
+            cash_total += a.amount
+        if a.mode == 'Card':
+            card_total += a.amount
+        if a.mode == 'Credit':
+            credit_total += a.amount
+        if a.mode == 'Return':
+            return_total += a.amount
+        if a.mode == 'Expense':
+            expense_total = + a.amount
+        if a.mode == 'Advance':
+            advance_total = + a.amount
+        if a.mode == 'Collection':
+            collection_total = + a.amount
+        if a.mode == 'Mix':
+            mix_cash_total = + a.mixCashAmount
+            mix_card_total = + a.mixCardAmount
+    context = {
+        'date': colDate,
+        'col': col,
+        'cash_total': cash_total,
+        'card_total': card_total,
+        'credit_total': credit_total,
+        'expense_total': expense_total,
+        'return_total': return_total,
+        'advance_total': advance_total,
+        'collection_total': collection_total,
+        'mix_cash_total': mix_cash_total,
+        'mix_card_total': mix_card_total,
+        'RokadValue': (cash_total + collection_total + mix_cash_total) - (expense_total + advance_total + return_total),
+        'total': (
+                cash_total + card_total + credit_total + collection_total + mix_cash_total + mix_card_total + return_total + expense_total + advance_total)
+
+    }
+
+    response = HttpResponse(content_type="application/pdf")
+    response['Content-Disposition'] = "report.pdf"
+    html = render_to_string("home/report/cashCounterReportPDF.html", context)
+
+    HTML(string=html).write_pdf(response, stylesheets=[CSS(string='@page { size: A5; margin: .3cm ; }')])
+    return response

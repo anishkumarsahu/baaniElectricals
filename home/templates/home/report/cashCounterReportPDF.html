@@ -1,0 +1,109 @@
+{% load custom_has_group_tag %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>BSSAC</title>
+    <style>
+        @page {
+            size: A5;
+            margin: .3cm;
+        }
+
+
+    </style>
+    <style>
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td, th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 5px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <span style="font-size: 10px;">(BSSAC) Cash Counter Report for Date: {{ date|date }}</span>
+    </div>
+
+
+    <table style="font-size: 10px">
+        <tr>
+            <th>Cash</th>
+            <th>Card</th>
+            <th>Credit</th>
+            <th>Mix Cash</th>
+            <th>Mix Card</th>
+            <th>Collection</th>
+            <th>Expense</th>
+            <th>Return</th>
+            <th>Advance</th>
+            <th>Total</th>
+            <th>Rokad</th>
+        </tr>
+        <tr>
+            <td>{{ cash_total|convert }}</td>
+            <td>{{ card_total|convert }}</td>
+            <td>{{ credit_total|convert }}</td>
+            <td>{{ mix_cash_total|convert }}</td>
+            <td>{{ mix_card_total|convert }}</td>
+            <td>{{ collection_total|convert }}</td>
+            <td>{{ expense_total|convert }}</td>
+            <td>{{ return_total|convert }}</td>
+            <td>{{ advance_total|convert }}</td>
+            <td>{{ total|convert }}</td>
+            <td>{{ RokadValue|convert }}</td>
+        </tr>
+    </table>
+    <p style="font-size: 10px; margin: 2px;padding-top: 10px">Counter Details</p>
+
+    <table style="font-size: 10px">
+        <tr>
+            <th>CounterID</th>
+            <th>InvoiceNo.</th>
+            <th>Mode</th>
+            <th>Amount(₹)</th>
+            <th>CollectedBy</th>
+            <th>Party</th>
+            <th>Remark</th>
+        </tr>
+        {% for foo in col %}
+
+            <tr>
+                <td>{{ foo.counterID }}</td>
+            {% if foo.mode == 'Cash' or foo.mode == 'Card' or foo.mode == 'Credit' or foo.mode == 'Mix' %}
+                    <td>{{ foo.invoiceNumber }}</td>
+                {% else %}
+                    <td>N/A</td>
+                {% endif %}
+                <td>{{ foo.mode }}</td>
+                {% if foo.mode == 'Mix' %}
+                    <td>{{ foo.mixCashAmount|convert }} / {{ foo.mixCardAmount|convert }}</td>
+                {% else %}
+                    <td>{{ foo.amount|convert }}</td>
+                {% endif %}
+                <td>{{ foo.createdBy.name }}</td>
+                {% if foo.partyID %}
+                    <td>{{ foo.partyID.name }}</td>
+                {% else %}
+                    <td>N/A</td>
+                {% endif %}
+             <td>{{ foo.remark }}</td>
+            </tr>
+        {% endfor %}
+
+    </table>
+</div>
+
+</body>
+</html>

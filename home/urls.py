@@ -144,5 +144,6 @@ urlpatterns = [
     path('api/delete_cash_counter/', delete_cash_counter, name='delete_cash_counter'),
     path('api/update_cash_counter_by_admin_api/', update_cash_counter_by_admin_api,
          name='update_cash_counter_by_admin_api'),
+    path('api/generate_cash_counter_report/', generate_cash_counter_report, name='generate_cash_counter_report'),
 
 ]

@@ -94,13 +94,18 @@
                                                 <i class="funnel dollar icon"></i>
                                                 Search
                                             </button>
+                                            <a id="reportUrl"
+                                           href="{% url 'homeApp:generate_cash_counter_report' %}"
+                                           style="float: right;"
+                                           class="teal tiny ui button">Download Report
+                                        </a>
 
                                         </div>
                                     </div>
                                 </form>
                             </div>
                         {% endif %}
-                    <div class="ui ignored success message">
+                    <div class="ui ignored message">
                         <h4 class="ui horizontal left aligned divider header lable purple">
                             <i class="left align icon"></i>
                             Cash Mode
@@ -123,7 +128,7 @@
                             </tbody>
                         </table>
                         </div>
-                    <div class="ui ignored success message">
+                    <div class="ui ignored message">
                         <h4 class="ui horizontal left aligned divider header  lable purple">
                             <i class="left align icon"></i>
                             Card Mode
@@ -146,7 +151,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="ui ignored success message">
+                    <div class="ui ignored message">
                         <h4 class="ui horizontal left aligned divider header  lable purple">
                             <i class="left align icon"></i>
                             Credit Mode
@@ -170,7 +175,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="ui ignored success message">
+                    <div class="ui ignored message">
                         <h4 class="ui horizontal left aligned divider header lable purple">
                             <i class="left align icon"></i>
                             Mix Mode
@@ -194,7 +199,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="ui ignored success message">
+                    <div class="ui ignored message">
                         <h4 class="ui horizontal left aligned divider header lable purple">
                             <i class="left align icon"></i>
                             Collection Mode
@@ -217,7 +222,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="ui ignored success message">
+                    <div class="ui ignored message">
                         <h4 class="ui horizontal left aligned divider header lable purple">
                             <i class="left align icon"></i>
                             Return Mode
@@ -240,7 +245,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="ui ignored success message">
+                    <div class="ui ignored message">
                         <h4 class="ui horizontal left aligned divider header lable purple">
                             <i class="left align icon"></i>
                             Expense Mode
@@ -262,7 +267,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="ui ignored success message">
+                    <div class="ui ignored message">
                         <h4 class="ui horizontal left aligned divider header lable purple">
                             <i class="left align icon"></i>
                             Advance Mode
@@ -812,7 +817,7 @@
         function ChangeDate() {
             var startDateF = $('#startDateF').val();
             var staffID = $('#staffID').val();
-            $("#reportUrl").attr("href", "{% url 'homeApp:generate_sales_report' %}?cDate=" + startDateF + '&staffID=' + staffID);
+            $("#reportUrl").attr("href", "{% url 'homeApp:generate_cash_counter_report' %}?cDate=" + startDateF + '&staffID=' + staffID);
         }
     </script>
 
