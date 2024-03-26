@@ -2189,6 +2189,8 @@ def add_cash_counter_entry_api(request):
             remark = request.POST.get("remark")
             amountMixCash = request.POST.get("amountMixCash")
             amountMixCard = request.POST.get("amountMixCard")
+            expenseType = request.POST.get("expenseType")
+            bank = request.POST.get("bank")
             mode = request.POST.get("mode")
             obj = CashCounter()
             if mode == "Credit" or mode == "Collection" or mode == "Advance":
@@ -2202,6 +2204,10 @@ def add_cash_counter_entry_api(request):
                 obj.mixCardAmount = float(amountMixCard)
             else:
                 obj.amount = float(amount)
+            if mode == "Expense":
+                obj.expenseType = expenseType
+            if mode == "Card" or mode == "Mix":
+                obj.bankID_id = int(bank)
             obj.mode = mode
             obj.remark = remark
             obj.entryDate = datetime.now()
@@ -2331,7 +2337,7 @@ class CardCounterByStaffListJson(BaseDatatableView):
         search = self.request.GET.get('search[value]', None)
         if search:
             qs = qs.filter(
-                Q(counterID__icontains=search) | Q(
+                Q(counterID__icontains=search) | Q(bankID__name__icontains=search) | Q(
                     amount__icontains=search) | Q(
                     invoiceNumber__icontains=search) | Q(createdBy__name__icontains=search) | Q(
                     remark__icontains=search)
@@ -2362,6 +2368,11 @@ class CardCounterByStaffListJson(BaseDatatableView):
                 createdBy = item.createdBy.name
             except:
                 createdBy = '-'
+            try:
+                remark = escape(item.bankID.name) + ' - ' + escape(item.bankID.accountNumber) + ' - ' + escape(
+                    item.remark)
+            except:
+                remark = escape(item.remark)
 
             json_data.append([
                 escape(item.counterID),
@@ -2369,7 +2380,7 @@ class CardCounterByStaffListJson(BaseDatatableView):
                 formatINR(format(item.amount, '.0f')),
                 createdBy,
                 escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
-                escape(item.remark),
+                remark,
                 action,
 
             ])
@@ -2578,7 +2589,7 @@ class MixCounterByStaffListJson(BaseDatatableView):
         search = self.request.GET.get('search[value]', None)
         if search:
             qs = qs.filter(
-                Q(counterID__icontains=search) | Q(
+                Q(counterID__icontains=search) | Q(bankID__name__icontains=search) | Q(
                     mixCashAmount__icontains=search) | Q(
                     mixCardAmount__icontains=search) | Q(
                     invoiceNumber__icontains=search) | Q(createdBy__name__icontains=search) | Q(
@@ -2610,7 +2621,11 @@ class MixCounterByStaffListJson(BaseDatatableView):
                 createdBy = item.createdBy.name
             except:
                 createdBy = '-'
-
+            try:
+                remark = escape(item.bankID.name) + ' - ' + escape(item.bankID.accountNumber) + ' - ' + escape(
+                    item.remark)
+            except:
+                remark = escape(item.remark)
             json_data.append([
                 escape(item.counterID),
                 escape(item.invoiceNumber),
@@ -2618,7 +2633,7 @@ class MixCounterByStaffListJson(BaseDatatableView):
                 formatINR(format(item.mixCardAmount, '.0f')),
                 createdBy,
                 escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
-                escape(item.remark),
+                remark,
                 action,
 
             ])
@@ -2828,7 +2843,7 @@ class ExpenseCounterByStaffListJson(BaseDatatableView):
         search = self.request.GET.get('search[value]', None)
         if search:
             qs = qs.filter(
-                Q(counterID__icontains=search) | Q(
+                Q(counterID__icontains=search) | Q(expenseType__icontains=search) | Q(
                     amount__icontains=search) | Q(createdBy__name__icontains=search) | Q(
                     remark__icontains=search)
                 | Q(datetime__icontains=search)
@@ -2861,7 +2876,7 @@ class ExpenseCounterByStaffListJson(BaseDatatableView):
 
             json_data.append([
                 escape(item.counterID),
-                escape(item.remark),
+                escape(item.expenseType) + ' - ' + escape(item.remark),
                 formatINR(format(item.amount, '.0f')),
                 createdBy,
                 escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
@@ -3007,7 +3022,14 @@ def delete_cash_counter(request):
     if request.method == 'POST':
         try:
             id = request.POST.get("userID")
-            obj = CashCounter.objects.get(pk=int(id))
+            if 'c' in id:
+                id = id.split("c")[1]
+                obj = CollectionCashCounter.objects.get(pk=int(id))
+            else:
+                id = id
+                obj = CashCounter.objects.get(pk=int(id))
+            # Output: 56
+
             obj.isDeleted = True
             obj.save()
             return JsonResponse({'message': 'success'}, safe=False)
@@ -3026,10 +3048,12 @@ def update_cash_counter_by_admin_api(request):
             party = request.POST.get("party")
             amount = request.POST.get("amount")
             remark = request.POST.get("remark")
+            expenseType = request.POST.get("expenseType")
             amountMixCash = request.POST.get("amountMixCash")
             amountMixCard = request.POST.get("amountMixCard")
             mode = request.POST.get("mode")
             editID = request.POST.get("editID")
+            bank = request.POST.get("bank")
             obj = CashCounter.objects.get(pk=int(editID))
             if mode == "Credit" or mode == "Collection" or mode == "Advance":
                 cus = Party.objects.select_related().get(pk=int(party))
@@ -3041,6 +3065,11 @@ def update_cash_counter_by_admin_api(request):
                 obj.mixCardAmount = float(amountMixCard)
             else:
                 obj.amount = float(amount)
+            if mode == "Expense":
+                obj.expenseType = expenseType
+            if mode == "Card" or mode == "Mix":
+                obj.bankID_id = int(bank)
+
             obj.mode = mode
             obj.remark = remark
             obj.entryDate = datetime.now()
@@ -3056,6 +3085,28 @@ def generate_cash_counter_report(request):
     cDate = request.GET.get('cDate')
     staffID = request.GET.get('staffID')
     colDate = datetime.strptime(cDate, '%d/%m/%Y')
+    a_total_cash = 0.0
+    a_total_cheque = 0.0
+    a_total_online = 0.0
+    a_total_cheque_cc = 0.0
+    a_total_party = 0.0
+    ccol = CollectionCashCounter.objects.select_related().filter(collectionDateTime__icontains=colDate.date(),
+                                                                 isDeleted__exact=False).order_by('collectedBy__name')
+
+    for a in ccol:
+        if a.modeOfPayment == 'Cash':
+            a_total_cash = a_total_cash + a.paidAmount
+        if a.modeOfPayment == 'Cheque':
+            a_total_cheque = a_total_cheque + a.paidAmount
+        if a.modeOfPayment == 'Online':
+            a_total_online = a_total_online + a.paidAmount
+        if a.modeOfPayment == 'Cheque CC':
+            a_total_cheque_cc = a_total_cheque_cc + a.paidAmount
+        if a.modeOfPayment == 'Party':
+            a_total_party = a_total_party + a.paidAmount
+    context = {
+    }
+
     cash_total = 0.0
     card_total = 0.0
     credit_total = 0.0
@@ -3101,7 +3152,14 @@ def generate_cash_counter_report(request):
         'mix_card_total': mix_card_total,
         'RokadValue': (cash_total + collection_total + mix_cash_total) - (expense_total + advance_total + return_total),
         'total': (
-                cash_total + card_total + credit_total + collection_total + mix_cash_total + mix_card_total + return_total + expense_total + advance_total)
+                cash_total + card_total + credit_total + collection_total + mix_cash_total + mix_card_total + return_total + expense_total + advance_total),
+        'ccol': ccol,
+        'a_total_cash': a_total_cash,
+        'a_total_cheque': a_total_cheque,
+        'a_total_online': a_total_online,
+        'a_total_cheque_cc': a_total_cheque_cc,
+        'a_total_party': a_total_party,
+        'a_total': a_total_cash + a_total_cheque + a_total_online + a_total_cheque_cc + a_total_party
 
     }
 
@@ -3111,3 +3169,225 @@ def generate_cash_counter_report(request):
 
     HTML(string=html).write_pdf(response, stylesheets=[CSS(string='@page { size: A5; margin: .3cm ; }')])
     return response
+
+
+@transaction.atomic
+@csrf_exempt
+def add_collection_from_cash_counter_api(request):
+    if request.method == 'POST':
+        try:
+            transferredParty = request.POST.get("TransferredParty")
+            party = request.POST.get("party")
+            paymentMode = request.POST.get("paymentMode")
+            amountPaid = request.POST.get("amountPaid")
+            bank = request.POST.get("bank")
+            detail = request.POST.get("detail")
+            remark = request.POST.get("remark")
+            lat = request.POST.get("lat")
+            lng = request.POST.get("lng")
+            chequeDate = request.POST.get("chequeDate")
+            c = str(party).split('@')
+            cus = Party.objects.select_related().get(pk=int(c[1]))
+            obj = CollectionCashCounter()
+            obj.isTallied = False
+            obj.partyID_id = cus.pk
+            obj.modeOfPayment = paymentMode
+            obj.paidAmount = float(amountPaid)
+            try:
+                obj.bankID_id = int(bank)
+            except:
+                pass
+            if paymentMode == 'Cheque':
+                obj.chequeDate = datetime.strptime(chequeDate, '%d/%m/%Y')
+            if paymentMode == 'Party':
+                try:
+                    p = str(transferredParty).split('@')
+                    tParty = Party.objects.select_related().get(pk=int(p[1]))
+                    obj.transferredPartyID_id = int(tParty.pk)
+                except:
+                    pass
+
+            obj.detail = detail
+            obj.remark = remark
+            obj.latitude = lat
+            obj.longitude = lng
+            user = StaffUser.objects.get(user_ID_id=request.user.pk)
+            obj.collectedBy_id = user.pk
+            try:
+                # obj.collectionAddress = deduct_location_balance(lat, lng)
+                obj.collectionAddress = "From Shop Counter"
+            except:
+                pass
+
+            obj.save()
+            obj.paymentID = 'CCC' + str(obj.pk).zfill(8)
+            obj.collectionDateTime = obj.datetime
+            obj.save()
+
+            return JsonResponse({'message': 'success'}, safe=False)
+        except:
+            return JsonResponse({'message': 'error'}, safe=False)
+
+
+class CashCounterCollectionListJson(BaseDatatableView):
+    order_columns = ['paymentID', 'partyID.name', 'paidAmount', 'modeOfPayment', 'collectedBy.name',
+                     'collectionDateTime', 'datetime',
+                     'bankID.name', 'detail', 'chequeDate',
+                     'transferredPartyID',
+                     'remark', 'action'
+                     ]
+
+    def get_initial_queryset(self):
+        if 'Admin' in self.request.user.groups.values_list('name',
+                                                           flat=True) or 'Moderator' in self.request.user.groups.values_list(
+            'name', flat=True):
+            try:
+                startDateV = self.request.GET.get("startDate")
+                endDateV = self.request.GET.get("endDate")
+                sDate = datetime.strptime(startDateV, '%d/%m/%Y')
+                eDate = datetime.strptime(endDateV, '%d/%m/%Y')
+
+                return CollectionCashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                                             collectionDateTime__date__range=[
+                                                                                 sDate.date(),
+                                                                                 eDate.date()])
+
+            except:
+                return CollectionCashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                                             datetime__icontains=datetime.today().date())
+        else:
+            return CollectionCashCounter.objects.select_related().filter(isDeleted__exact=False,
+                                                                         datetime__icontains=datetime.today().date(),
+
+                                                                         collectedBy__user_ID_id=self.request.user.pk)
+
+    def filter_queryset(self, qs):
+        search = self.request.GET.get('search[value]', None)
+        if search:
+            qs = qs.filter(
+                Q(paymentID__icontains=search) | Q(partyID__name__icontains=search) | Q(
+                    transferredPartyID__name__icontains=search) | Q(
+                    paidAmount__icontains=search) | Q(
+                    modeOfPayment__icontains=search)
+                | Q(bankID__name__icontains=search) | Q(chequeDate__icontains=search) | Q(detail__icontains=search) | Q(
+                    remark__icontains=search)
+                | Q(datetime__icontains=search) | Q(collectionDateTime__icontains=search) | Q(
+                    collectionAddress__icontains=search) | Q(
+                    collectedBy__name__icontains=search)
+                | Q(approvedBy__name__icontains=search) | Q(isApproved__icontains=search)
+            )
+
+        return qs
+
+    def prepare_results(self, qs):
+        json_data = []
+        for item in qs:
+            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+
+                action = '''
+                  <a href="/edit_cash_counter_collection/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
+                    <i class="pen icon"></i>
+                  </a>
+                  <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('c{}')" class="ui circular youtube icon button" style="margin-left: 3px">
+                    <i class="trash alternate icon"></i>
+                  </button>'''.format(item.pk, item.pk),
+            else:
+                action = '''<div class="ui tiny label">
+                  Denied
+                </div>'''
+            if item.modeOfPayment == 'Cheque':
+                try:
+                    chequeDate = item.chequeDate.strftime('%d-%m-%Y')
+                except:
+                    chequeDate = '-'
+            else:
+                chequeDate = '-'
+            try:
+                bank = item.bankID.name
+            except:
+                bank = '-'
+            try:
+                tparty = item.transferredPartyID.name
+            except:
+                tparty = '-'
+            try:
+                collectedBy = item.collectedBy.name
+            except:
+                collectedBy = '-'
+
+            json_data.append([
+                escape(item.paymentID),
+                escape(item.partyID.name),
+                formatINR(format(item.paidAmount, '.0f')),
+                escape(item.modeOfPayment),
+                collectedBy,
+                escape(item.collectionDateTime.strftime('%d-%m-%Y')),
+                escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
+                escape(bank),
+                escape(item.detail),
+                escape(chequeDate),
+                escape(tparty),
+                escape(item.remark),
+                action,
+
+            ])
+
+        return json_data
+
+
+@transaction.atomic
+@csrf_exempt
+def edit_cash_counter_collection_by_admin_api(request):
+    if request.method == 'POST':
+        try:
+            ID = request.POST.get("ID")
+            cDate = request.POST.get("cDate")
+            party = request.POST.get("party")
+            transferredParty = request.POST.get("TransferredParty")
+            paymentMode = request.POST.get("paymentMode")
+            amountPaid = request.POST.get("amountPaid")
+            bank = request.POST.get("bank")
+            detail = request.POST.get("detail")
+            remark = request.POST.get("remark")
+            # c = str(party).split('@')
+            chequeDate = request.POST.get("chequeDate")
+            # cus = Party.objects.select_related().get(pk=int(c[1]))
+            cus = Party.objects.select_related().get(pk=int(party))
+
+            obj = CollectionCashCounter.objects.get(pk=int(ID))
+            if 'Admin' or 'Moderator' in request.user.groups.values_list('name', flat=True):
+                obj.partyID_id = cus.pk
+                obj.modeOfPayment = paymentMode
+                obj.paidAmount = float(amountPaid)
+                obj.detail = detail
+                obj.remark = remark
+                obj.transferredPartyID = None
+                obj.collectionDateTime = datetime.strptime(cDate, '%d/%m/%Y')
+                try:
+                    obj.bankID_id = int(bank)
+                except:
+                    pass
+                if paymentMode == 'Cheque':
+                    obj.chequeDate = datetime.strptime(chequeDate, '%d/%m/%Y')
+                if paymentMode == 'Party':
+                    try:
+                        tparty = Party.objects.select_related().get(pk=int(transferredParty))
+                        obj.transferredPartyID_id = tparty.pk
+                    except:
+                        pass
+                obj.save()
+            # if 'Moderator' in request.user.groups.values_list('name', flat=True):
+            #     if paymentMode == 'Cheque':
+            #         obj.chequeDate = datetime.strptime(chequeDate, '%d/%m/%Y')
+            #
+            #     obj.save()
+            # try:
+            #     msg = "Sir, Our Executive has collected the payment of {} Rs.{}/- from you, Kindly confirm the same. If you have any query Please feel free contact on this no. 7005607770. Thanks, BSS".format(
+            #         obj.modeOfPayment, obj.paidAmount)
+            #     send_whatsapp_message(obj.partyID.phone, msg)
+            # except:
+            #     pass
+
+            return JsonResponse({'message': 'success'}, safe=False)
+        except:
+            return JsonResponse({'message': 'error'}, safe=False)

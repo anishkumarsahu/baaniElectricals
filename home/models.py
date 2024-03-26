@@ -236,6 +236,8 @@ class CashCounter(models.Model):
     amount = models.FloatField(default=0.0)
     mixCashAmount = models.FloatField(default=0.0)
     mixCardAmount = models.FloatField(default=0.0)
+    expenseType = models.CharField(max_length=500, blank=True, null=True, default='')
+    bankID = models.ForeignKey(Bank, blank=True, null=True, on_delete=models.SET_NULL)
     remark = models.CharField(max_length=500, blank=True, null=True)
     createdBy = models.ForeignKey(StaffUser, blank=True, null=True, on_delete=models.SET_NULL,
                                   related_name='createdByStaffCashCounter')
@@ -249,3 +251,36 @@ class CashCounter(models.Model):
 
     class Meta:
         verbose_name_plural = 'L) Cash Counter List'
+
+
+class CollectionCashCounter(models.Model):
+    partyID = models.ForeignKey(Party, blank=True, null=True, on_delete=models.SET_NULL)
+    paymentID = models.CharField(max_length=200, blank=True, null=True)
+    modeOfPayment = models.CharField(max_length=200, default='Cash')
+    paidAmount = models.FloatField(default=0.0)
+    bankID = models.ForeignKey(Bank, blank=True, null=True, on_delete=models.SET_NULL)
+    detail = models.CharField(max_length=500, blank=True, null=True)
+    remark = models.CharField(max_length=500, blank=True, null=True)
+    collectionAddress = models.TextField(blank=True, null=True)
+    collectedBy = models.ForeignKey(StaffUser, blank=True, null=True, on_delete=models.SET_NULL,
+                                    related_name='CashCounterCollectedBy')
+    approvedOn = models.DateTimeField(blank=True, null=True)
+    latitude = models.CharField(max_length=200, default='0.0')
+    longitude = models.CharField(max_length=200, default='0.0')
+    isApproved = models.BooleanField(default=False)
+    isTallied = models.BooleanField(default=True)
+    approvedBy = models.ForeignKey(StaffUser, blank=True, null=True, on_delete=models.SET_NULL,
+                                   related_name='CashCounterApprovedBy')
+    datetime = models.DateTimeField(auto_now_add=True, auto_now=False)
+    lastUpdatedOn = models.DateTimeField(auto_now_add=False, auto_now=True)
+    collectionDateTime = models.DateTimeField(blank=True, null=True)
+    isDeleted = models.BooleanField(default=False)
+    chequeDate = models.DateField(blank=True, null=True)
+    transferredPartyID = models.ForeignKey(Party, blank=True, null=True, on_delete=models.SET_NULL,
+                                           related_name="CashCounterTransferredPartyID")
+
+    def __str__(self):
+        return str(self.partyID.name)
+
+    class Meta:
+        verbose_name_plural = 'f) Cash Counter Collection List'

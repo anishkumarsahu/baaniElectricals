@@ -49,8 +49,8 @@
                                onclick="selectTab('Card')">Card</a>
                             <a class="item {% if obj.mode == 'Mix' %} active {% endif %}" data-tab="mix"
                                onclick="selectTab('Mix')">Mix</a>
-                            <a class="item {% if obj.mode == 'Collection' %} active {% endif %}" data-tab="collection"
-                               onclick="selectTab('Collection')">Collection</a>
+{#                            <a class="item {% if obj.mode == 'Collection' %} active {% endif %}" data-tab="collection"#}
+{#                               onclick="selectTab('Collection')">Collection</a>#}
                             <a class="item {% if obj.mode == 'Return' %} active {% endif %}" data-tab="return"
                                onclick="selectTab('Return')">Return</a>
                             <a class="item {% if obj.mode == 'Expense' %} active {% endif %}" data-tab="expense"
@@ -214,9 +214,19 @@
                                             </div>
 
                                         </div>
-                                        <div class="one  fields">
+                                        <div class="two  fields">
+                                            <div class=" field required" >
+                                                <label>Bank </label>
+                                                <select class="ui dropdown search fluid " id="bankCard">
+                                                    <option value="">Select Bank</option>
+                                                    {% for foo in banks %}
+                                                        <option value="{{ foo.id }}">{{ foo.name }}
+                                                            - {{ foo.accountNumber }} </option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
 
-                                            <div class="sixteen wide field">
+                                            <div class="field">
                                                 <label>Remark</label>
                                                 <textarea name="remarkCard" id="remarkCard" placeholder="Any Remark"
                                                           rows="1"></textarea>
@@ -230,8 +240,8 @@
                             <div class="ui row  ">
                                 <div class="content">
                                     <form class="ui  small form " id="addFormMix" name="addFormMix">{% csrf_token %}
-                                        <div class="three fields">
-                                            <div class="eight wide field required">
+                                        <div class="four fields">
+                                            <div class="five wide field required">
                                                 <label>Invoice Number</label>
                                                 <div class="ui left labeled  input">
                                                     <div class="ui dropdown teal label" id="invoiceSeriesMix">
@@ -273,6 +283,16 @@
                                                 <input type="number" name="amountCardMix" id="amountCardMix"
                                                        placeholder="Amount"
                                                        onkeyup="toIndianCurrency()">
+                                            </div>
+                                             <div class=" field required" >
+                                                <label>Bank </label>
+                                                <select class="ui dropdown search fluid " id="bankMix">
+                                                    <option value="">Select Bank</option>
+                                                    {% for foo in banks %}
+                                                        <option value="{{ foo.id }}">{{ foo.name }}
+                                                            - {{ foo.accountNumber }} </option>
+                                                    {% endfor %}
+                                                </select>
                                             </div>
 
                                         </div>
@@ -384,7 +404,28 @@
                                 <div class="content">
                                     <form class="ui  small form " id="addFormExpense"
                                           name="addFormExpense">{% csrf_token %}
-                                        <div class="two fields">
+                                        <div class="three fields">
+                                            <div class="field required">
+                                                <label>Expense Type</label>
+                                                <select class="ui search dropdown" id="expenseTypeExpense"
+                                                        name="expenseTypeExpense">
+                                                    <option value="">Search By Expense Type</option>
+                                                    <option value="Misc expenses">Misc expenses</option>
+                                                    <option value="Goods purchased">Goods purchased</option>
+                                                    <option value="Donation">Donation</option>
+                                                    <option value="Labour charges">Labour charges</option>
+                                                    <option value="Vehicle Fuel/repair">Vehicle Fuel/repair</option>
+                                                    <option value="Goods Delivery expenses">Goods Delivery expenses
+                                                    </option>
+                                                    <option value="Staff meals">Staff meals</option>
+                                                    <option value="Staff travel allowance">Staff travel allowance
+                                                    </option>
+                                                    <option value="Staff Salary">Staff Salary</option>
+                                                    <option value="CC Payment">CC Payment</option>
+                                                    <option value="Housekeeping Expenses">Housekeeping Expenses</option>
+                                                    <option value="Others">Others</option>
+                                                </select>
+                                            </div>
                                             <div class="eight wide field required">
                                                 <label>Remark</label>
                                                 <textarea name="remarkExpense" id="remarkExpense"
@@ -441,11 +482,11 @@
                                 </div>
                             </div>
                         </div>
-                     <input type="hidden" id="editID" value="{{ obj.pk }}">
+                        <input type="hidden" id="editID" value="{{ obj.pk }}">
                     </div>
                     <div class="ui  aligned basic  grid">
                         <div class="row" style="padding-left: 5px;padding-right: 5px">
-                           
+
                             <div class="16 wide column center aligned">
                                 <button onclick="salesSave()" id="saveBtn" class="ui green  button saveBtn">
                                     Update Detail
@@ -453,9 +494,9 @@
                                 <button style="display: none;" class="ui teal double loading button saveBtnLoad">
                                     Updating ....
                                 </button>
-{#                                <button class="ui teal double button" type="reset" onclick="resetForm()">#}
-{#                                    Reset#}
-{#                                </button>#}
+                                {#                                <button class="ui teal double button" type="reset" onclick="resetForm()">#}
+                                {#                                    Reset#}
+                                {#                                </button>#}
                             </div>
                         </div>
                     </div>
@@ -491,6 +532,7 @@
 
 
         function getCustomerList() {
+            $('#expenseTypeExpense').val('{{ obj.expenseType }}').change();
             $.ajax({
                 type: 'get',
                 url: "{% url 'homeApp:list_party_api' %}",
@@ -564,11 +606,14 @@
             let party = $('#party' + mode).val();
             let amount = $('#amount' + mode).val();
             let remark = $('#remark' + mode).val();
+                        let bank = $('#bank' + mode).val();
+
+            let expenseType = $('#expenseType' + mode).val();
             let amountMixCash = $('#amountCash' + mode).val();
             let amountMixCard = $('#amountCard' + mode).val();
             let editID = $('#editID').val();
             debugger;
-            
+
             let canSave = false;
 
             if (mode === 'Cash') {
@@ -589,7 +634,7 @@
 
 
             } else if (mode === 'Card') {
-                if (invoiceSeriesSelect === '' || invoiceNo === '' || invoiceYearSelect === '' || amount === ''
+                if (invoiceSeriesSelect === '' || invoiceNo === '' || invoiceYearSelect === '' || amount === ''|| bank === ''
                 ) {
                     $('body')
                         .toast({
@@ -619,7 +664,7 @@
                     canSave = true
                 }
             } else if (mode === 'Mix') {
-                if (invoiceSeriesSelect === '' || invoiceNo === '' || invoiceYearSelect === '' || amountMixCard === '' || amountMixCash === ''
+                if (invoiceSeriesSelect === '' || invoiceNo === '' || invoiceYearSelect === '' || amountMixCard === '' || amountMixCash === ''|| bank === ''
                 ) {
                     $('body')
                         .toast({
@@ -664,7 +709,7 @@
                     canSave = true
                 }
             } else if (mode === 'Expense') {
-                if (remark === '' || amount === ''
+                if (remark === '' || amount === '' || expenseType === ''
                 ) {
                     $('body')
                         .toast({
@@ -702,6 +747,8 @@
                 data.append('party', party);
                 data.append('amount', amount);
                 data.append('remark', remark);
+                data.append('bank', bank);
+                data.append('expenseType', expenseType);
                 data.append('amountMixCash', amountMixCash);
                 data.append('amountMixCard', amountMixCard);
                 data.append('mode', mode);
@@ -725,8 +772,7 @@
                                 });
 
                             hideLoading();
-                             location.href = "{% url 'homeApp:my_cash_counter_list' %}"
-                            
+                            location.href = "{% url 'homeApp:my_cash_counter_list' %}"
 
 
                         } else {
@@ -773,6 +819,7 @@
                 $('#amountCash{{ obj.mode }}').val({{ obj.mixCashAmount }});
                 $('#amountCard{{ obj.mode }}').val({{ obj.mixCardAmount }});
                 $('#party{{ obj.mode }}').val("{{obj.partyID.pk}}").change();
+                $('#bank{{ obj.mode }}').val("{{obj.bankID.pk}}").change();
 
 
             }, 2000);

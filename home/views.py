@@ -370,7 +370,11 @@ def cash_counter_home(request):
 
 @check_group('CashCounter', 'Admin', 'Moderator')
 def cash_counter(request):
-    return render(request, 'home/cashCounter/todaysCounter.html')
+    banks = Bank.objects.filter(isDeleted__exact=False).order_by('name')
+    context = {
+        'banks': banks
+    }
+    return render(request, 'home/cashCounter/todaysCounter.html', context)
 
 
 @check_group('CashCounter', 'Admin', 'Moderator')
@@ -381,6 +385,8 @@ def my_cash_counter_list(request):
 @check_group('CashCounter', 'Admin', 'Moderator')
 def edit_cash_counter(request, id=None):
     obj = get_object_or_404(CashCounter, pk=id)
+    banks = Bank.objects.filter(isDeleted__exact=False).order_by('name')
+
     invoice = obj.invoiceNumber
     try:
         splitVoice = invoice.split('/')
@@ -389,6 +395,7 @@ def edit_cash_counter(request, id=None):
             'series': splitVoice[0],
             'number': splitVoice[1],
             'year': splitVoice[2],
+            'banks': banks
         }
 
     except:
@@ -397,6 +404,30 @@ def edit_cash_counter(request, id=None):
             'series': "",
             'number': "",
             'year': "",
+            'banks': banks
         }
 
     return render(request, 'home/cashCounter/editCashCounter.html', context)
+
+
+@check_group('CashCounter', 'Admin', 'Moderator')
+def cash_counter_collection(request):
+    instance = Bank.objects.filter(isDeleted__exact=False).order_by('name')
+    staffs = StaffUser.objects.filter(isDeleted__exact=False, group__iexact='Collection').order_by('name')
+    p_groups = PartyGroup.objects.filter(isDeleted__exact=False).order_by('name')
+    context = {
+        'instance': instance,
+        'staffs': staffs,
+        'p_groups': p_groups,
+    }
+    return render(request, 'home/cashCounter/addCollectionCashCounter.html', context)
+
+
+def edit_cash_counter_collection(request, id=None):
+    obj = get_object_or_404(CollectionCashCounter, pk=id)
+    instance = Bank.objects.filter(isDeleted__exact=False).order_by('name')
+    context = {
+        'instance': instance,
+        'obj': obj
+    }
+    return render(request, 'home/cashCounter/editCashCounterCollection.html', context)

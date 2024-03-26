@@ -34,6 +34,12 @@
                 <div style="cursor: pointer;" class="item active" data-tab="user"
                 >Cash Counter
                 </div>
+                <div style=" position: absolute;right: 1.5rem;top: 18px;">
+                    <a href="{% url 'homeApp:cash_counter_collection' %}" class="ui green mini plus button right">
+                        <i class="plus square outline icon"></i>
+                        Go To Collection Counter
+                    </a>
+                </div>
             </div>
             <div class="ui active tab " data-tab="user">
 
@@ -43,9 +49,9 @@
                         <div class="ui secondary menu" style="overflow-x: scroll">
                             <a class="item active" data-tab="cash" onclick="selectTab('Cash')">Cash</a>
                             <a class="item" data-tab="credit" onclick="selectTab('Credit')">Credit</a>
-                            <a class="item" data-tab="card" onclick="selectTab('Card')">Card</a>
+                            <a class="item" data-tab="card" onclick="selectTab('Card')">Card/Online</a>
                             <a class="item" data-tab="mix" onclick="selectTab('Mix')">Mix</a>
-                            <a class="item" data-tab="collection" onclick="selectTab('Collection')">Collection</a>
+{#                            <a class="item" data-tab="collection" onclick="selectTab('Collection')">Collection</a>#}
                             <a class="item" data-tab="return" onclick="selectTab('Return')">Return</a>
                             <a class="item" data-tab="expense" onclick="selectTab('Expense')">Expense</a>
                             <a class="item" data-tab="advance" onclick="selectTab('Advance')">Advance</a>
@@ -206,9 +212,18 @@
                                             </div>
 
                                         </div>
-                                        <div class="one  fields">
-
-                                            <div class="sixteen wide field">
+                                        <div class="two  fields">
+                                            <div class=" field required" >
+                                                <label>Bank </label>
+                                                <select class="ui dropdown search fluid " id="bankCard">
+                                                    <option value="">Select Bank</option>
+                                                    {% for foo in banks %}
+                                                        <option value="{{ foo.id }}">{{ foo.name }}
+                                                            - {{ foo.accountNumber }} </option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="field">
                                                 <label>Remark</label>
                                                 <textarea name="remarkCard" id="remarkCard" placeholder="Any Remark"
                                                           rows="1"></textarea>
@@ -222,8 +237,8 @@
                             <div class="ui row  ">
                                 <div class="content">
                                     <form class="ui  small form " id="addFormMix" name="addFormMix">{% csrf_token %}
-                                        <div class="three fields">
-                                            <div class="eight wide field required">
+                                        <div class="four fields">
+                                            <div class="five wide field required">
                                                 <label>Invoice Number</label>
                                                 <div class="ui left labeled  input">
                                                     <div class="ui dropdown teal label" id="invoiceSeriesMix">
@@ -266,6 +281,16 @@
                                                        placeholder="Amount"
                                                        onkeyup="toIndianCurrency()">
                                             </div>
+                                            <div class=" three wide field required" >
+                                                <label>Bank </label>
+                                                <select class="ui dropdown search fluid " id="bankMix">
+                                                    <option value="">Select Bank</option>
+                                                    {% for foo in banks %}
+                                                        <option value="{{ foo.id }}">{{ foo.name }}
+                                                            - {{ foo.accountNumber }} </option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
 
                                         </div>
                                         <div class="one  fields">
@@ -283,6 +308,7 @@
                         <div class="ui tab segment" data-tab="collection">
                             <div class="ui row  ">
                                 <div class="content">
+                                    {% comment %}
                                     <form class="ui  small form " id="addFormCollection"
                                           name="addFormCollection">{% csrf_token %}
                                         <div class="two fields">
@@ -312,6 +338,147 @@
                                                           rows="1"></textarea>
                                             </div>
                                         </div>
+                                    </form>
+{% endcomment %}
+                                    <form class="ui  small form " id="addFormCollection">{% csrf_token %}
+                                        <div class="one fields">
+                                            <div class="sixteen wide field required">
+                                                <label>Filter Parties By</label>
+                                                <select class="ui search dropdown" id="partyAssign"
+                                                        onchange="partyAssignType()">
+                                                    <option value="All">All</option>
+                                                    <option value="Executive">Executive</option>
+                                                    <option value="Station">Station</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="one fields" id="ExecutiveList" style="display: none">
+                                            <div class="sixteen wide field required">
+                                                <label>Select Executive</label>
+                                                <select class="ui clearable search dropdown" id="executive"
+                                                        onchange="getPartyListByStationOrStaff('e')">
+                                                    <option value="">Search By Executive</option>
+                                                    {% for obj in staffs %}
+                                                        <option value="{{ obj.pk }}">{{ obj.name|capfirst }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+
+                                        </div>
+                                        <div class="one fields" id="StationList" style="display: none">
+                                            <div class="sixteen wide field required">
+                                                <label>Select Station</label>
+                                                <select class="ui clearable search dropdown" id="station"
+                                                        onchange="getPartyListByStationOrStaff('s')">
+                                                    <option value="">Search By Station</option>
+                                                    {% for obj in p_groups %}
+                                                        <option value="{{ obj.pk }}">{{ obj.name|capfirst }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+
+                                        </div>
+                                        <div class="one fields" id="partyAll">
+                                            <div class="sixteen wide field required">
+                                                <label>Party Name</label>
+                                                <select class="ui clearable search dropdown" id="partyAllAll">
+                                                    <option value="">Search By Party Name</option>
+                                                </select>
+                                            </div>
+
+                                        </div>
+                                        <div class="one fields" id="partyFilter" style="display: none;">
+                                            <div class="sixteen wide field required">
+                                                <label>Party Name</label>
+                                                <select class="ui clearable search dropdown" id="partyAllFilter">
+                                                    <option value="">Search By Party Name</option>
+                                                </select>
+                                            </div>
+
+                                        </div>
+                                        <div class="two required fields ">
+                                            <div class=" field required">
+                                                <label>Mode Of Payment</label>
+                                                <select class="ui dropdown search fluid " id="paymentMode"
+                                                        onchange="isCash()">
+                                                    <option value="">Select Mode Of Payment</option>
+                                                    <option value="Cash">Cash</option>
+                                                    <option value="Cheque CC">Cheque CC</option>
+                                                    <option value="Cheque">Cheque</option>
+                                                    <option value="Online">Online</option>
+                                                    <option value="Party">Party</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="eight wide field required">
+                                                <label>Amount Paid (₹ <a class="ui violet label" id="money">0.0</a>
+                                                    )</label>
+                                                <input type="number" name="amountPaid" id="amountPaid"
+                                                       placeholder="Amount Paid" onkeyup="toIndianCurrency()">
+                                            </div>
+
+
+                                        </div>
+                                        <div class="one fields" id="partyDiv" style="display: None">
+                                            <div class="sixteen wide field required">
+                                                <label>Transferred Party Name</label>
+                                                <select class="ui clearable search dropdown" id="TransferredParty">
+                                                    <option value="">Search By Party Name</option>
+                                                </select>
+                                            </div>
+
+                                        </div>
+                                        <div class="two required fields ">
+                                            <div class=" field required" id="bankDiv" style="display: none">
+                                                <label>Bank </label>
+                                                <select class="ui dropdown search fluid " id="bank">
+                                                    <option value="">Select Bank</option>
+                                                    {% for foo in instance %}
+                                                        <option value="{{ foo.id }}">{{ foo.name }}
+                                                            - {{ foo.accountNumber }} </option>
+                                                    {% endfor %}
+
+
+                                                </select>
+                                            </div>
+
+
+                                            <div class="eight wide field required" id="detailDiv" style="display: none">
+                                                <label>Detail</label>
+                                                <input type="text" name="detail" id="detail" placeholder="Detail">
+
+                                            </div>
+                                            <div class="eight wide field required" id="chequeDatelDiv"
+                                                 style="display: none">
+                                                <label>Cheque Date</label>
+                                                <div class="ui calendar" id="cheqDate">
+                                                    <input type="text" name="chequeDate" id="chequeDate"
+                                                           placeholder="chequeDate">
+                                                </div>
+                                            </div>
+
+
+                                        </div>
+                                        <div class="one  fields ">
+
+                                            <div class="sixteen wide  field ">
+                                                <label>Remark</label>
+                                                <textarea name="" id="remark" placeholder="Any Remark"
+                                                          rows="3"></textarea>
+                                            </div>
+
+
+                                        </div>
+
+                                        <div class="ui label teal" data-variation="mini" data-inverted=""
+                                             data-tooltip="Location"
+                                             data-position="bottom center">
+                                            <i class="map marked alternate icon"></i>
+
+                                            <a class="detail"><span id="htmlLat">0.0</span>,<span
+                                                    id="htmlLong">0.0</span> </a>
+                                        </div>
+
                                     </form>
                                 </div>
                             </div>
@@ -375,15 +542,36 @@
                                 <div class="content">
                                     <form class="ui  small form " id="addFormExpense"
                                           name="addFormExpense">{% csrf_token %}
-                                        <div class="two fields">
-                                            <div class="eight wide field required">
+                                        <div class="three fields">
+                                            <div class="field required">
+                                                <label>Expense Type</label>
+                                                <select class="ui search dropdown" id="expenseTypeExpense"
+                                                        name="expenseTypeExpense">
+                                                    <option value="">Search By Expense Type</option>
+                                                    <option value="Misc expenses">Misc expenses</option>
+                                                    <option value="Goods purchased">Goods purchased</option>
+                                                    <option value="Donation">Donation</option>
+                                                    <option value="Labour charges">Labour charges</option>
+                                                    <option value="Vehicle Fuel/repair">Vehicle Fuel/repair</option>
+                                                    <option value="Goods Delivery expenses">Goods Delivery expenses
+                                                    </option>
+                                                    <option value="Staff meals">Staff meals</option>
+                                                    <option value="Staff travel allowance">Staff travel allowance
+                                                    </option>
+                                                    <option value="Staff Salary">Staff Salary</option>
+                                                    <option value="CC Payment">CC Payment</option>
+                                                    <option value="Housekeeping Expenses">Housekeeping Expenses</option>
+                                                    <option value="Others">Others</option>
+                                                </select>
+                                            </div>
+                                            <div class="field required">
                                                 <label>Remark</label>
                                                 <textarea name="remarkExpense" id="remarkExpense"
                                                           placeholder="Any Remark"
                                                           rows="1"></textarea>
                                             </div>
 
-                                            <div class="eight wide field required">
+                                            <div class="field required">
                                                 <label>Amount (₹ <a class="ui violet label currency" id="moneyExpense">0.0</a>
                                                     )</label>
                                                 <input type="number" name="amountExpense" id="amountExpense"
@@ -523,6 +711,7 @@
             $('#partyCredit').dropdown('clear');
             $('#partyCollection').dropdown('clear');
             $('#partyAdvance').dropdown('clear');
+            $('#bank'+mode).dropdown('clear');
         }
 
         function getPartyList() {
@@ -552,6 +741,8 @@
             let party = $('#party' + mode).val();
             let amount = $('#amount' + mode).val();
             let remark = $('#remark' + mode).val();
+            let expenseType = $('#expenseType' + mode).val();
+            let bank = $('#bank' + mode).val();
             let amountMixCash = $('#amountCash' + mode).val();
             let amountMixCard = $('#amountCard' + mode).val();
             let canSave = false;
@@ -568,14 +759,13 @@
                     hideLoading();
                     canSave = false
                     return;
-                }
-                else {
+                } else {
                     canSave = true
                 }
-                
+
 
             } else if (mode === 'Card') {
-                if (invoiceSeriesSelect === '' || invoiceNo === '' || invoiceYearSelect === '' || amount === ''
+                if (invoiceSeriesSelect === '' || invoiceNo === '' || invoiceYearSelect === '' || amount === ''|| bank === ''
                 ) {
                     $('body')
                         .toast({
@@ -586,8 +776,7 @@
                     hideLoading();
                     canSave = false
                     return;
-                }
-                else {
+                } else {
                     canSave = true
                 }
             } else if (mode === 'Credit') {
@@ -601,13 +790,12 @@
                     ;
                     hideLoading();
                     canSave = false
-                     return;
-                }
-                else {
+                    return;
+                } else {
                     canSave = true
                 }
             } else if (mode === 'Mix') {
-                if (invoiceSeriesSelect === '' || invoiceNo === '' || invoiceYearSelect === '' || amountMixCard === '' || amountMixCash === ''
+                if (invoiceSeriesSelect === '' || invoiceNo === '' || invoiceYearSelect === '' || amountMixCard === '' || amountMixCash === '' || bank === ''
                 ) {
                     $('body')
                         .toast({
@@ -617,9 +805,8 @@
                     ;
                     hideLoading();
                     canSave = false
-                     return;
-                }
-                else {
+                    return;
+                } else {
                     canSave = true
                 }
             } else if (mode === 'Collection') {
@@ -633,9 +820,8 @@
                     ;
                     hideLoading();
                     canSave = false
-                     return;
-                }
-                else {
+                    return;
+                } else {
                     canSave = true
                 }
             } else if (mode === 'Return') {
@@ -649,13 +835,12 @@
                     ;
                     hideLoading();
                     canSave = false
-                     return;
-                }
-                else {
+                    return;
+                } else {
                     canSave = true
                 }
             } else if (mode === 'Expense') {
-                if (remark === '' || amount === ''
+                if (remark === '' || amount === '' || expenseType === ''
                 ) {
                     $('body')
                         .toast({
@@ -666,8 +851,7 @@
                     hideLoading();
                     canSave = false
                     return;
-                }
-                else {
+                } else {
                     canSave = true
                 }
             } else if (mode === 'Advance') {
@@ -681,9 +865,8 @@
                     ;
                     hideLoading();
                     canSave = false
-                     return;
-                }
-                else {
+                    return;
+                } else {
                     canSave = true
                 }
             }
@@ -697,6 +880,8 @@
                 data.append('remark', remark);
                 data.append('amountMixCash', amountMixCash);
                 data.append('amountMixCard', amountMixCard);
+                data.append('expenseType', expenseType);
+                data.append('bank', bank);
                 data.append('mode', mode);
 
                 $.ajax({

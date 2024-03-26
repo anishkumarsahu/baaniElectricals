@@ -36,15 +36,15 @@
         <span style="font-size: 10px;">(BSSAC) Cash Counter Report for Date: {{ date|date }}</span>
     </div>
 
-
+ <p style="font-size: 10px; margin: 2px;padding-top: 10px">Counter Details</p>
     <table style="font-size: 10px">
         <tr>
             <th>Cash</th>
-            <th>Card</th>
+            <th>Online</th>
             <th>Credit</th>
             <th>Mix Cash</th>
-            <th>Mix Card</th>
-            <th>Collection</th>
+            <th>Mix Online</th>
+           
             <th>Expense</th>
             <th>Return</th>
             <th>Advance</th>
@@ -57,7 +57,6 @@
             <td>{{ credit_total|convert }}</td>
             <td>{{ mix_cash_total|convert }}</td>
             <td>{{ mix_card_total|convert }}</td>
-            <td>{{ collection_total|convert }}</td>
             <td>{{ expense_total|convert }}</td>
             <td>{{ return_total|convert }}</td>
             <td>{{ advance_total|convert }}</td>
@@ -65,7 +64,7 @@
             <td>{{ RokadValue|convert }}</td>
         </tr>
     </table>
-    <p style="font-size: 10px; margin: 2px;padding-top: 10px">Counter Details</p>
+   
 
     <table style="font-size: 10px">
         <tr>
@@ -92,13 +91,57 @@
                 {% else %}
                     <td>{{ foo.amount|convert }}</td>
                 {% endif %}
-                <td>{{ foo.createdBy.name }}</td>
+                <td>{{ foo.createdBy.name|truncatechars:10 }}</td>
                 {% if foo.partyID %}
                     <td>{{ foo.partyID.name }}</td>
                 {% else %}
                     <td>N/A</td>
                 {% endif %}
              <td>{{ foo.remark }}</td>
+            </tr>
+        {% endfor %}
+
+    </table>
+
+<p style="font-size: 10px; margin: 2px;padding-top: 10px">Cash Counter Collection Details</p>
+
+    <table style="font-size: 10px">
+        <tr>
+           
+            <th>Cash(₹)</th>
+            <th>Cheque CC(₹)</th>
+            <th>Cheque(₹)</th>
+            <th>Online(₹)</th>
+            <th>Party(₹)</th>
+            <th>Total(₹)</th>
+        </tr>
+        <tr>
+         
+            <td>{{ a_total_cash|convert }}</td>
+            <td>{{ a_total_cheque_cc|convert }}</td>
+            <td>{{ a_total_cheque|convert }}</td>
+            <td>{{ a_total_online|convert }}</td>
+            <td>{{ a_total_party|convert }}</td>
+            <td>{{ a_total|convert }}</td>
+        </tr>
+    </table>
+    
+    <table style="font-size: 10px">
+        <tr>
+            <th>CounterID</th>
+            <th>PartyName</th>
+            <th>Amount(₹)</th>
+            <th>Type</th>
+            <th>CollectedBy</th>
+        </tr>
+        {% for foo in ccol %}
+
+            <tr>
+                <td>{{ foo.paymentID }}</td>
+                <td>{{ foo.partyID.name }}</td>
+                <td>{{ foo.paidAmount|convert }}</td>
+                <td>{{ foo.modeOfPayment }}</td>
+                <td>{{ foo.collectedBy.name }}</td>
             </tr>
         {% endfor %}
 

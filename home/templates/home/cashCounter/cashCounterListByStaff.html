@@ -37,7 +37,7 @@
                 <div style=" position: absolute;right: 1.5rem;top: 18px;">
                     <a href="{% url 'homeApp:cash_counter' %}" class="ui green mini plus button right">
                         <i class="plus square outline icon"></i>
-                        Add Cash Counter
+                        Go To Cash Counter
                     </a>
                 </div>
             </div>
@@ -199,29 +199,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="ui ignored message">
-                        <h4 class="ui horizontal left aligned divider header lable purple">
-                            <i class="left align icon"></i>
-                            Collection Mode
-                        </h4>
-                        <table class="ui unstackable  sortable celled very nowrap very small compact table"
-                               id="collectionTable"
-                               style="margin-top: 5px;width: 100%">
-                            <thead>
-                            <tr>
-                                <th>CashCounterID</th>
-                                <th>Party Name</th>
-                                <th>Amount</th>
-                                <th>Created By</th>
-                                <th>Added On</th>
-                                <th>Remark</th>
-                                <th>Action</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
-                        </table>
-                    </div>
+                 
                     <div class="ui ignored message">
                         <h4 class="ui horizontal left aligned divider header lable purple">
                             <i class="left align icon"></i>
@@ -290,7 +268,35 @@
                             </tbody>
                         </table>
                     </div>
-
+   <div class="ui ignored message">
+                        <h4 class="ui horizontal left aligned divider header lable purple">
+                            <i class="left align icon"></i>
+                            Collection Mode
+                        </h4>
+                        <table class="ui unstackable  sortable celled very nowrap very small compact table"
+                               id="collectionTable"
+                               style="margin-top: 5px;width: 100%">
+                            <thead>
+                            <tr>
+                                <th>CollectionCounterID</th>
+                                <th>Party Name</th>
+                                <th>Amount</th>
+                                <th>Mode</th>
+                                <th>Col Date</th>
+                                <th>Created By</th>
+                                <th>Added On</th>
+                                <th>Bank</th>
+                                <th>Detail</th>
+                                <th>Cheque</th>
+                                <th>TParty</th>
+                                <th>Remark</th>
+                                <th>Action</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
                     </div>
                 </div>
 
@@ -301,7 +307,7 @@
              <div class="ui basic modal custom" id="deleteUser">
                     <div class="ui icon header">
                         <i class="archive icon"></i>
-                        This Counter will be Deleted
+                        This detail will be Deleted
                     </div>
                     <div class="content">
                         <p style="text-align: center">The detail will be deleted, are you sure to delete this
@@ -582,21 +588,27 @@
                       }{% endcomment %}
             ],
             "columnDefs": [
-                {"name": "counterID", "targets": 0, "orderable": true},
+                {"name": "paymentID", "targets": 0, "orderable": true},
                 {"name": "partyID.name", "targets": 1, "orderable": true},
-                {"name": "amount", "targets": 2, "orderable": true, "className": "dt-body-right"},
-                {"name": "createdBy.name", "targets": 3, "orderable": true},
-                {"name": "datetime", "targets": 4, "orderable": true},
-                {"name": "remark", "targets": 5, "orderable": true},
-                {"name": "action", "targets": 6, "orderable": false},
+                {"name": "paidAmount", "targets": 2, "orderable": true, "className": "dt-body-right"},
+                {"name": "modeOfPayment", "targets": 3, "orderable": true},
+                {"name": "collectedBy.name", "targets": 4, "orderable": true},
+                {"name": "collectionDateTime", "targets": 5, "orderable": true},
+                {"name": "datetime", "targets": 6, "orderable": true},
+                {"name": "bankID.name", "targets": 7, "orderable": true},
+                {"name": "detail", "targets": 8, "orderable": true},
+                {"name": "chequeDate", "targets": 9, "orderable": true},
+                {"name": "transferredPartyID", "targets": 10, "orderable": true},
+                {"name": "remark", "targets": 11, "orderable": true},
+                {"name": "action", "targets": 12, "orderable": false},
 
             ],
-            aaSorting: [[4, 'desc']],
+            aaSorting: [[6, 'desc']],
             "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
             "pageLength": 10,
             "processing": true,
             "serverSide": true,
-            "ajax": "{% url 'homeApp:CollectionCounterByStaffListJson' %}"
+            "ajax": "{% url 'homeApp:CashCounterCollectionListJson' %}"
         });
  advanceTab = $('#advanceTable').DataTable({
             dom: 'Blfrtip',
@@ -746,7 +758,7 @@
             cashTab.ajax.url('{% url 'homeApp:CashCounterByStaffListJson' %}?startDate=' + startDate + '&endDate=' + endDate + '&staffID=' + staffID).load();
             cardTab.ajax.url('{% url 'homeApp:CardCounterByStaffListJson' %}?startDate=' + startDate + '&endDate=' + endDate + '&staffID=' + staffID).load();
             mixTab.ajax.url('{% url 'homeApp:MixCounterByStaffListJson' %}?startDate=' + startDate + '&endDate=' + endDate + '&staffID=' + staffID).load();
-            collectionTab.ajax.url('{% url 'homeApp:CollectionCounterByStaffListJson' %}?startDate=' + startDate + '&endDate=' + endDate + '&staffID=' + staffID).load();
+            collectionTab.ajax.url('{% url 'homeApp:CashCounterCollectionListJson' %}?startDate=' + startDate + '&endDate=' + endDate + '&staffID=' + staffID).load();
             expenseTab.ajax.url('{% url 'homeApp:ExpenseCounterByStaffListJson' %}?startDate=' + startDate + '&endDate=' + endDate + '&staffID=' + staffID).load();
             advanceTab.ajax.url('{% url 'homeApp:AdvanceCounterByStaffListJson' %}?startDate=' + startDate + '&endDate=' + endDate + '&staffID=' + staffID).load();
             returnTab.ajax.url('{% url 'homeApp:ReturnCounterByStaffListJson' %}?startDate=' + startDate + '&endDate=' + endDate + '&staffID=' + staffID).load();

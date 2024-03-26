@@ -121,9 +121,13 @@ urlpatterns = [
     # cashCounter
     path('cash_counter_home/', cash_counter_home, name='cash_counter_home'),
     path('cash_counter/', cash_counter, name='cash_counter'),
+    path('cash_counter_collection/', cash_counter_collection, name='cash_counter_collection'),
+    path('edit_cash_counter_collection/<int:id>/', edit_cash_counter_collection, name='edit_cash_counter_collection'),
     path('edit_cash_counter/<int:id>/', edit_cash_counter, name='edit_cash_counter'),
     path('my_cash_counter_list/', my_cash_counter_list, name='my_cash_counter_list'),
     path('api/add_cash_counter_entry_api/', add_cash_counter_entry_api, name='add_cash_counter_entry_api'),
+    path('api/edit_cash_counter_collection_by_admin_api/', edit_cash_counter_collection_by_admin_api,
+         name='edit_cash_counter_collection_by_admin_api'),
     path('api/CashCounterByStaffListJson/', CashCounterByStaffListJson.as_view(), name='CashCounterByStaffListJson'),
     path('api/CardCounterByStaffListJson/', CardCounterByStaffListJson.as_view(), name='CardCounterByStaffListJson'),
     path('api/ReturnCounterByStaffListJson/', ReturnCounterByStaffListJson.as_view(),
@@ -145,5 +149,9 @@ urlpatterns = [
     path('api/update_cash_counter_by_admin_api/', update_cash_counter_by_admin_api,
          name='update_cash_counter_by_admin_api'),
     path('api/generate_cash_counter_report/', generate_cash_counter_report, name='generate_cash_counter_report'),
+    path('api/add_collection_from_cash_counter_api/', add_collection_from_cash_counter_api,
+         name='add_collection_from_cash_counter_api'),
+    path('api/CashCounterCollectionListJson/', CashCounterCollectionListJson.as_view(),
+         name='CashCounterCollectionListJson'),
 
 ]
