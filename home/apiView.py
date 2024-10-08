@@ -18,7 +18,7 @@ from weasyprint import CSS, HTML
 
 from home.models import *
 
-BASE_URL_WHATSAPP = "https://web.betablaster.in/api/"
+BASE_URL_WHATSAPP = "https://bot.betablaster.in/api/"
 
 
 class LocationThread(threading.Thread):

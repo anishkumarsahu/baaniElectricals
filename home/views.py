@@ -172,6 +172,8 @@ def homepage(request):
             return redirect('/cash_counter_home/')
         else:
             return render(request, 'home/login.html')
+    else:
+        return render(request, 'home/login.html')
 
 
 def add_collection(request):
