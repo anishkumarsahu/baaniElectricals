@@ -49,8 +49,8 @@
                                onclick="selectTab('Card')">Card</a>
                             <a class="item {% if obj.mode == 'Mix' %} active {% endif %}" data-tab="mix"
                                onclick="selectTab('Mix')">Mix</a>
-{#                            <a class="item {% if obj.mode == 'Collection' %} active {% endif %}" data-tab="collection"#}
-{#                               onclick="selectTab('Collection')">Collection</a>#}
+                            {#                            <a class="item {% if obj.mode == 'Collection' %} active {% endif %}" data-tab="collection"#}
+                            {#                               onclick="selectTab('Collection')">Collection</a>#}
                             <a class="item {% if obj.mode == 'Return' %} active {% endif %}" data-tab="return"
                                onclick="selectTab('Return')">Return</a>
                             <a class="item {% if obj.mode == 'Expense' %} active {% endif %}" data-tab="expense"
@@ -79,9 +79,10 @@
                                                     <input type="number" placeholder="Invoice Number" id="invoiceNoCash"
                                                            name="invoiceNoCash">
                                                     <div class="ui dropdown blue label" id="invoiceYearCash">
-                                                        <div class="text" id="invoiceYearSelectCash">24-25</div>
+                                                        <div class="text" id="invoiceYearSelectCash">25-26</div>
                                                         <i class="dropdown icon"></i>
                                                         <div class="menu">
+                                                            <div class="item">25-26</div>
                                                             <div class="item">24-25</div>
                                                             <div class="item">23-24</div>
                                                             <div class="item">22-23</div>
@@ -135,9 +136,10 @@
                                                            id="invoiceNoCredit"
                                                            name="invoiceNoCredit">
                                                     <div class="ui dropdown blue label" id="invoiceYearCredit">
-                                                        <div class="text" id="invoiceYearSelectCredit">24-25</div>
+                                                        <div class="text" id="invoiceYearSelectCredit">25-26</div>
                                                         <i class="dropdown icon"></i>
                                                         <div class="menu">
+                                                            <div class="item">25-26</div>
                                                             <div class="item">24-25</div>
                                                             <div class="item">23-24</div>
                                                             <div class="item">22-23</div>
@@ -195,9 +197,10 @@
                                                     <input type="number" placeholder="Invoice Number" id="invoiceNoCard"
                                                            name="invoiceNoCard">
                                                     <div class="ui dropdown blue label" id="invoiceYearCard">
-                                                        <div class="text" id="invoiceYearSelectCard">24-25</div>
+                                                        <div class="text" id="invoiceYearSelectCard">25-26</div>
                                                         <i class="dropdown icon"></i>
                                                         <div class="menu">
+                                                            <div class="item">25-26</div>
                                                             <div class="item">24-25</div>
                                                             <div class="item">23-24</div>
                                                             <div class="item">22-23</div>
@@ -218,7 +221,7 @@
 
                                         </div>
                                         <div class="two  fields">
-                                            <div class=" field required" >
+                                            <div class=" field required">
                                                 <label>Bank </label>
                                                 <select class="ui dropdown search fluid " id="bankCard">
                                                     <option value="">Select Bank</option>
@@ -260,9 +263,10 @@
                                                     <input type="number" placeholder="Invoice Number" id="invoiceNoMix"
                                                            name="invoiceNoMix">
                                                     <div class="ui dropdown blue label" id="invoiceYearMix">
-                                                        <div class="text" id="invoiceYearSelectMix">24-25</div>
+                                                        <div class="text" id="invoiceYearSelectMix">25-26</div>
                                                         <i class="dropdown icon"></i>
                                                         <div class="menu">
+                                                            <div class="item">25-26</div>
                                                             <div class="item">24-25</div>
                                                             <div class="item">23-24</div>
                                                             <div class="item">22-23</div>
@@ -288,7 +292,7 @@
                                                        placeholder="Amount"
                                                        onkeyup="toIndianCurrency()">
                                             </div>
-                                             <div class=" field required" >
+                                            <div class=" field required">
                                                 <label>Bank </label>
                                                 <select class="ui dropdown search fluid " id="bankMix">
                                                     <option value="">Select Bank</option>
@@ -372,9 +376,10 @@
                                                            id="invoiceNoReturn"
                                                            name="invoiceNoReturn">
                                                     <div class="ui dropdown blue label" id="invoiceYearReturn">
-                                                        <div class="text" id="invoiceYearSelectReturn">24-25</div>
+                                                        <div class="text" id="invoiceYearSelectReturn">25-26</div>
                                                         <i class="dropdown icon"></i>
                                                         <div class="menu">
+                                                            <div class="item">25-26</div>
                                                             <div class="item">24-25</div>
                                                             <div class="item">23-24</div>
                                                             <div class="item">22-23</div>
@@ -611,7 +616,7 @@
             let party = $('#party' + mode).val();
             let amount = $('#amount' + mode).val();
             let remark = $('#remark' + mode).val();
-                        let bank = $('#bank' + mode).val();
+            let bank = $('#bank' + mode).val();
 
             let expenseType = $('#expenseType' + mode).val();
             let amountMixCash = $('#amountCash' + mode).val();
@@ -639,7 +644,7 @@
 
 
             } else if (mode === 'Card') {
-                if (invoiceSeriesSelect === '' || invoiceNo === '' || invoiceYearSelect === '' || amount === ''|| bank === ''
+                if (invoiceSeriesSelect === '' || invoiceNo === '' || invoiceYearSelect === '' || amount === '' || bank === ''
                 ) {
                     $('body')
                         .toast({
@@ -669,7 +674,7 @@
                     canSave = true
                 }
             } else if (mode === 'Mix') {
-                if (invoiceSeriesSelect === '' || invoiceNo === '' || invoiceYearSelect === '' || amountMixCard === '' || amountMixCash === ''|| bank === ''
+                if (invoiceSeriesSelect === '' || invoiceNo === '' || invoiceYearSelect === '' || amountMixCard === '' || amountMixCash === '' || bank === ''
                 ) {
                     $('body')
                         .toast({
