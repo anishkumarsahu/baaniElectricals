@@ -67,7 +67,7 @@ class MessageThread(threading.Thread):
                 try:
 
                     r = requests.get(
-                        BASE_URL_WHATSAPP + "send?number=91" + self.number + "&type=text&message=" + self.message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
+                        msg.name + "send?number=91" + self.number + "&type=text&message=" + self.message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
                         verify=False)
                     data = r.json()
                     obj = WhatsappMessageStatus()
@@ -135,7 +135,7 @@ def send_whatsapp_message(number, message):
     msg = WhatsappMessage.objects.filter(isDeleted__exact=False).last()
     if msg.used < msg.balance:
         r = requests.get(
-            BASE_URL_WHATSAPP + "send?number=91" + number + "&type=text&message=" + message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
+            msg.name + "send?number=91" + number + "&type=text&message=" + message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
             verify=False)
         data = r.json()
         msg.used = (msg.used + 1)
@@ -2133,7 +2133,7 @@ def re_send_message_sales(request):
                 if msg.used < msg.balance:
                     try:
                         r = requests.get(
-                            BASE_URL_WHATSAPP + "send?number=91" + obj.phone + "&type=text&message=" + obj.message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
+                            msg.name + "send?number=91" + obj.phone + "&type=text&message=" + obj.message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
                             verify=False)
                         data = r.json()
                         if data['status'] == 'success':
