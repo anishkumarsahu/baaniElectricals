@@ -1882,6 +1882,10 @@ class SalesByAdminListJson(BaseDatatableView):
               <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
                 <i class="trash alternate icon"></i>
               </button>'''.format(item.pk, item.pk, item.pk),
+            elif 'SalesAdmin' in self.request.user.groups.values_list('name', flat=True):
+                action = '''<button  data-inverted="" data-tooltip="Make Approval" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
+                               <i class="whatsapp icon"></i>
+                              </button>'''.format(item.pk)
             else:
                 action = '''<div class="ui tiny label">
               Denied

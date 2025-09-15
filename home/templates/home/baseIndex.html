@@ -234,20 +234,6 @@ admin and moderator side bar
 
             </div>
         </div>
-        <div class="item">
-            <div class="header">
-                Party
-            </div>
-            <div class="menu">
-                <a class="item" href="{% url 'homeApp:party_group_list' %}">
-                    <div><i class="user friends icon"></i>Party Group List</div>
-                </a>
-                <a class="item" href="{% url 'homeApp:party_list' %}">
-                    <div><i class="address book icon"></i>Party List</div>
-                </a>
-
-            </div>
-        </div>
           {% comment %}      <div class="item">
             <div class="header">
                 Attendance
@@ -348,20 +334,20 @@ Collection side bar
             </div>
         </div>
 
-        <div class="item">
-            <div class="header">
-                Attendance
-            </div>
-            <div class="menu">
-                <a class="item" href="{% url 'homeApp:add_attendance' %}">
-                    <div><i class="calendar check icon"></i>Today's Attendance</div>
-                </a>
-                <a class="item" href="{% url 'homeApp:attendance_report' %}">
-                    <div><i class="calendar alternate icon"></i>Attendance Report</div>
-                </a>
+<!--        <div class="item">-->
+<!--            <div class="header">-->
+<!--                Attendance-->
+<!--            </div>-->
+<!--            <div class="menu">-->
+<!--                <a class="item" href="{% url 'homeApp:add_attendance' %}">-->
+<!--                    <div><i class="calendar check icon"></i>Today's Attendance</div>-->
+<!--                </a>-->
+<!--                <a class="item" href="{% url 'homeApp:attendance_report' %}">-->
+<!--                    <div><i class="calendar alternate icon"></i>Attendance Report</div>-->
+<!--                </a>-->
 
-            </div>
-        </div>
+<!--            </div>-->
+<!--        </div>-->
 
         <div class="item">
             <div class="header">
@@ -391,20 +377,20 @@ Collection side bar
                 </a>
             </div>
         </div>
-        <div class="item">
-            <div class="header">
-                Attendance
-            </div>
-            <div class="menu">
-                <a class="item" href="{% url 'homeApp:add_attendance' %}">
-                    <div><i class="calendar check icon"></i>Today's Attendance</div>
-                </a>
-                <a class="item" href="{% url 'homeApp:attendance_report' %}">
-                    <div><i class="calendar alternate icon"></i>Attendance Report</div>
-                </a>
+<!--        <div class="item">-->
+<!--            <div class="header">-->
+<!--                Attendance-->
+<!--            </div>-->
+<!--            <div class="menu">-->
+<!--                <a class="item" href="{% url 'homeApp:add_attendance' %}">-->
+<!--                    <div><i class="calendar check icon"></i>Today's Attendance</div>-->
+<!--                </a>-->
+<!--                <a class="item" href="{% url 'homeApp:attendance_report' %}">-->
+<!--                    <div><i class="calendar alternate icon"></i>Attendance Report</div>-->
+<!--                </a>-->
 
-            </div>
-        </div>
+<!--            </div>-->
+<!--        </div>-->
            <div class="item">
             <div class="header">
                 Sales
@@ -414,6 +400,45 @@ Collection side bar
                     <div><i class="shopping cart icon"></i>Add Sale</div>
                 </a>
                 <a class="item" href="{% url 'homeApp:my_sales_list' %}">
+                    <div><i class="book icon"></i>Sales List</div>
+                </a>
+
+            </div>
+        </div>
+
+        <div class="item">
+            <div class="header">
+                Profile
+            </div>
+            <div class="menu">
+                <a class="item" href="{% url 'homeApp:my_profile_collection' %}">
+                    <div><i class="user icon"></i>My Profile</div>
+                </a>
+                <a class="item" href="{% url 'homeApp:logout' %}">
+                    <div><i class="sign out alternate icon"></i>Logout</div>
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+        {% if request.user|has_group:"SalesAdmin" %}
+        <div class="item">
+            <div class="header">General</div>
+            <div class="menu">
+                <a class="item" href="{% url 'homeApp:staff_home' %}">
+                    <div>
+                        <i class="tachometer alternate icon"></i>
+                        Dashboard
+                    </div>
+                </a>
+            </div>
+        </div>
+           <div class="item">
+            <div class="header">
+                Sales
+            </div>
+            <div class="menu">
+                <a class="item" href="{% url 'homeApp:sales_list' %}">
                     <div><i class="book icon"></i>Sales List</div>
                 </a>
 
@@ -789,12 +814,16 @@ Collection side bar
                     </div>
 
                 {% endif %}
-                {% if request.user|has_group:"NormalStaff" %}
+                {% if request.user|has_group:"NormalStaff" or request.user|has_group:"SalesAdmin" %}
                     <div class="ui one column blue card " style="width: 100%">
                         <div class="content">
                             <div class="center aligned header">Welcome, {{ obj.name }}</div>
                             <div class="center aligned description">
+                                {% if request.user|has_group:"NormalStaff" %}
                                 <p>BSSAC app provides staff attendance and many more.</p>
+                                {% else %}
+                                <p>BSSAC app provides staff to manage sales and many more.</p>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="extra content">

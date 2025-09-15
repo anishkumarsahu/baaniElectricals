@@ -1,9 +1,10 @@
 import csv
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 
 from django.contrib.auth import logout, authenticate, login
+from django.db.models.functions import Length
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 # Create your views here.
@@ -41,15 +42,35 @@ def check_group(*group_names):
     return _check_group
 
 
-def check_two_group(admin, collector):
+# def check_two_group(admin, collector):
+#     def _check_group(view_func):
+#         @wraps(view_func)
+#         def wrapper(request, *args, **kwargs):
+#             if request.user.groups.filter(name=admin).exists() or request.user.groups.filter(name=collector).exists():
+#                 pass
+#             else:
+#                 return redirect('/')
+#             return view_func(request, *args, **kwargs)
+#
+#         return wrapper
+#
+#     return _check_group
+
+def check_two_group(*group_names):
+    """
+    Decorator to check if a user belongs to ANY of the given groups.
+    Example:
+        @check_groups('Admin', 'Moderator', 'Staff')
+        def my_view(request):
+            ...
+    """
+
     def _check_group(view_func):
         @wraps(view_func)
         def wrapper(request, *args, **kwargs):
-            if request.user.groups.filter(name=admin).exists() or request.user.groups.filter(name=collector).exists():
-                pass
-            else:
-                return redirect('/')
-            return view_func(request, *args, **kwargs)
+            if request.user.groups.filter(name__in=group_names).exists():
+                return view_func(request, *args, **kwargs)
+            return redirect('/')
 
         return wrapper
 
@@ -151,7 +172,8 @@ def postLogin(request):
         if user is not None:
             login(request, user)
             user_groups = request.user.groups.values_list('name', flat=True)
-            if 'Admin' in user_groups or 'Moderator' in user_groups or 'Collection' in user_groups or 'NormalStaff' in user_groups or 'CashCounter' in user_groups:
+            allowed_groups = ['Admin', 'Moderator', 'Collection', 'NormalStaff', 'CashCounter', 'SalesAdmin']
+            if any(group in user_groups for group in allowed_groups):
                 return JsonResponse({'message': 'success', 'data': '/home/'}, safe=False)
         return JsonResponse({'message': 'fail'}, safe=False)
     return JsonResponse({'message': 'fail'}, safe=False)
@@ -170,6 +192,8 @@ def homepage(request):
             return redirect('/staff_home/')
         elif 'CashCounter' in request.user.groups.values_list('name', flat=True):
             return redirect('/cash_counter_home/')
+        elif 'SalesAdmin' in request.user.groups.values_list('name', flat=True):
+            return redirect('/staff_home/')
         else:
             return render(request, 'home/login.html')
     else:
@@ -272,7 +296,7 @@ def generate_collection_date(request):
 
 # ----------staff-------------------
 
-@check_group('NormalStaff')
+@check_group('NormalStaff', 'SalesAdmin')
 def staff_home(request):
     obj = StaffUser.objects.get(user_ID__pk=request.user.pk)
     context = {
@@ -329,7 +353,7 @@ def add_sales(request):
 
 
 @is_activated()
-@check_two_group('Admin', 'Moderator')
+@check_two_group('Admin', 'Moderator', 'SalesAdmin')
 def sales_list(request):
     staffs = StaffUser.objects.filter(isDeleted__exact=False).order_by('name')
     context = {
@@ -433,3 +457,40 @@ def edit_cash_counter_collection(request, id=None):
         'obj': obj
     }
     return render(request, 'home/cashCounter/editCashCounterCollection.html', context)
+
+
+def get_all_unsent_messages(request):
+    msgs = (
+        WhatsappMessageStatus.objects
+        .annotate(phone_length=Length('phone'))
+        .filter(
+            isDeleted=False,
+            status='Fail',
+            phone_length=10,
+            datetime__gte=datetime.now() - timedelta(days=5)
+        )
+        .order_by('-datetime')[:100]
+    )
+    data = []
+    for msg in msgs:
+        data.append({
+            'id': msg.id,
+            'phone': msg.phone,
+            'message': msg.message,
+            'messageTo': msg.messageTo,
+            'datetime': msg.datetime,
+            'status': msg.status,
+        })
+
+    return JsonResponse(data, safe=False)
+
+
+@csrf_exempt
+def update_sent_msg_status(request):
+    if request.method == 'POST':
+        id = request.POST.get("id")
+        obj = WhatsappMessageStatus.objects.get(pk=int(id))
+        obj.status = 'Success'
+        obj.save()
+        return JsonResponse({'message': 'success'}, safe=False)
+    return JsonResponse({'message': 'error'}, safe=False)

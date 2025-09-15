@@ -153,5 +153,7 @@ urlpatterns = [
          name='add_collection_from_cash_counter_api'),
     path('api/CashCounterCollectionListJson/', CashCounterCollectionListJson.as_view(),
          name='CashCounterCollectionListJson'),
+    path('api/get_all_unsent_messages/', get_all_unsent_messages, name='get_all_unsent_messages'),
+    path('api/update_sent_msg_status/', update_sent_msg_status, name='update_sent_msg_status'),
 
 ]
