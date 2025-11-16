@@ -98,7 +98,7 @@ def admin_home(request):
     return render(request, 'home/admin/index.html', context)
 
 
-@check_group('Collection')
+@check_two_group('Collection', 'SalesAdmin')
 def collection_home(request):
     return render(request, 'home/collection/indexCollection.html')
 
@@ -193,7 +193,7 @@ def homepage(request):
         elif 'CashCounter' in request.user.groups.values_list('name', flat=True):
             return redirect('/cash_counter_home/')
         elif 'SalesAdmin' in request.user.groups.values_list('name', flat=True):
-            return redirect('/staff_home/')
+            return redirect('/collection_home/')
         else:
             return render(request, 'home/login.html')
     else:

@@ -174,7 +174,7 @@ admin and moderator side bar
 
             </div>
         </div>
-                <div class="item">
+        <div class="item">
             <div class="header">
                 Collections
             </div>
@@ -185,8 +185,8 @@ admin and moderator side bar
                 <a class="item" href="{% url 'homeApp:collection_list' %}">
                     <div><i class="book icon"></i>Collection List</div>
                 </a> <a class="item" href="{% url 'homeApp:cheque_reminder_list' %}">
-                    <div><i class="bell icon"></i>Cheque Reminder List</div>
-                </a>
+                <div><i class="bell icon"></i>Cheque Reminder List</div>
+            </a>
 
             </div>
         </div>
@@ -204,7 +204,7 @@ admin and moderator side bar
 
             </div>
         </div>
-             <div class="item">
+        <div class="item">
             <div class="header">
                 Cash Counter
             </div>
@@ -212,8 +212,8 @@ admin and moderator side bar
                 <a class="item" href="{% url 'homeApp:cash_counter' %}">
                     <div><i class="calendar check icon"></i>Today's Cash Counter</div>
                 </a> <a class="item" href="{% url 'homeApp:cash_counter_collection' %}">
-                    <div><i class="calendar check icon"></i>Today's Collection Counter</div>
-                </a>
+                <div><i class="calendar check icon"></i>Today's Collection Counter</div>
+            </a>
                 <a class="item" href="{% url 'homeApp:my_cash_counter_list' %}">
                     <div><i class="calendar alternate icon"></i>Cash Counter List</div>
                 </a>
@@ -234,7 +234,7 @@ admin and moderator side bar
 
             </div>
         </div>
-          {% comment %}      <div class="item">
+        {% comment %}      <div class="item">
             <div class="header">
                 Attendance
             </div>
@@ -319,7 +319,7 @@ Collection side bar
 
             </div>
         </div>
-              <div class="item">
+        <div class="item">
             <div class="header">
                 Sales
             </div>
@@ -334,20 +334,20 @@ Collection side bar
             </div>
         </div>
 
-<!--        <div class="item">-->
-<!--            <div class="header">-->
-<!--                Attendance-->
-<!--            </div>-->
-<!--            <div class="menu">-->
-<!--                <a class="item" href="{% url 'homeApp:add_attendance' %}">-->
-<!--                    <div><i class="calendar check icon"></i>Today's Attendance</div>-->
-<!--                </a>-->
-<!--                <a class="item" href="{% url 'homeApp:attendance_report' %}">-->
-<!--                    <div><i class="calendar alternate icon"></i>Attendance Report</div>-->
-<!--                </a>-->
+        <!--        <div class="item">-->
+        <!--            <div class="header">-->
+        <!--                Attendance-->
+        <!--            </div>-->
+        <!--            <div class="menu">-->
+        <!--                <a class="item" href="{% url 'homeApp:add_attendance' %}">-->
+        <!--                    <div><i class="calendar check icon"></i>Today's Attendance</div>-->
+        <!--                </a>-->
+        <!--                <a class="item" href="{% url 'homeApp:attendance_report' %}">-->
+        <!--                    <div><i class="calendar alternate icon"></i>Attendance Report</div>-->
+        <!--                </a>-->
 
-<!--            </div>-->
-<!--        </div>-->
+        <!--            </div>-->
+        <!--        </div>-->
 
         <div class="item">
             <div class="header">
@@ -377,21 +377,21 @@ Collection side bar
                 </a>
             </div>
         </div>
-<!--        <div class="item">-->
-<!--            <div class="header">-->
-<!--                Attendance-->
-<!--            </div>-->
-<!--            <div class="menu">-->
-<!--                <a class="item" href="{% url 'homeApp:add_attendance' %}">-->
-<!--                    <div><i class="calendar check icon"></i>Today's Attendance</div>-->
-<!--                </a>-->
-<!--                <a class="item" href="{% url 'homeApp:attendance_report' %}">-->
-<!--                    <div><i class="calendar alternate icon"></i>Attendance Report</div>-->
-<!--                </a>-->
+        <!--        <div class="item">-->
+        <!--            <div class="header">-->
+        <!--                Attendance-->
+        <!--            </div>-->
+        <!--            <div class="menu">-->
+        <!--                <a class="item" href="{% url 'homeApp:add_attendance' %}">-->
+        <!--                    <div><i class="calendar check icon"></i>Today's Attendance</div>-->
+        <!--                </a>-->
+        <!--                <a class="item" href="{% url 'homeApp:attendance_report' %}">-->
+        <!--                    <div><i class="calendar alternate icon"></i>Attendance Report</div>-->
+        <!--                </a>-->
 
-<!--            </div>-->
-<!--        </div>-->
-           <div class="item">
+        <!--            </div>-->
+        <!--        </div>-->
+        <div class="item">
             <div class="header">
                 Sales
             </div>
@@ -421,11 +421,11 @@ Collection side bar
         </div>
     {% endif %}
 
-        {% if request.user|has_group:"SalesAdmin" %}
+    {% if request.user|has_group:"SalesAdmin" %}
         <div class="item">
             <div class="header">General</div>
             <div class="menu">
-                <a class="item" href="{% url 'homeApp:staff_home' %}">
+                <a class="item" href="{% url 'homeApp:collection_home' %}">
                     <div>
                         <i class="tachometer alternate icon"></i>
                         Dashboard
@@ -433,11 +433,28 @@ Collection side bar
                 </a>
             </div>
         </div>
-           <div class="item">
+        <div class="item">
+            <div class="header">
+                Collections
+            </div>
+            <div class="menu">
+                <a class="item" href="{% url 'homeApp:add_collection' %}">
+                    <div><i class="hand holding usd icon"></i>Take Collection</div>
+                </a>
+                <a class="item" href="{% url 'homeApp:my_collection' %}">
+                    <div><i class="book icon"></i>Collection List</div>
+                </a>
+
+            </div>
+        </div>
+        <div class="item">
             <div class="header">
                 Sales
             </div>
             <div class="menu">
+                <a class="item" href="{% url 'homeApp:add_sales' %}">
+                    <div><i class="shopping cart icon"></i>Add Sale</div>
+                </a>
                 <a class="item" href="{% url 'homeApp:sales_list' %}">
                     <div><i class="book icon"></i>Sales List</div>
                 </a>
@@ -460,7 +477,7 @@ Collection side bar
         </div>
     {% endif %}
 
-   {% if request.user|has_group:"CashCounter" %}
+    {% if request.user|has_group:"CashCounter" %}
         <div class="item">
             <div class="header">General</div>
             <div class="menu">
@@ -480,16 +497,16 @@ Collection side bar
                 <a class="item" href="{% url 'homeApp:cash_counter' %}">
                     <div><i class="calendar check icon"></i>Today's Cash Counter</div>
                 </a> <a class="item" href="{% url 'homeApp:cash_counter_collection' %}">
-                    <div><i class="calendar check icon"></i>Today's Collection Counter</div>
-                </a>
+                <div><i class="calendar check icon"></i>Today's Collection Counter</div>
+            </a>
                 <a class="item" href="{% url 'homeApp:my_cash_counter_list' %}">
                     <div><i class="calendar alternate icon"></i>Cash Counter List</div>
                 </a>
 
             </div>
         </div>
-  
-           <div class="item">
+
+        <div class="item">
             <div class="header">
                 Sales
             </div>
@@ -683,7 +700,7 @@ Collection side bar
                             </div>
                         </div>
 
-                    <div class="four wide computer eight wide tablet sixteen wide mobile column">
+                        <div class="four wide computer eight wide tablet sixteen wide mobile column">
                             <div class="ui fluid card">
                                 <div class="content">
                                     <div class="ui right floated header purple">
@@ -710,7 +727,7 @@ Collection side bar
                     </div>
                 {% endif %}
 
-                {% if request.user|has_group:"Collection" %}
+                {% if request.user|has_group:"Collection"  or request.user|has_group:"SalesAdmin" %}
 
                     <div class="ui grid stackable padded">
                         <div class="five wide computer eight wide tablet sixteen wide mobile column">
@@ -738,7 +755,7 @@ Collection side bar
                                 </div>
                             </div>
                         </div>
-                      {% comment %}  <div class="four wide computer eight wide tablet sixteen wide mobile column">
+                        {% comment %}  <div class="four wide computer eight wide tablet sixteen wide mobile column">
                             <div class="ui fluid card">
                                 <div class="content">
                                     <div class="ui right floated header green">
@@ -814,15 +831,15 @@ Collection side bar
                     </div>
 
                 {% endif %}
-                {% if request.user|has_group:"NormalStaff" or request.user|has_group:"SalesAdmin" %}
+                {% if request.user|has_group:"NormalStaff" %}
                     <div class="ui one column blue card " style="width: 100%">
                         <div class="content">
                             <div class="center aligned header">Welcome, {{ obj.name }}</div>
                             <div class="center aligned description">
                                 {% if request.user|has_group:"NormalStaff" %}
-                                <p>BSSAC app provides staff attendance and many more.</p>
+                                    <p>BSSAC app provides staff attendance and many more.</p>
                                 {% else %}
-                                <p>BSSAC app provides staff to manage sales and many more.</p>
+                                    <p>BSSAC app provides staff to manage sales and many more.</p>
                                 {% endif %}
                             </div>
                         </div>
@@ -833,8 +850,8 @@ Collection side bar
                         </div>
                     </div>
                 {% endif %}
-            
-                   {% if request.user|has_group:"Admin" or request.user|has_group:"Moderator" or request.user|has_group:"CashCounter" %}
+
+                {% if request.user|has_group:"Admin" or request.user|has_group:"Moderator" or request.user|has_group:"CashCounter" %}
 
                     <div class="ui grid stackable padded">
                         <div class="four wide computer eight wide tablet sixteen wide mobile column">
@@ -849,24 +866,25 @@ Collection side bar
                                         </div>
                                     </div>
                                     <div class="meta">
-                                       Cash Counter
+                                        Cash Counter
                                     </div>
                                     <div class="description">
-{#                                        Total Cash Collected.#}
+                                        {#                                        Total Cash Collected.#}
                                     </div>
                                 </div>
                                 <div class="extra content">
                                     <div class="ui two buttons">
-                                        <a class="ui orange button" href="{% url 'homeApp:my_cash_counter_list' %}">More Info</a>
+                                        <a class="ui orange button" href="{% url 'homeApp:my_cash_counter_list' %}">More
+                                            Info</a>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                      <div class="four wide computer eight wide tablet sixteen wide mobile column">
+                        <div class="four wide computer eight wide tablet sixteen wide mobile column">
                             <div class="ui fluid card">
                                 <div class="content">
                                     <div class="ui right floated header green">
-                                       <i class="rupee sign icon"></i>
+                                        <i class="rupee sign icon"></i>
                                     </div>
                                     <div class="header">
                                         <div class="ui header green" id="cardCount2">
@@ -877,12 +895,13 @@ Collection side bar
                                         Card Counter
                                     </div>
                                     <div class="description">
-{#                                        Total lifetime amount collected.#}
+                                        {#                                        Total lifetime amount collected.#}
                                     </div>
                                 </div>
                                 <div class="extra content">
                                     <div class="ui two buttons">
-                                        <a class="ui blue button" href="{% url 'homeApp:my_cash_counter_list' %}">More Info</a>
+                                        <a class="ui blue button" href="{% url 'homeApp:my_cash_counter_list' %}">More
+                                            Info</a>
                                     </div>
                                 </div>
                             </div>
@@ -891,7 +910,7 @@ Collection side bar
                             <div class="ui fluid card">
                                 <div class="content">
                                     <div class="ui right floated header teal">
-                                       <i class="rupee sign icon"></i>
+                                        <i class="rupee sign icon"></i>
                                     </div>
                                     <div class="header">
                                         <div class="ui teal header" id="creditCount3">0</div>
@@ -900,7 +919,7 @@ Collection side bar
                                         Credit Counter
                                     </div>
                                     <div class="description">
-{#                                        Number of today's Collections.#}
+                                        {#                                        Number of today's Collections.#}
                                     </div>
                                 </div>
                                 <div class="extra content">
@@ -915,16 +934,17 @@ Collection side bar
                             <div class="ui fluid card">
                                 <div class="content">
                                     <div class="ui right floated header purple">
-                                       <i class="rupee sign icon"></i>
+                                        <i class="rupee sign icon"></i>
                                     </div>
                                     <div class="header">
-                                        <div class="ui purple header" ><span id="mixCashCount4">0</span> / <span id="mixCardCount4">0</span></div>
+                                        <div class="ui purple header"><span id="mixCashCount4">0</span> / <span
+                                                id="mixCardCount4">0</span></div>
                                     </div>
                                     <div class="meta">
                                         (Cash/Card) Mix Counter
                                     </div>
                                     <div class="description">
-{#                                        Total amount collected .#}
+                                        {#                                        Total amount collected .#}
                                     </div>
                                 </div>
                                 <div class="extra content">
@@ -935,8 +955,8 @@ Collection side bar
                                 </div>
                             </div>
                         </div>
-                    
-                     <div class="four wide computer eight wide tablet sixteen wide mobile column">
+
+                        <div class="four wide computer eight wide tablet sixteen wide mobile column">
                             <div class="ui fluid card">
                                 <div class="content">
                                     <div class="ui right floated header red">
@@ -951,21 +971,22 @@ Collection side bar
                                         Collection Counter
                                     </div>
                                     <div class="description">
-{#                                        Total parties assigned.#}
+                                        {#                                        Total parties assigned.#}
                                     </div>
                                 </div>
                                 <div class="extra content">
                                     <div class="ui two buttons">
-                                        <a class="ui red button" href="{% url 'homeApp:my_cash_counter_list' %}">More Info</a>
+                                        <a class="ui red button" href="{% url 'homeApp:my_cash_counter_list' %}">More
+                                            Info</a>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                      <div class="four wide computer eight wide tablet sixteen wide mobile column">
+                        <div class="four wide computer eight wide tablet sixteen wide mobile column">
                             <div class="ui fluid card">
                                 <div class="content">
                                     <div class="ui right floated header green">
-                                       <i class="rupee sign icon"></i>
+                                        <i class="rupee sign icon"></i>
                                     </div>
                                     <div class="header">
                                         <div class="ui header green" id="returnCount6">
@@ -976,12 +997,13 @@ Collection side bar
                                         Return Counter
                                     </div>
                                     <div class="description">
-{#                                        Total lifetime amount collected.#}
+                                        {#                                        Total lifetime amount collected.#}
                                     </div>
                                 </div>
                                 <div class="extra content">
                                     <div class="ui two buttons">
-                                        <a class="ui green button" href="{% url 'homeApp:my_cash_counter_list' %}">More Info</a>
+                                        <a class="ui green button" href="{% url 'homeApp:my_cash_counter_list' %}">More
+                                            Info</a>
                                     </div>
                                 </div>
                             </div>
@@ -990,7 +1012,7 @@ Collection side bar
                             <div class="ui fluid card">
                                 <div class="content">
                                     <div class="ui right floated header teal">
-                                       <i class="rupee sign icon"></i>
+                                        <i class="rupee sign icon"></i>
                                     </div>
                                     <div class="header">
                                         <div class="ui teal header" id="expenseCount7">0</div>
@@ -999,7 +1021,7 @@ Collection side bar
                                         Expense Counter
                                     </div>
                                     <div class="description">
-{#                                        Number of today's Collections.#}
+                                        {#                                        Number of today's Collections.#}
                                     </div>
                                 </div>
                                 <div class="extra content">
@@ -1014,7 +1036,7 @@ Collection side bar
                             <div class="ui fluid card">
                                 <div class="content">
                                     <div class="ui right floated header purple">
-                                       <i class="rupee sign icon"></i>
+                                        <i class="rupee sign icon"></i>
                                     </div>
                                     <div class="header">
                                         <div class="ui purple header" id="advanceCount8">0</div>
@@ -1023,7 +1045,7 @@ Collection side bar
                                         Advance Counter
                                     </div>
                                     <div class="description">
-{#                                        Total amount collected .#}
+                                        {#                                        Total amount collected .#}
                                     </div>
                                 </div>
                                 <div class="extra content">
@@ -1160,7 +1182,7 @@ Collection side bar
             }
         {% endif %}
 
-        {% if request.user|has_group:"Collection" %}
+        {% if request.user|has_group:"Collection" or request.user|has_group:"SalesAdmin" %}
             $(GetDetail());
             function GetDetail() {
                 $.ajax({
@@ -1188,8 +1210,8 @@ Collection side bar
 
 
         {% endif %}
-    
-    
+
+
         {% if request.user|has_group:"CashCounter" %}
             $(GetDetailCashCounter());
             function GetDetailCashCounter() {
@@ -1223,7 +1245,7 @@ Collection side bar
 
 
         {% endif %}
-        
+
         {% if request.user|has_group:"Admin" or request.user|has_group:"Moderator" %}
             $(GetDetailCashCounter());
             function GetDetailCashCounter() {

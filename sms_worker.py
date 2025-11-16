@@ -9,7 +9,7 @@ class MessageProcessor:
     SEND_URL = "http://localhost:8082/api/v1/users/send-message"
     # UPDATE_STATUS_URL = "http://localhost:8000/api/update_sent_msg_status/"
     UPDATE_STATUS_URL = "https://bssac.in/api/update_sent_msg_status/"
-    user_id = '11111'
+    user_id = '1'
 
     # AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiaHlkcmFib3QiLCJ0aW1lIjoiMjAyNS0wNi0yM1QxMDo0Nzo0My40OTFaIiwiaWF0IjoxNzUwNjc1NjYzfQ.7SHnk7qFz21weHgr6p-swLlMxn0NET1Ja5DhP-If8Sg"
 
