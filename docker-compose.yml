@@ -1,35 +1,9 @@
-#version: '3.8'
-#
-#services:
-#  web:
-#    build: .
-#    command: bash -c "
-#    python manage.py collectstatic --noinput &&
-#    gunicorn --bind 0.0.0.0:8000 baani.wsgi:application"
-#    volumes:
-#      - .:/app
-#      - static_volume:/app/staticfiles
-#      - media_data:/app/media
-#    ports:
-#      - "8000:8000"
-#    environment:
-#      - DJANGO_SETTINGS_MODULE=baani.settings
-#      - DEBUG=True
-#      - DB_HOST=host.docker.internal
-#      - MEDIA_ROOT=/app/media
-#
-#volumes:
-#  static_volume:
-#  media_data:
-
 version: '3.8'
 
 services:
   web:
     build: .
-    command: >
-      bash -c "python manage.py collectstatic --noinput &&
-               gunicorn --bind 0.0.0.0:8000 baani.wsgi:application"
+    command: bash -c " python manage.py collectstatic --noinput && gunicorn --bind 0.0.0.0:8000 baani.wsgi:application"
     volumes:
       - .:/app
       - static_volume:/app/staticfiles
@@ -39,47 +13,71 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=baani.settings
       - DEBUG=True
-      # DB talks to mysql service (not host.docker.internal anymore)
       - DB_HOST=host.docker.internal
-      - DB_PORT=3306
       - MEDIA_ROOT=/app/media
-      # Redis (you can use these in Django / Celery settings)
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-#    depends_on:
-#      - mysql
-#      - redis
-#
-#  mysql:
-#    image: mysql:8.0
-#    container_name: mysql
-#    restart: always
-#    environment:
-#      # ⚠️ MUST match what you originally used when you created the DB
-#      MYSQL_ROOT_PASSWORD: pass
-#      MYSQL_DATABASE: baani
-#    ports:
-#      - "3306:3306"
-#    volumes:
-#      # reuse existing Docker volume
-#      - mysql-data:/var/lib/mysql
-#
-#  redis:
-#    image: redis:7-alpine
-#    container_name: redis
-#    restart: always
-#    # enable persistence so queues survive restarts
-#    command: [ "redis-server", "--appendonly", "yes" ]
-#    volumes:
-#      - redis-data:/data
-#    ports:
-#      - "6379:6379"
-#
+
 volumes:
   static_volume:
   media_data:
-#  mysql-data:
-#    external: true
-#    name: mysql_mysql-data
-#  redis-data:
 
+#version: '3.8'
+#
+#services:
+#  web:
+#    build: .
+#    command: >
+#      bash -c "python manage.py collectstatic --noinput &&
+#               gunicorn --bind 0.0.0.0:8000 baani.wsgi:application"
+#    volumes:
+#      - .:/app
+#      - static_volume:/app/staticfiles
+#      - media_data:/app/media
+#    ports:
+#      - "8000:8000"
+#    environment:
+#      - DJANGO_SETTINGS_MODULE=baani.settings
+#      - DEBUG=True
+#      # DB talks to mysql service (not host.docker.internal anymore)
+#      - DB_HOST=host.docker.internal
+#      - DB_PORT=3306
+#      - MEDIA_ROOT=/app/media
+#      # Redis (you can use these in Django / Celery settings)
+#      - REDIS_HOST=redis
+#      - REDIS_PORT=6379
+##    depends_on:
+##      - mysql
+##      - redis
+##
+##  mysql:
+##    image: mysql:8.0
+##    container_name: mysql
+##    restart: always
+##    environment:
+##      # ⚠️ MUST match what you originally used when you created the DB
+##      MYSQL_ROOT_PASSWORD: pass
+##      MYSQL_DATABASE: baani
+##    ports:
+##      - "3306:3306"
+##    volumes:
+##      # reuse existing Docker volume
+##      - mysql-data:/var/lib/mysql
+##
+##  redis:
+##    image: redis:7-alpine
+##    container_name: redis
+##    restart: always
+##    # enable persistence so queues survive restarts
+##    command: [ "redis-server", "--appendonly", "yes" ]
+##    volumes:
+##      - redis-data:/data
+##    ports:
+##      - "6379:6379"
+##
+#volumes:
+#  static_volume:
+#  media_data:
+##  mysql-data:
+##    external: true
+##    name: mysql_mysql-data
+##  redis-data:
+#
