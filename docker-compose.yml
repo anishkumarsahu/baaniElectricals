@@ -46,40 +46,40 @@ services:
       # Redis (you can use these in Django / Celery settings)
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-    depends_on:
-      - mysql
-      - redis
-
-  mysql:
-    image: mysql:8.0
-    container_name: mysql
-    restart: always
-    environment:
-      # ⚠️ MUST match what you originally used when you created the DB
-      MYSQL_ROOT_PASSWORD: pass
-      MYSQL_DATABASE: baani
-    ports:
-      - "3306:3306"
-    volumes:
-      # reuse existing Docker volume
-      - mysql-data:/var/lib/mysql
-
-  redis:
-    image: redis:7-alpine
-    container_name: redis
-    restart: always
-    # enable persistence so queues survive restarts
-    command: [ "redis-server", "--appendonly", "yes" ]
-    volumes:
-      - redis-data:/data
-    ports:
-      - "6379:6379"
-
-volumes:
-  static_volume:
-  media_data:
-  mysql-data:
-    external: true
-    name: mysql_mysql-data
-  redis-data:
+#    depends_on:
+#      - mysql
+#      - redis
+#
+#  mysql:
+#    image: mysql:8.0
+#    container_name: mysql
+#    restart: always
+#    environment:
+#      # ⚠️ MUST match what you originally used when you created the DB
+#      MYSQL_ROOT_PASSWORD: pass
+#      MYSQL_DATABASE: baani
+#    ports:
+#      - "3306:3306"
+#    volumes:
+#      # reuse existing Docker volume
+#      - mysql-data:/var/lib/mysql
+#
+#  redis:
+#    image: redis:7-alpine
+#    container_name: redis
+#    restart: always
+#    # enable persistence so queues survive restarts
+#    command: [ "redis-server", "--appendonly", "yes" ]
+#    volumes:
+#      - redis-data:/data
+#    ports:
+#      - "6379:6379"
+#
+#volumes:
+#  static_volume:
+#  media_data:
+#  mysql-data:
+#    external: true
+#    name: mysql_mysql-data
+#  redis-data:
 
