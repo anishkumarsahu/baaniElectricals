@@ -2,22 +2,30 @@ version: '3.8'
 
 services:
   web:
+    # ADDED: Build context to ensure local changes (settings.py) are included
     build: .
+    image: anishkumarsahu03/baani-web
     working_dir: /app
-    command: bash -c " python manage.py collectstatic --noinput && gunicorn --bind 0.0.0.0:8000 baani.wsgi:application"
+    # UPDATED COMMAND: Added --clear to ensure fresh static files
+    command: bash -c "python manage.py collectstatic --noinput --clear && gunicorn --bind 0.0.0.0:8000 baani.wsgi:application"
     volumes:
-      - .:/app
       - static_volume:/app/staticfiles
       - media_data:/app/media
     ports:
       - "8000:8000"
     environment:
       - DJANGO_SETTINGS_MODULE=baani.settings
-      - DEBUG=True
-      - DB_HOST=host.docker.internal
+      - DEBUG=False
+      # ADDED: Explicitly set static paths to match volumes
+      - STATIC_ROOT=/app/staticfiles
+      - STATIC_URL=/static/
+      - DB_HOST=mysql
       - MEDIA_ROOT=/app/media
+      - DB_PASSWORD=rootpassword
+      - REDIS_HOST=redis-redis-1  # Ensure this matches your container name!
+    networks:
+      - anish_network
 
 volumes:
   static_volume:
   media_data:
-
