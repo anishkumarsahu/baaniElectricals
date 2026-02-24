@@ -66,19 +66,19 @@ class MessageThread(threading.Thread):
             if msg.used < msg.balance:
                 try:
 
-                    r = requests.get(
-                        msg.name + "send?number=91" + self.number + "&type=text&message=" + self.message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
-                        verify=False)
-                    data = r.json()
+                    # r = requests.get(
+                    #     msg.name + "send?number=91" + self.number + "&type=text&message=" + self.message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
+                    #     verify=False)
+                    # data = r.json()
                     obj = WhatsappMessageStatus()
                     obj.phone = self.number
                     obj.message = self.message
                     obj.messageTo = self.partyName
                     try:
-                        if data['status'] == 'success':
-                            obj.status = 'Success'
-                        else:
-                            obj.status = 'Fail'
+                        # if data['status'] == 'success':
+                        #     obj.status = 'Success'
+                        # else:
+                        obj.status = 'Fail'
                     except:
                         obj.status = 'Fail'
                     obj.save()
@@ -134,10 +134,10 @@ def deduct_location_balance(lat, lng):
 def send_whatsapp_message(number, message):
     msg = WhatsappMessage.objects.filter(isDeleted__exact=False).last()
     if msg.used < msg.balance:
-        r = requests.get(
-            msg.name + "send?number=91" + number + "&type=text&message=" + message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
-            verify=False)
-        data = r.json()
+        # r = requests.get(
+        #     msg.name + "send?number=91" + number + "&type=text&message=" + message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
+        #     verify=False)
+        # data = r.json()
         msg.used = (msg.used + 1)
         msg.save()
 
@@ -2136,20 +2136,21 @@ def re_send_message_sales(request):
                 msg = WhatsappMessage.objects.filter(isDeleted__exact=False).last()
                 if msg.used < msg.balance:
                     try:
-                        r = requests.get(
-                            msg.name + "send?number=91" + obj.phone + "&type=text&message=" + obj.message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
-                            verify=False)
-                        data = r.json()
-                        if data['status'] == 'success':
-                            obj.status = 'Success'
-                            msg.used = (msg.used + 1)
-                            msg.save()
-                            obj.save()
-                            return JsonResponse({'message': 'success'}, safe=False)
-                        else:
-                            obj.status = 'Fail'
-                            obj.save()
-                            return JsonResponse({'message': 'error'}, safe=False)
+                        # r = requests.get(
+                        #     msg.name + "send?number=91" + obj.phone + "&type=text&message=" + obj.message + "&instance_id=" + msg.instanceID + "&access_token=" + msg.apiKey,
+                        #     verify=False)
+                        # data = r.json()
+                        # if data['status'] == 'success':
+                        #     obj.status = 'Success'
+                        #     msg.used = (msg.used + 1)
+                        #     msg.save()
+                        #     obj.save()
+                        #     return JsonResponse({'message': 'success'}, safe=False)
+
+                        # else:
+                        obj.status = 'Fail'
+                        obj.save()
+                        return JsonResponse({'message': 'error'}, safe=False)
 
                     except:
                         obj.status = 'Fail'
