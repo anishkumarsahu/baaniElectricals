@@ -54,6 +54,8 @@
                             <tr>
                                 <th>Name</th>
                                 <th>PhoneNumber</th>
+                                <th>Username</th>
+                                <th>Password</th>
                                 <th>PartyGroup/Station</th>
                                 <th>AssignedTo/Staff</th>
                                 <th>Added On</th>
@@ -359,7 +361,7 @@
             buttons: [{
                 extend: 'excel',
                 exportOptions: {
-                    columns: [0, 1, 2, 3, 4]
+                    columns: [0, 1, 2, 3, 4, 5, 6]
                 }
             }
                 {% comment %}      , {
@@ -372,10 +374,12 @@
             "columnDefs": [
                 {"name": "name", "targets": 0, "orderable": true},
                 {"name": "phone", "targets": 1, "orderable": true},
-                {"name": "partyGroupID.name", "targets": 2, "orderable": true},
-                {"name": "assignTo.name", "targets": 3, "orderable": true},
-                {"name": "datetime", "targets": 4, "orderable": true},
-                {"name": "action", "targets": 5, "orderable": false}
+                {"name": "username", "targets": 2, "orderable": true},
+                {"name": "password", "targets": 3, "orderable": true},
+                {"name": "partyGroupID.name", "targets": 4, "orderable": true},
+                {"name": "assignTo.name", "targets": 5, "orderable": true},
+                {"name": "datetime", "targets": 6, "orderable": true},
+                {"name": "action", "targets": 7, "orderable": false}
 
             ],
             aaSorting: [[0, 'asc']],
@@ -384,6 +388,50 @@
             "processing": true,
             "serverSide": true,
             "ajax": "{% url 'homeApp:PartyListJson' %}"
+        });
+
+        function copyToClipboard(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                return navigator.clipboard.writeText(text);
+            } else {
+                return new Promise(function (resolve, reject) {
+                    var textArea = document.createElement("textarea");
+                    textArea.value = text;
+                    textArea.style.position = "fixed";
+                    textArea.style.left = "-999999px";
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    try {
+                        document.execCommand('copy');
+                        textArea.remove();
+                        resolve();
+                    } catch (err) {
+                        textArea.remove();
+                        reject(err);
+                    }
+                });
+            }
+        }
+
+        $(document).on('click', '.copy-btn', function () {
+            var text = $(this).attr('data-copy');
+            if (!text) {
+                return;
+            }
+            copyToClipboard(text).then(function () {
+                $('body')
+                    .toast({
+                        class: 'success',
+                        message: 'Copied to clipboard.'
+                    });
+            }).catch(function () {
+                $('body')
+                    .toast({
+                        class: 'error',
+                        message: 'Unable to copy.'
+                    });
+            });
         });
 
 

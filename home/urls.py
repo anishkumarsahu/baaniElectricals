@@ -12,6 +12,8 @@ urlpatterns = [
 
     # collection
     path('collection_home/', collection_home, name='collection_home'),
+    path('customer_home/', customer_home, name='customer_home'),
+    path('customer/change-password/', customer_change_password, name='customer_change_password'),
     path('myProfile/', my_profile_collection, name='my_profile_collection'),
     path('add_collection/', add_collection, name='add_collection'),
     path('my_collection/', my_collection, name='my_collection'),
@@ -60,6 +62,7 @@ urlpatterns = [
 
     # api party
     path('api/add_party_api/', add_party_api, name='add_party_api'),
+    path('api/generate_party_users_api/', generate_party_users_api, name='generate_party_users_api'),
     path('api/PartyListJson/', PartyListJson.as_view(), name='PartyListJson'),
     path('api/get_party_detail/', get_party_detail, name='get_party_detail'),
     path('api/edit_party_api/', edit_party_api, name='edit_party_api'),

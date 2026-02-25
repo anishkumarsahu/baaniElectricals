@@ -12,6 +12,7 @@ from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.utils.crypto import get_random_string
 from django.utils.html import escape
+from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from weasyprint import CSS, HTML
@@ -621,6 +622,24 @@ def add_party_api(request):
                 obj.partyGroupID_id = int(partyGroup)
             except:
                 pass
+
+            username = get_random_string(length=6, allowed_chars='0123456789')
+            while User.objects.filter(username__exact=username).exists():
+                username = get_random_string(length=6, allowed_chars='0123456789')
+
+            password = get_random_string(length=6, allowed_chars='0123456789')
+
+            new_user = User()
+            new_user.username = username
+            new_user.set_password(password)
+            new_user.save()
+
+            group, _ = Group.objects.get_or_create(name='Customer')
+            group.user_set.add(new_user.pk)
+
+            obj.username = username
+            obj.password = password
+            obj.userID_id = new_user.pk
             obj.save()
             cache.delete('PartyList')
             return JsonResponse({'message': 'success'}, safe=False)
@@ -628,8 +647,56 @@ def add_party_api(request):
             return JsonResponse({'message': 'error'}, safe=False)
 
 
+@transaction.atomic
+@csrf_exempt
+def generate_party_users_api(request):
+    if request.method == 'GET':
+        if not request.user.is_authenticated:
+            return JsonResponse({'message': 'unauthorized'}, status=401, safe=False)
+
+        if not request.user.groups.filter(name__in=['Admin', 'Moderator']).exists():
+            return JsonResponse({'message': 'forbidden'}, status=403, safe=False)
+
+        try:
+            customer_group, _ = Group.objects.get_or_create(name='Customer')
+            created = 0
+            skipped = 0
+
+            parties = Party.objects.filter(isDeleted__exact=False).order_by('id')
+            for party in parties:
+                if party.userID_id:
+                    skipped = skipped + 1
+                    continue
+
+                username = get_random_string(length=6, allowed_chars='0123456789')
+                while User.objects.filter(username__exact=username).exists():
+                    username = get_random_string(length=6, allowed_chars='0123456789')
+                password = get_random_string(length=6, allowed_chars='0123456789')
+
+                new_user = User()
+                new_user.username = username
+                new_user.set_password(password)
+                new_user.save()
+
+                customer_group.user_set.add(new_user.pk)
+
+                party.username = username
+                party.password = password
+                party.userID_id = new_user.pk
+                party.save(update_fields=['username', 'password', 'userID'])
+                created = created + 1
+
+            return JsonResponse({
+                'message': 'success',
+                'created': created,
+                'skipped': skipped,
+            }, safe=False)
+        except:
+            return JsonResponse({'message': 'error'}, safe=False)
+
+
 class PartyListJson(BaseDatatableView):
-    order_columns = ['name', 'phone', 'partyGroupID.name', 'assignTo.name', 'datetime']
+    order_columns = ['name', 'phone', 'username', 'password', 'partyGroupID.name', 'assignTo.name', 'datetime']
 
     def get_initial_queryset(self):
         # if 'Admin' in self.request.user.groups.values_list('name', flat=True):
@@ -640,7 +707,8 @@ class PartyListJson(BaseDatatableView):
         search = self.request.GET.get('search[value]', None)
         if search:
             qs = qs.filter(
-                Q(name__icontains=search) | Q(phone__icontains=search) | Q(address__icontains=search)
+                Q(name__icontains=search) | Q(phone__icontains=search) | Q(username__icontains=search)
+                | Q(password__icontains=search) | Q(address__icontains=search)
                 | Q(partyGroupID__name__icontains=search) | Q(assignTo__name__icontains=search) | Q(
                     datetime__icontains=search)
             )
@@ -671,9 +739,27 @@ class PartyListJson(BaseDatatableView):
                 usr = item.assignTo.name
             except:
                 usr = 'N/A'
+
+            if item.username:
+                username = '''{} <button data-copy="{}" class="ui mini icon button copy-btn" type="button" title="Copy Username"><i class="copy outline icon"></i></button>'''.format(
+                    escape(item.username),
+                    escape(item.username)
+                )
+            else:
+                username = 'N/A'
+
+            if item.password:
+                password = '''{} <button data-copy="{}" class="ui mini icon button copy-btn" type="button" title="Copy Password"><i class="copy outline icon"></i></button>'''.format(
+                    escape(item.password),
+                    escape(item.password)
+                )
+            else:
+                password = 'N/A'
             json_data.append([
                 escape(item.name),
                 escape(item.phone),
+                username,
+                password,
                 party,
                 usr,
                 escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
@@ -1391,6 +1477,7 @@ def change_password_api(request):
             return JsonResponse({'message': 'error'}, safe=False)
 
 
+@cache_page(60 * 5)
 def get_admin_dashboard_report_api(request):
     party = Party.objects.select_related().filter(isDeleted__exact=False)
     staff = StaffUser.objects.select_related().filter(isDeleted__exact=False)
@@ -1419,6 +1506,7 @@ def get_admin_dashboard_report_api(request):
     return JsonResponse({'data': data}, safe=False)
 
 
+@cache_page(60 * 5)
 def get_staff_dashboard_report_api(request):
     user = StaffUser.objects.get(user_ID__id=request.user.pk)
     party = Party.objects.select_related().filter(isDeleted__exact=False, partyGroupID__id=user.partyGroupID_id)
@@ -2892,6 +2980,7 @@ class ExpenseCounterByStaffListJson(BaseDatatableView):
         return json_data
 
 
+@cache_page(60 * 30)
 def get_cash_counter_dashboard_report_api(request):
     cash_total = CashCounter.objects.filter(
         mode="Cash",
@@ -2961,6 +3050,7 @@ def get_cash_counter_dashboard_report_api(request):
     return JsonResponse({'data': data}, safe=False)
 
 
+@cache_page(60 * 30)
 def get_cash_counter_dashboard_report_admin_api(request):
     cash_total = CashCounter.objects.filter(
         mode="Cash",

@@ -3,10 +3,11 @@ import os
 from datetime import datetime, timedelta
 from functools import wraps
 
-from django.contrib.auth import logout, authenticate, login
+from django.contrib.auth import logout, authenticate, login, update_session_auth_hash
 from django.db.models.functions import Length
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
+from django.views.decorators.cache import cache_page
 # Create your views here.
 from django.views.decorators.csrf import csrf_exempt
 
@@ -172,7 +173,8 @@ def postLogin(request):
         if user is not None:
             login(request, user)
             user_groups = request.user.groups.values_list('name', flat=True)
-            allowed_groups = ['Admin', 'Moderator', 'Collection', 'NormalStaff', 'CashCounter', 'SalesAdmin']
+            allowed_groups = ['Admin', 'Moderator', 'Collection', 'NormalStaff', 'CashCounter', 'SalesAdmin',
+                              'Customer']
             if any(group in user_groups for group in allowed_groups):
                 return JsonResponse({'message': 'success', 'data': '/home/'}, safe=False)
         return JsonResponse({'message': 'fail'}, safe=False)
@@ -194,10 +196,70 @@ def homepage(request):
             return redirect('/cash_counter_home/')
         elif 'SalesAdmin' in request.user.groups.values_list('name', flat=True):
             return redirect('/collection_home/')
+        elif 'Customer' in request.user.groups.values_list('name', flat=True):
+            return redirect('/customer_home/')
         else:
             return render(request, 'home/login.html')
     else:
         return render(request, 'home/login.html')
+
+
+@cache_page(60 * 30)
+@check_group('Customer')
+def customer_home(request):
+    party = Party.objects.filter(userID_id=request.user.pk, isDeleted=False).last()
+    if not party:
+        return redirect('/')
+
+    base_messages = WhatsappMessageStatus.objects.filter(
+        isDeleted=False
+    ).filter(phone=party.phone)
+    if party.name:
+        base_messages = base_messages.filter(messageTo__iexact=party.name)
+
+    collection_messages = base_messages.filter(message__icontains='collected the payment').order_by('-datetime')[:10]
+    sales_messages = base_messages.filter(message__icontains='order has been dispatched').order_by('-datetime')[:10]
+
+    context = {
+        'party': party,
+        'collection_messages': collection_messages,
+        'sales_messages': sales_messages,
+    }
+    return render(request, 'home/customer.html', context)
+
+
+@check_group('Customer')
+def customer_change_password(request):
+    if request.method != 'POST':
+        return JsonResponse({'message': 'error', 'error': 'Invalid request method.'}, status=405)
+
+    current_password = request.POST.get('current_password')
+    new_password = request.POST.get('new_password')
+    confirm_password = request.POST.get('confirm_password')
+
+    if not current_password or not new_password or not confirm_password:
+        return JsonResponse({'message': 'error', 'error': 'All password fields are required.'}, status=400)
+
+    if not request.user.check_password(current_password):
+        return JsonResponse({'message': 'error', 'error': 'Current password is incorrect.'}, status=400)
+
+    if len(new_password) != 6 or not new_password.isdigit():
+        return JsonResponse({'message': 'error', 'error': 'New password must be exactly 6 digits.'}, status=400)
+
+    if new_password != confirm_password:
+        return JsonResponse({'message': 'error', 'error': 'New password and confirm password do not match.'},
+                            status=400)
+
+    request.user.set_password(new_password)
+    request.user.save(update_fields=['password'])
+    update_session_auth_hash(request, request.user)
+
+    party = Party.objects.filter(userID_id=request.user.pk, isDeleted=False).last()
+    if party:
+        party.password = new_password
+        party.save(update_fields=['password'])
+
+    return JsonResponse({'message': 'success', 'success': 'Password changed successfully.'}, status=200)
 
 
 def add_collection(request):

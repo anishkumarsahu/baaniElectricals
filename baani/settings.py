@@ -75,27 +75,27 @@ WSGI_APPLICATION = 'baani.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'baani',
-        'HOST': os.environ.get("DB_HOST", "127.0.0.1"),
-        'PORT': '3306',
-        'USER': 'root',
-        'PASSWORD': os.environ.get("DB_PASSWORD", "pass"),
-        'OPTIONS': {
-            "init_command": "SET foreign_key_checks = 0;",
-            'charset': 'utf8mb4',
-        },
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'baani',
+#         'HOST': os.environ.get("DB_HOST", "127.0.0.1"),
+#         'PORT': '3306',
+#         'USER': 'root',
+#         'PASSWORD': os.environ.get("DB_PASSWORD", "pass"),
+#         'OPTIONS': {
+#             "init_command": "SET foreign_key_checks = 0;",
+#             'charset': 'utf8mb4',
+#         },
+#     }
+# }
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
 
@@ -149,7 +149,7 @@ PWA_APP_NAME = 'BSSAC'
 PWA_APP_DESCRIPTION = "In-house management Application."
 PWA_APP_THEME_COLOR = '#272E38'
 PWA_APP_DISPLAY = 'standalone'
-PWA_APP_START_URL = '/'
+PWA_APP_START_URL = '/home/'
 PWA_APP_ICONS = [
     {"src": "static/sw/images/favicon.ico", "type": "image/x-icon", "sizes": "16x16 32x32"},
     {"src": "static/sw/images/icon-192.png", "type": "image/png", "sizes": "192x192"},
@@ -163,11 +163,9 @@ PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'home', '../static/sw/servicewo
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"redis://{os.environ.get('REDIS_HOST', 'redis')}:{os.environ.get('REDIS_PORT', '6379')}/1",
+        "LOCATION": "redis://127.0.0.1:6379/1",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     }
 }
-# Enable WhiteNoise's Gzip compression of static assets.
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
