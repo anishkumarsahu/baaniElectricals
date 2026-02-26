@@ -7,7 +7,6 @@ from django.contrib.auth import logout, authenticate, login, update_session_auth
 from django.db.models.functions import Length
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views.decorators.cache import cache_page
 # Create your views here.
 from django.views.decorators.csrf import csrf_exempt
 
@@ -204,7 +203,6 @@ def homepage(request):
         return render(request, 'home/login.html')
 
 
-@cache_page(60 * 30)
 @check_group('Customer')
 def customer_home(request):
     party = Party.objects.filter(userID_id=request.user.pk, isDeleted=False).last()
@@ -217,7 +215,7 @@ def customer_home(request):
     if party.name:
         base_messages = base_messages.filter(messageTo__iexact=party.name)
 
-    collection_messages = base_messages.filter(message__icontains='collected the payment').order_by('-datetime')[:10]
+    collection_messages = base_messages.filter(message__icontains='Your Payment has been').order_by('-datetime')[:10]
     sales_messages = base_messages.filter(message__icontains='order has been dispatched').order_by('-datetime')[:10]
 
     context = {

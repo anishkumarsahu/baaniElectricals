@@ -22,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-4!5x-kbkh4k1wp@u5j0wvpuv=vdz+^a#wjp!+g*(1uw9rao$m0'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DEBUG", True),
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -86,10 +86,10 @@ DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.mysql',
 #         'NAME': 'baani',
-#         'HOST': os.environ.get("DB_HOST", "127.0.0.1"),
+#         'HOST': 'localhost',
 #         'PORT': '3306',
 #         'USER': 'root',
-#         'PASSWORD': os.environ.get("DB_PASSWORD", "pass"),
+#         'PASSWORD': 'password',
 #         'OPTIONS': {
 #             "init_command": "SET foreign_key_checks = 0;",
 #             'charset': 'utf8mb4',

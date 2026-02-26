@@ -27,123 +27,278 @@
 
 
     <style>
+        :root {
+            --bg-1: #e9f5ff;
+            --bg-2: #f4fff6;
+            --surface: #ffffff;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --accent: #0f766e;
+            --accent-2: #2563eb;
+            --line: #dbe4ef;
+            --dark: #1f2937;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            background: rgba(71, 255, 163, 0.50);
-            background: -webkit-linear-gradient(0deg, rgba(71, 255, 163, 0.5) 0%, rgba(71, 172, 255, 0.5) 100%);
-            background: linear-gradient(0deg, rgba(71, 255, 163, 0.5) 0%, rgba(71, 172, 255, 0.5) 100%);
+            margin: 0;
+            min-height: 100vh;
+            color: var(--text);
+            background:
+                    radial-gradient(900px 380px at -10% -10%, #dbeafe 0%, transparent 58%),
+                    radial-gradient(900px 340px at 110% 0%, #dcfce7 0%, transparent 56%),
+                    linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
+            font-family: "Segoe UI", Roboto, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(2px);
+        }
+
+        body::before {
+            width: 220px;
+            height: 220px;
+            right: -70px;
+            top: 18%;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.16) 0%, rgba(37, 99, 235, 0) 70%);
+        }
+
+        body::after {
+            width: 240px;
+            height: 240px;
+            left: -80px;
+            bottom: 10%;
+            background: radial-gradient(circle, rgba(15, 118, 110, 0.14) 0%, rgba(15, 118, 110, 0) 72%);
         }
 
         fieldset {
             border: none;
+            margin: 0;
+            padding: 0;
         }
 
         .container {
-            padding-top: 4rem;
+            min-height: calc(100vh - 44px);
+            display: grid;
+            place-items: center;
+            padding: 22px 12px;
+            position: relative;
+            z-index: 1;
         }
 
         .ui.grid {
-            display: flex;
-            justify-content: center;
+            width: 100%;
+            margin: 0 !important;
         }
 
-        header {
-            background-color: #3c3a3a;
-            color: #ffffff;
-            display: block;
-            padding: 1em;
+        .login-panel {
+            width: min(760px, 100%);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+            background: var(--surface);
+            transform: translateY(0);
+            transition: box-shadow .22s ease, transform .22s ease;
+            animation: panelIn 260ms ease-out both;
+        }
+
+        .login-panel:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 30px rgba(15, 23, 42, 0.12);
+        }
+
+        .login-title-wrap {
+            padding: 4px 0 14px;
             text-align: center;
-            font-size: 16px;
+        }
+
+        .login-title {
+            margin: 0;
+            color: #0f172a;
+            font-size: 20px;
+            letter-spacing: 0.02em;
+            font-weight: 800;
+            line-height: 1.1;
+        }
+
+        .login-subtitle {
+            margin-top: 4px;
+            color: #64748b;
+            font-size: 12px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .login-divider {
+            width: 68px;
+            height: 3px;
+            border-radius: 999px;
+            margin: 10px auto 0;
+            background: linear-gradient(90deg, #0f766e, #2563eb);
         }
 
         .input-wrapper {
             position: relative;
-            display: block;
-            margin: 1em auto;
-            border-bottom: 1px solid #4caf50;
-            border-radius: 3px;
-            width: 300px;
-            padding-left: 20px;
-            font-size: 20px;
+            margin: 0 0 12px 0;
+            border: 1px solid #d1dce8;
+            border-radius: 10px;
+            width: 100%;
+            background: #f9fbff;
+            transition: border-color .16s ease, box-shadow .16s ease;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: #93c5fd;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
         }
 
         input {
             width: 100%;
-            line-height: 1;
+            line-height: 1.1;
             background-color: transparent;
             border: none;
-            padding: .6em .5em;
+            padding: .82rem .85rem;
             outline: 0;
-            color: white;
+            color: #0f172a;
+            font-size: 14px;
+        }
+
+        input::placeholder {
+            color: #94a3b8;
         }
 
         .column_1 {
-            width: 300px;
-           background: rgba(255,255,255,0.5);
-            -webkit-backdrop-filter: blur(10px);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.25);
-            border-radius: 5px;
-
+            width: 100%;
+            background: linear-gradient(160deg, #ffffff 0%, #f5f9ff 100%);
+            padding: 22px 16px;
+            border-bottom: 1px solid var(--line);
         }
 
         .column_2 {
-            width: 300px;
-            background-color: #272E38;
-            border-radius: 5px;
+            width: 100%;
+            background: #ffffff;
+            padding: 16px;
         }
 
         button {
             outline: 0;
-            font-size: 12px;
+            font-size: 13px;
             letter-spacing: 0.1em;
-            background-color: #4caf50;
+            background: linear-gradient(90deg, var(--accent) 0%, var(--accent-2) 100%);
             color: #fff;
             border: none;
-            border-radius: 3px;
-            width: 200px;
-            padding: 1.2em 0;
-            margin: 4em auto;
+            border-radius: 10px;
+            width: 100%;
+            padding: 0.9rem 0;
+            margin: 8px 0 0;
             display: block;
-            border-top: 2px solid transparent;
-            border-bottom: 2px solid transparent;
+            font-weight: 700;
+            transition: transform .12s ease, filter .12s ease;
+            box-shadow: 0 8px 16px rgba(37, 99, 235, 0.18);
         }
 
-        hover {
-            border-bottom-color: darkgoldenrod;
+        button:hover {
+            filter: saturate(1.03);
+        }
+
+        button:active {
+            transform: translateY(1px);
         }
 
         p.hd {
             text-align: center;
-            font-variant: small-caps;
-            font-weight: bold;
-            font-family: "Times New Roman", Times, serif;
-            font-size: 30px;
-            color: #3c3a3a;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            font-size: 28px;
+            color: #0f172a;
+            margin: 8px 0 0;
         }
 
         .credit {
             text-align: center;
-            font-size: 15px;
-            padding-top: 20px;
+            font-size: 13px;
+            color: var(--muted);
+            padding: 12px 8px 18px;
+            margin: 0;
+        }
+
+        .credit a {
+            color: #0f766e;
+            font-weight: 600;
+        }
+
+        .login-form-container {
+            max-width: 340px;
+            margin: 0 auto;
+        }
+
+        .brand-logo {
+            width: 88px !important;
+            height: 88px !important;
+            margin-top: 4px !important;
+            box-shadow: 0 6px 16px rgba(30, 64, 175, 0.14);
+        }
+
+        @media (min-width: 768px) {
+            .column_1 {
+                border-bottom: none;
+                border-right: 1px solid var(--line);
+            }
+        }
+
+        @keyframes panelIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation: none !important;
+                transition: none !important;
+            }
         }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="ui equal width center aligned padded grid">
-        <div class="ui raised segment" style="background-color: transparent;">
-            <div class="ui two column centered grid" style="background-color: transparent;padding: 1rem">
-                <div class="column_1" style="width: 350px; padding: 05px">
-                    <img class="ui centered medium circular image" src="{% static 'sw/images/icon-192.png' %}"
-                         style="width: 100px;height: 100px;margin-top: 30px" alt="Logo">
-                    <br>
+        <div class="ui basic segment" style="width: 100%; max-width: 780px; padding: 0; box-shadow: none; background: transparent;">
+            <div class="ui two column centered stackable grid login-panel" style="padding: 0;">
+                <div class="column_1" style="width: 350px;">
+                    <img class="ui centered medium circular image brand-logo" src="{% static 'sw/images/icon-192.png' %}"
+                         alt="Logo">
                     <p class="hd">BSSAC</p>
 
                 </div>
-                <div class="column_2" style="width: 350px; padding: 05px">
+                <div class="column_2" style="width: 350px;">
                     <form id="userLoginForm" action="{% url 'homeApp:UserLogin' %}" method="post">{% csrf_token %}
                         <div class="login-form-container">
-                            <header>LOGIN</header>
+                            <div class="login-title-wrap">
+                                <h2 class="login-title">Welcome Back</h2>
+                                <div class="login-subtitle">Sign in to continue</div>
+                                <div class="login-divider"></div>
+                            </div>
                             <fieldset>
                                 <div class="input-wrapper">
                                     <input type="text" placeholder="Username" name="userName" id="userName"/>

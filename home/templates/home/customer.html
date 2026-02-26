@@ -4,6 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="{% static 'sw/images/favicon.ico' %}" sizes="any">
+    <link rel="apple-touch-icon" href="{% static 'sw/images/apple-touch-icon.png' %}">
     <title>Customer Dashboard</title>
     <style>
         :root {
@@ -25,7 +27,10 @@
         body {
             margin: 0;
             font-family: "Roboto", "Segoe UI", sans-serif;
-            background: linear-gradient(180deg, #eef4ff 0%, #f8fbff 45%, #fffaf5 100%);
+            background:
+                    radial-gradient(900px 340px at -10% -10%, #dbeafe 0%, transparent 60%),
+                    radial-gradient(800px 320px at 110% 0%, #fff1df 0%, transparent 58%),
+                    linear-gradient(180deg, #eef4ff 0%, #f8fbff 48%, #fffaf5 100%);
             color: var(--text);
             min-height: 100vh;
             display: flex;
@@ -42,10 +47,17 @@
         .card {
             background: var(--surface);
             border: 1px solid var(--line);
-            border-radius: 12px;
+            border-radius: 16px;
             box-shadow: 0 8px 18px rgba(21, 101, 192, 0.08);
             margin-bottom: 12px;
             overflow: hidden;
+            transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 28px rgba(59, 130, 246, 0.12);
+            border-color: #d7e4f8;
         }
 
         .topbar {
@@ -54,6 +66,7 @@
             justify-content: space-between;
             gap: 10px;
             padding: 14px 16px;
+            background: linear-gradient(115deg, rgba(219, 234, 254, .55), rgba(255, 241, 223, .45));
         }
 
         .title {
@@ -71,6 +84,12 @@
             padding: 7px 12px;
             font-size: 13px;
             font-weight: 500;
+            transition: all .2s ease;
+        }
+
+        .logout-btn:hover {
+            background: #ffebee;
+            border-color: #ef5350;
         }
 
         .meta-row {
@@ -118,10 +137,16 @@
         .msg-item {
             padding: 12px 0;
             border-bottom: 1px solid var(--line);
+            transition: background-color .2s ease, transform .2s ease;
         }
 
         .msg-item:last-child {
             border-bottom: none;
+        }
+
+        .msg-item:hover {
+            background: #f9fbff;
+            transform: translateX(2px);
         }
 
         .msg-text {
@@ -203,11 +228,12 @@
         .text-input {
             width: 100%;
             border: 1px solid #cfd8e3;
-            border-radius: 8px;
+            border-radius: 10px;
             padding: 10px 11px;
             font-size: 14px;
             outline: none;
             background: #fff;
+            transition: box-shadow .2s ease, border-color .2s ease;
         }
 
         .text-input:focus {
@@ -225,6 +251,12 @@
             background: linear-gradient(90deg, #1976d2, #1565c0);
             cursor: pointer;
             justify-self: start;
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+
+        .primary-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 20px rgba(25, 118, 210, .24);
         }
 
         .secondary-btn {
@@ -236,6 +268,12 @@
             color: #1565c0;
             background: #e3f2fd;
             cursor: pointer;
+            transition: all .2s ease;
+        }
+
+        .secondary-btn:hover {
+            background: #d9efff;
+            border-color: #64b5f6;
         }
 
         .modal-overlay {
@@ -259,8 +297,14 @@
             background: #fff;
             border-radius: 12px;
             border: 1px solid var(--line);
-            box-shadow: 0 16px 30px rgba(15, 23, 42, 0.2);
+            box-shadow: 0 18px 34px rgba(15, 23, 42, 0.24);
             overflow: hidden;
+            animation: modalPop .18s ease-out;
+        }
+
+        @keyframes modalPop {
+            from {opacity: .4; transform: translateY(4px) scale(.99);}
+            to {opacity: 1; transform: translateY(0) scale(1);}
         }
 
         .modal-head {

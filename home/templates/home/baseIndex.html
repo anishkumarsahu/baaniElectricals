@@ -23,7 +23,6 @@
     <script src="{% static 'sw/app.js' %}"></script>
 
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.12.1/css/dataTables.semanticui.min.css">
-    <script src="{% static 'sw/app.js' %}"></script>
     <link rel="stylesheet" type="text/css"
           href="https://cdn.datatables.net/fixedcolumns/4.1.0/css/fixedColumns.dataTables.min.css">
 
@@ -33,6 +32,13 @@
     <style>
         html {
             scroll-behavior: smooth;
+        }
+
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0.06);
         }
 
         .sidenav {
