@@ -6,7 +6,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import Group
 from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, Count
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
@@ -118,6 +118,68 @@ def formatINR(number):
     return "".join([r] + d)
 
 
+def _collection_list_base_qs():
+    return Collection.objects.select_related(
+        'partyID', 'transferredPartyID', 'bankID', 'collectedBy', 'approvedBy'
+    ).only(
+        'id', 'paymentID', 'paidAmount', 'modeOfPayment', 'detail', 'remark', 'collectionAddress',
+        'collectionDateTime', 'datetime', 'isApproved', 'isTallied', 'chequeDate',
+        'partyID__name', 'transferredPartyID__name', 'bankID__name',
+        'collectedBy__name', 'approvedBy__name'
+    )
+
+
+def _sales_list_base_qs():
+    return Sales.objects.select_related('partyID', 'createdBy', 'approvedBy').only(
+        'id', 'paymentID', 'invoiceNumber', 'amount', 'buildDate', 'datetime', 'remark', 'isApproved',
+        'partyID__name', 'createdBy__name', 'approvedBy__name'
+    )
+
+
+def _attendance_list_base_qs():
+    return Attendance.objects.select_related('staffID').only(
+        'id', 'datetime', 'isLogIn', 'isLogOut', 'loginDateTime', 'logoutDateTime',
+        'login_remark', 'logout_remark', 'login_location', 'logout_location', 'staffID__name'
+    )
+
+
+def _cash_counter_list_base_qs():
+    return CashCounter.objects.select_related('partyID', 'bankID', 'createdBy').only(
+        'id', 'counterID', 'invoiceNumber', 'amount', 'mixCashAmount', 'mixCardAmount', 'mode',
+        'expenseType', 'remark', 'datetime', 'partyID__name', 'bankID__name',
+        'bankID__accountNumber', 'createdBy__name'
+    )
+
+
+def _cash_counter_collection_list_base_qs():
+    return CollectionCashCounter.objects.select_related(
+        'partyID', 'transferredPartyID', 'bankID', 'collectedBy', 'approvedBy'
+    ).only(
+        'id', 'paymentID', 'paidAmount', 'modeOfPayment', 'detail', 'remark', 'collectionAddress',
+        'collectionDateTime', 'datetime', 'isApproved', 'chequeDate',
+        'partyID__name', 'transferredPartyID__name', 'bankID__name', 'collectedBy__name', 'approvedBy__name'
+    )
+
+
+def _request_group_names(request):
+    if not hasattr(request, "_group_name_cache"):
+        request._group_name_cache = set(request.user.groups.values_list('name', flat=True))
+    return request._group_name_cache
+
+
+def _get_party_cache_version():
+    version = cache.get('party_list_cache_version')
+    if version is None:
+        version = 1
+        cache.set('party_list_cache_version', version, timeout=None)
+    return version
+
+
+def _bump_party_cache_version():
+    version = cache.get('party_list_cache_version') or 1
+    cache.set('party_list_cache_version', version + 1, timeout=None)
+
+
 def deduct_location_balance(lat, lng):
     location = GeolocationPackage.objects.filter(isDeleted__exact=False).last()
     if location.used < location.balance:
@@ -211,8 +273,11 @@ class StaffUserListJson(BaseDatatableView):
                      'isActive', 'datetime']
 
     def get_initial_queryset(self):
-        # if 'Admin' in self.request.user.groups.values_list('name', flat=True):
-        return StaffUser.objects.select_related().filter(isDeleted__exact=False)
+        # if 'Admin' in group_names:
+        return StaffUser.objects.filter(isDeleted__exact=False).only(
+            'id', 'photo', 'name', 'username', 'userPassword', 'group', 'phone',
+            'address', 'isActive', 'datetime'
+        )
 
     def filter_queryset(self, qs):
 
@@ -229,9 +294,10 @@ class StaffUserListJson(BaseDatatableView):
 
     def prepare_results(self, qs):
         json_data = []
+        group_names = _request_group_names(self.request)
         for item in qs:
             images = '<img class="ui avatar image" src="{}">'.format(item.photo.thumbnail.url)
-            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+            if 'Admin' in group_names:
                 action = '''<button data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;" onclick = "GetUserDetails('{}')" class="ui circular facebook icon button green">
                     <i class="pen icon"></i>
                   </button>
@@ -411,8 +477,10 @@ class PartyGroupListJson(BaseDatatableView):
     order_columns = ['name', 'description', 'datetime']
 
     def get_initial_queryset(self):
-        # if 'Admin' in self.request.user.groups.values_list('name', flat=True):
-        return PartyGroup.objects.select_related().filter(isDeleted__exact=False)
+        # if 'Admin' in group_names:
+        return PartyGroup.objects.filter(isDeleted__exact=False).only(
+            'id', 'name', 'description', 'datetime'
+        )
 
     def filter_queryset(self, qs):
 
@@ -427,8 +495,9 @@ class PartyGroupListJson(BaseDatatableView):
 
     def prepare_results(self, qs):
         json_data = []
+        group_names = _request_group_names(self.request)
         for item in qs:
-            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+            if 'Admin' in group_names:
                 action = '''<button  data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "GetUserDetails('{}')" class="ui circular facebook icon button green">
                     <i class="pen icon"></i>
                   </button>
@@ -508,8 +577,10 @@ class BankListJson(BaseDatatableView):
     order_columns = ['name', 'accountNumber', 'description', 'datetime']
 
     def get_initial_queryset(self):
-        # if 'Admin' in self.request.user.groups.values_list('name', flat=True):
-        return Bank.objects.select_related().filter(isDeleted__exact=False)
+        # if 'Admin' in group_names:
+        return Bank.objects.filter(isDeleted__exact=False).only(
+            'id', 'name', 'accountNumber', 'description', 'datetime'
+        )
 
     def filter_queryset(self, qs):
 
@@ -524,8 +595,9 @@ class BankListJson(BaseDatatableView):
 
     def prepare_results(self, qs):
         json_data = []
+        group_names = _request_group_names(self.request)
         for item in qs:
-            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+            if 'Admin' in group_names:
 
                 action = '''<button  data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "GetUserDetails('{}')" class="ui circular facebook icon button green">
                     <i class="pen icon"></i>
@@ -641,7 +713,7 @@ def add_party_api(request):
             obj.password = password
             obj.userID_id = new_user.pk
             obj.save()
-            cache.delete('PartyList')
+            _bump_party_cache_version()
             return JsonResponse({'message': 'success'}, safe=False)
         except:
             return JsonResponse({'message': 'error'}, safe=False)
@@ -654,7 +726,7 @@ def generate_party_users_api(request):
         if not request.user.is_authenticated:
             return JsonResponse({'message': 'unauthorized'}, status=401, safe=False)
 
-        if not request.user.groups.filter(name__in=['Admin', 'Moderator']).exists():
+        if not _request_group_names(request).intersection({'Admin', 'Moderator'}):
             return JsonResponse({'message': 'forbidden'}, status=403, safe=False)
 
         try:
@@ -685,6 +757,8 @@ def generate_party_users_api(request):
                 party.userID_id = new_user.pk
                 party.save(update_fields=['username', 'password', 'userID'])
                 created = created + 1
+            if created > 0:
+                _bump_party_cache_version()
 
             return JsonResponse({
                 'message': 'success',
@@ -699,8 +773,11 @@ class PartyListJson(BaseDatatableView):
     order_columns = ['name', 'phone', 'username', 'password', 'partyGroupID.name', 'assignTo.name', 'datetime']
 
     def get_initial_queryset(self):
-        # if 'Admin' in self.request.user.groups.values_list('name', flat=True):
-        return Party.objects.select_related().filter(isDeleted__exact=False)
+        # if 'Admin' in group_names:
+        return Party.objects.select_related('partyGroupID', 'assignTo').filter(isDeleted__exact=False).only(
+            'id', 'name', 'phone', 'username', 'password', 'address', 'datetime',
+            'partyGroupID__name', 'assignTo__name'
+        )
 
     def filter_queryset(self, qs):
 
@@ -717,8 +794,9 @@ class PartyListJson(BaseDatatableView):
 
     def prepare_results(self, qs):
         json_data = []
+        group_names = _request_group_names(self.request)
         for item in qs:
-            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+            if 'Admin' in group_names:
 
                 action = '''<button  data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "GetUserDetails('{}')" class="ui circular facebook icon button green">
                     <i class="pen icon"></i>
@@ -819,7 +897,7 @@ def edit_party_api(request):
             except:
                 pass
             obj.save()
-            cache.delete('PartyList')
+            _bump_party_cache_version()
             return JsonResponse({'message': 'success'}, safe=False)
         except:
             return JsonResponse({'message': 'error'}, safe=False)
@@ -834,7 +912,7 @@ def delete_party(request):
             obj = Party.objects.select_related().get(pk=int(id))
             obj.isDeleted = True
             obj.save()
-            cache.delete('PartyList')
+            _bump_party_cache_version()
             return JsonResponse({'message': 'success'}, safe=False)
         except:
             return JsonResponse({'message': 'error'}, safe=False)
@@ -842,19 +920,17 @@ def delete_party(request):
 
 def list_party_api(request):
     try:
-        o_list = []
-        if cache.get('PartyList'):
-            o_list = cache.get('PartyList')
-
-        else:
-            obj_list = Party.objects.select_related().filter(isDeleted__exact=False).order_by(
-                'name')
+        version = _get_party_cache_version()
+        cache_key = f'PartyList:v{version}:all'
+        o_list = cache.get(cache_key)
+        if o_list is None:
+            o_list = []
+            obj_list = Party.objects.select_related('partyGroupID').filter(isDeleted__exact=False).only(
+                'id', 'name', 'phone', 'partyGroupID__name'
+            ).order_by('name')
 
             for obj in obj_list:
-                try:
-                    party = obj.partyGroupID.name
-                except:
-                    party = 'N/A'
+                party = obj.partyGroupID.name if obj.partyGroupID else 'N/A'
                 obj_dic = {
                     'ID': obj.pk,
                     'Name': obj.name,
@@ -864,7 +940,7 @@ def list_party_api(request):
                     'DisplayDetail': obj.name + ' - ' + party
                 }
                 o_list.append(obj_dic)
-            cache.set('PartyList', o_list, timeout=None)
+            cache.set(cache_key, o_list, timeout=60 * 30)
 
         return JsonResponse({'message': 'success', 'data': o_list}, safe=False)
     except:
@@ -876,14 +952,26 @@ def list_party_by_executive_or_station_api(request):
         executive = request.GET.get('executive')
         station = request.GET.get('station')
         o_list = []
+        version = _get_party_cache_version()
+        cache_key = f'PartyList:v{version}:exec:{executive}:station:{station}'
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return JsonResponse({'message': 'success', 'data': cached}, safe=False)
+
+        obj_list = Party.objects.select_related('partyGroupID').filter(
+            isDeleted__exact=False
+        ).only(
+            'id', 'name', 'phone', 'partyGroupID__name'
+        )
+
         if executive != 'All' and station == 'All':
-            obj_list = Party.objects.select_related().filter(isDeleted__exact=False,
-                                                             assignTo__id=int(executive)).order_by(
-                'name')
-        if executive == 'All' and station != 'All':
-            obj_list = Party.objects.select_related().filter(isDeleted__exact=False,
-                                                             partyGroupID__id=int(station)).order_by(
-                'name')
+            obj_list = obj_list.filter(assignTo__id=int(executive))
+        elif executive == 'All' and station != 'All':
+            obj_list = obj_list.filter(partyGroupID__id=int(station))
+        elif executive != 'All' and station != 'All':
+            obj_list = obj_list.filter(assignTo__id=int(executive), partyGroupID__id=int(station))
+
+        obj_list = obj_list.order_by('name')
         for obj in obj_list:
             try:
                 party = obj.partyGroupID.name
@@ -898,6 +986,7 @@ def list_party_by_executive_or_station_api(request):
                 'DisplayDetail': obj.name + ' - ' + party
             }
             o_list.append(obj_dic)
+        cache.set(cache_key, o_list, timeout=60 * 15)
 
         return JsonResponse({'message': 'success', 'data': o_list}, safe=False)
     except:
@@ -1015,7 +1104,7 @@ def add_collection_by_admin_api(request):
             obj.paymentID = str(obj.pk).zfill(8)
             # obj.collectionDateTime = obj.datetime
             obj.save()
-            if 'Admin' in request.user.groups.values_list('name', flat=True):
+            if 'Admin' in _request_group_names(request):
                 try:
                     obj.isApproved = True
                     obj.approvedBy_id = user.pk
@@ -1062,7 +1151,8 @@ def edit_collection_by_admin_api(request):
             cus = Party.objects.select_related().get(pk=int(party))
 
             obj = Collection.objects.get(pk=int(ID))
-            if 'Admin' or 'Moderator' in request.user.groups.values_list('name', flat=True):
+            request_groups = _request_group_names(request)
+            if 'Admin' in request_groups or 'Moderator' in request_groups:
                 obj.partyID_id = cus.pk
                 obj.modeOfPayment = paymentMode
                 obj.paidAmount = float(amountPaid)
@@ -1108,10 +1198,12 @@ class CollectionByStaffListJson(BaseDatatableView):
 
     def get_initial_queryset(self):
         # user = StaffUser.objects.get(user_ID__id = self.request.pk)
-        # if 'Admin' in self.request.user.groups.values_list('name', flat=True):
-        return Collection.objects.select_related().filter(isDeleted__exact=False,
-                                                          collectionDateTime__icontains=datetime.today().date(),
-                                                          collectedBy__user_ID_id=self.request.user.pk)
+        # if 'Admin' in group_names:
+        return _collection_list_base_qs().filter(
+            isDeleted__exact=False,
+            collectionDateTime__date=datetime.today().date(),
+            collectedBy__user_ID_id=self.request.user.pk
+        )
 
     def filter_queryset(self, qs):
         search = self.request.GET.get('search[value]', None)
@@ -1131,6 +1223,7 @@ class CollectionByStaffListJson(BaseDatatableView):
 
     def prepare_results(self, qs):
         json_data = []
+        group_names = _request_group_names(self.request)
         for item in qs:
             # action = '''<button  data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "GetUserDetails('{}')" class="ui circular facebook icon button green">
             #         <i class="pen icon"></i>
@@ -1185,17 +1278,21 @@ class CollectionByAdminListJson(BaseDatatableView):
             eDate = datetime.strptime(endDateV, '%d/%m/%Y')
 
             if staffID == 'All':
-                return Collection.objects.select_related().filter(isDeleted__exact=False,
-                                                                  collectionDateTime__date__range=[sDate.date(),
-                                                                                                   eDate.date()])
+                return _collection_list_base_qs().filter(
+                    isDeleted__exact=False,
+                    collectionDateTime__date__range=[sDate.date(), eDate.date()]
+                )
             else:
-                return Collection.objects.select_related().filter(isDeleted__exact=False,
-                                                                  collectionDateTime__date__range=[sDate.date(),
-                                                                                                   eDate.date()],
-                                                                  collectedBy_id=int(staffID))
+                return _collection_list_base_qs().filter(
+                    isDeleted__exact=False,
+                    collectionDateTime__date__range=[sDate.date(), eDate.date()],
+                    collectedBy_id=int(staffID)
+                )
         except:
-            return Collection.objects.select_related().filter(isDeleted__exact=False,
-                                                              collectionDateTime__icontains=datetime.today().date())
+            return _collection_list_base_qs().filter(
+                isDeleted__exact=False,
+                collectionDateTime__date=datetime.today().date()
+            )
 
     def filter_queryset(self, qs):
         search = self.request.GET.get('search[value]', None)
@@ -1217,8 +1314,9 @@ class CollectionByAdminListJson(BaseDatatableView):
 
     def prepare_results(self, qs):
         json_data = []
+        group_names = _request_group_names(self.request)
         for item in qs:
-            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+            if 'Admin' in group_names:
 
                 action = '''<button  data-inverted="" data-tooltip="Make Approval" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
                    <i class="whatsapp icon"></i>
@@ -1313,18 +1411,24 @@ class ChequeReminderCollectionListJson(BaseDatatableView):
             eDate = datetime.strptime(endDateV, '%d/%m/%Y')
 
             if staffID == 'All':
-                return Collection.objects.select_related().filter(isDeleted__exact=False,
-                                                                  chequeDate__range=[sDate.date(), eDate.date()],
-                                                                  modeOfPayment__exact='Cheque')
+                return _collection_list_base_qs().filter(
+                    isDeleted__exact=False,
+                    chequeDate__range=[sDate.date(), eDate.date()],
+                    modeOfPayment__exact='Cheque'
+                )
             else:
-                return Collection.objects.select_related().filter(isDeleted__exact=False,
-                                                                  chequeDate__range=[sDate.date(), eDate.date()],
-                                                                  collectedBy_id=int(staffID),
-                                                                  modeOfPayment__exact='Cheque')
+                return _collection_list_base_qs().filter(
+                    isDeleted__exact=False,
+                    chequeDate__range=[sDate.date(), eDate.date()],
+                    collectedBy_id=int(staffID),
+                    modeOfPayment__exact='Cheque'
+                )
         except:
-            return Collection.objects.select_related().filter(isDeleted__exact=False,
-                                                              chequeDate__icontains=datetime.today().date(),
-                                                              modeOfPayment__exact='Cheque')
+            return _collection_list_base_qs().filter(
+                isDeleted__exact=False,
+                chequeDate__exact=datetime.today().date(),
+                modeOfPayment__exact='Cheque'
+            )
 
     def filter_queryset(self, qs):
         search = self.request.GET.get('search[value]', None)
@@ -1345,8 +1449,9 @@ class ChequeReminderCollectionListJson(BaseDatatableView):
 
     def prepare_results(self, qs):
         json_data = []
+        group_names = _request_group_names(self.request)
         for item in qs:
-            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+            if 'Admin' in group_names:
 
                 action = '''<button  data-inverted="" data-tooltip="Make Approval" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
                    <i class="whatsapp icon"></i>
@@ -1479,57 +1584,58 @@ def change_password_api(request):
 
 @cache_page(60 * 5)
 def get_admin_dashboard_report_api(request):
-    party = Party.objects.select_related().filter(isDeleted__exact=False)
-    staff = StaffUser.objects.select_related().filter(isDeleted__exact=False)
-    location = GeolocationPackage.objects.filter(isDeleted__exact=False).last()
-    collection = Collection.objects.select_related().filter(isDeleted__exact=False,
-                                                            collectionDateTime__icontains=datetime.today().date(),
-                                                            )
-    sales = Sales.objects.select_related().filter(isDeleted__exact=False,
-                                                  buildDate__icontains=datetime.today().date(),
-                                                  )
-    c_total = 0.0
-    for c in collection:
-        c_total = c_total + c.paidAmount
-
-    s_total = 0.0
-    for s in sales:
-        s_total = s_total + s.amount
+    today = datetime.today().date()
+    party_count = Party.objects.filter(isDeleted=False).count()
+    staff_count = StaffUser.objects.filter(isDeleted=False).count()
+    location = GeolocationPackage.objects.filter(isDeleted=False).only('used', 'balance').order_by('-id').first()
+    collection_total = Collection.objects.filter(
+        isDeleted=False,
+        collectionDateTime__date=today
+    ).aggregate(total=Sum('paidAmount'))['total'] or 0.0
+    sales_total = Sales.objects.filter(
+        isDeleted=False,
+        buildDate__exact=today
+    ).aggregate(total=Sum('amount'))['total'] or 0.0
 
     data = {
-        'partyCount': formatINR(party.count()),
-        'staffCount': staff.count(),
-        'locationCount': str(int(location.used)) + '/' + str(int(location.balance)),
-        'collection': formatINR(c_total),
-        'Sale': formatINR(s_total),
+        'partyCount': formatINR(party_count),
+        'staffCount': staff_count,
+        'locationCount': str(int(location.used)) + '/' + str(int(location.balance)) if location else '0/0',
+        'collection': formatINR(collection_total),
+        'Sale': formatINR(sales_total),
     }
     return JsonResponse({'data': data}, safe=False)
 
 
 @cache_page(60 * 5)
 def get_staff_dashboard_report_api(request):
-    user = StaffUser.objects.get(user_ID__id=request.user.pk)
-    party = Party.objects.select_related().filter(isDeleted__exact=False, partyGroupID__id=user.partyGroupID_id)
-    collection_total = Collection.objects.select_related().filter(isDeleted__exact=False,
-                                                                  collectedBy__user_ID_id=request.user.pk)
-    collection = Collection.objects.select_related().filter(isDeleted__exact=False,
-                                                            collectionDateTime__icontains=datetime.today().date(),
-                                                            collectedBy__user_ID_id=request.user.pk
-                                                            )
+    today = datetime.today().date()
+    user_party_group_id = StaffUser.objects.filter(
+        user_ID_id=request.user.pk,
+        isDeleted=False
+    ).values_list('partyGroupID_id', flat=True).first()
 
-    c_total = 0.0
-    for c in collection_total:
-        c_total = c_total + c.paidAmount
+    party_count = 0
+    if user_party_group_id:
+        party_count = Party.objects.filter(
+            isDeleted=False,
+            partyGroupID_id=user_party_group_id
+        ).count()
 
-    d_total = 0.0
-    for d in collection:
-        d_total = d_total + d.paidAmount
+    collection_stats = Collection.objects.filter(
+        isDeleted=False,
+        collectedBy__user_ID_id=request.user.pk
+    ).aggregate(
+        total_amount=Sum('paidAmount'),
+        today_amount=Sum('paidAmount', filter=Q(collectionDateTime__date=today)),
+        today_count=Count('id', filter=Q(collectionDateTime__date=today)),
+    )
 
     data = {
-        'partyCount': formatINR(party.count()),
-        'collection_totalCount': collection.count(),
-        'collection_total': formatINR(c_total),
-        'collection': formatINR(d_total)
+        'partyCount': formatINR(party_count),
+        'collection_totalCount': collection_stats['today_count'] or 0,
+        'collection_total': formatINR(collection_stats['total_amount'] or 0.0),
+        'collection': formatINR(collection_stats['today_amount'] or 0.0)
     }
     return JsonResponse({'data': data}, safe=False)
 
@@ -1544,14 +1650,19 @@ def generate_collection_report(request):
     a_total_cheque_cc = 0.0
     a_total_party = 0.0
     if staffID == 'All':
-        col = Collection.objects.select_related().filter(collectionDateTime__icontains=colDate.date(),
-                                                         isApproved__exact=True,
-                                                         isDeleted__exact=False).order_by('collectedBy__name')
+        col = Collection.objects.select_related().filter(
+            collectionDateTime__date=colDate.date(),
+            isApproved__exact=True,
+            isDeleted__exact=False
+        ).order_by('collectedBy__name')
         staffName = 'All'
     else:
-        col = Collection.objects.select_related().filter(collectionDateTime__icontains=colDate.date(),
-                                                         isApproved__exact=True,
-                                                         isDeleted__exact=False, collectedBy_id=int(staffID)).order_by(
+        col = Collection.objects.select_related().filter(
+            collectionDateTime__date=colDate.date(),
+            isApproved__exact=True,
+            isDeleted__exact=False,
+            collectedBy_id=int(staffID)
+        ).order_by(
             'collectedBy__name')
         user = StaffUser.objects.get(pk=int(staffID))
         staffName = user.name + ' - ' + user.partyGroupID.name
@@ -1597,7 +1708,7 @@ def add_attendance_api(request):
             stat = request.POST.get("stat")
             lat = request.POST.get("lat")
             lng = request.POST.get("lng")
-            obj = Attendance.objects.get(datetime__icontains=datetime.today().date(),
+            obj = Attendance.objects.get(datetime__date=datetime.today().date(),
                                          staffID__user_ID__id=request.user.pk)
 
             if stat == 'Login':
@@ -1639,12 +1750,17 @@ class StaffAttendanceListJson(BaseDatatableView):
             sDate = datetime.strptime(startDateV, '%d/%m/%Y')
             eDate = datetime.strptime(endDateV, '%d/%m/%Y')
 
-            return Attendance.objects.select_related().filter(isDeleted__exact=False, datetime__range=(
-                sDate.date(), eDate.date() + timedelta(days=1)), staffID__user_ID__id=self.request.user.pk)
+            return _attendance_list_base_qs().filter(
+                isDeleted__exact=False,
+                datetime__range=(sDate.date(), eDate.date() + timedelta(days=1)),
+                staffID__user_ID__id=self.request.user.pk
+            )
         except:
-            return Attendance.objects.select_related().filter(isDeleted__exact=False,
-                                                              datetime__icontains=datetime.today().date(),
-                                                              staffID__user_ID__id=self.request.user.pk)
+            return _attendance_list_base_qs().filter(
+                isDeleted__exact=False,
+                datetime__date=datetime.today().date(),
+                staffID__user_ID__id=self.request.user.pk
+            )
 
     def filter_queryset(self, qs):
         search = self.request.GET.get('search[value]', None)
@@ -1660,6 +1776,7 @@ class StaffAttendanceListJson(BaseDatatableView):
 
     def prepare_results(self, qs):
         json_data = []
+        group_names = _request_group_names(self.request)
         for item in qs:
             if item.isLogIn == True:
                 login_time = item.loginDateTime.strftime('%I:%M %p')
@@ -1707,17 +1824,24 @@ class AdminAttendanceListJson(BaseDatatableView):
             eDate = datetime.strptime(endDateV, '%d/%m/%Y')
             if staffID == 'All':
 
-                return Attendance.objects.select_related().filter(isDeleted__exact=False, datetime__range=(
-                    sDate.date(), eDate.date() + timedelta(days=1)))
+                return _attendance_list_base_qs().filter(
+                    isDeleted__exact=False,
+                    datetime__range=(sDate.date(), eDate.date() + timedelta(days=1))
+                )
 
             else:
 
-                return Attendance.objects.select_related().filter(isDeleted__exact=False, datetime__range=(
-                    sDate.date(), eDate.date() + timedelta(days=1)), staffID_id=int(staffID))
+                return _attendance_list_base_qs().filter(
+                    isDeleted__exact=False,
+                    datetime__range=(sDate.date(), eDate.date() + timedelta(days=1)),
+                    staffID_id=int(staffID)
+                )
 
         except:
-            return Attendance.objects.select_related().filter(isDeleted__exact=False,
-                                                              datetime__icontains=datetime.today().date())
+            return _attendance_list_base_qs().filter(
+                isDeleted__exact=False,
+                datetime__date=datetime.today().date()
+            )
 
     def filter_queryset(self, qs):
         search = self.request.GET.get('search[value]', None)
@@ -1733,6 +1857,7 @@ class AdminAttendanceListJson(BaseDatatableView):
 
     def prepare_results(self, qs):
         json_data = []
+        group_names = _request_group_names(self.request)
         for item in qs:
             if item.isLogIn == True:
                 login_time = item.loginDateTime.strftime('%I:%M %p')
@@ -1834,8 +1959,10 @@ class MessageListJson(BaseDatatableView):
     order_columns = ['messageTo', 'phone', 'message', 'datetime', 'status']
 
     def get_initial_queryset(self):
-        # if 'Admin' in self.request.user.groups.values_list('name', flat=True):
-        return WhatsappMessageStatus.objects.select_related().filter(isDeleted__exact=False)
+        # if 'Admin' in group_names:
+        return WhatsappMessageStatus.objects.filter(isDeleted__exact=False).only(
+            'id', 'messageTo', 'phone', 'message', 'datetime', 'status'
+        )
 
     def filter_queryset(self, qs):
 
@@ -1850,6 +1977,7 @@ class MessageListJson(BaseDatatableView):
 
     def prepare_results(self, qs):
         json_data = []
+        group_names = _request_group_names(self.request)
         for item in qs:
             if item.status == 'Success':
                 status = '''<div class="ui tiny green label">
@@ -1930,15 +2058,21 @@ class SalesByAdminListJson(BaseDatatableView):
             sDate = datetime.strptime(startDateV, '%d/%m/%Y')
             eDate = datetime.strptime(endDateV, '%d/%m/%Y')
             if staffID == 'All':
-                return Sales.objects.select_related().filter(isDeleted__exact=False,
-                                                             buildDate__range=[sDate.date(), eDate.date()])
+                return _sales_list_base_qs().filter(
+                    isDeleted__exact=False,
+                    buildDate__range=[sDate.date(), eDate.date()]
+                )
             else:
-                return Sales.objects.select_related().filter(isDeleted__exact=False,
-                                                             buildDate__range=[sDate.date(), eDate.date()],
-                                                             createdBy_id=int(staffID))
+                return _sales_list_base_qs().filter(
+                    isDeleted__exact=False,
+                    buildDate__range=[sDate.date(), eDate.date()],
+                    createdBy_id=int(staffID)
+                )
         except:
-            return Sales.objects.select_related().filter(isDeleted__exact=False,
-                                                         buildDate__icontains=datetime.today().date())
+            return _sales_list_base_qs().filter(
+                isDeleted__exact=False,
+                buildDate__exact=datetime.today().date()
+            )
 
     def filter_queryset(self, qs):
         search = self.request.GET.get('search[value]', None)
@@ -1956,6 +2090,7 @@ class SalesByAdminListJson(BaseDatatableView):
 
     def prepare_results(self, qs):
         json_data = []
+        group_names = _request_group_names(self.request)
         for item in qs:
             if 'Admin' in self.request.user.groups.values_list('name',
                                                                flat=True) or 'Moderator' in self.request.user.groups.values_list(
@@ -1970,7 +2105,7 @@ class SalesByAdminListJson(BaseDatatableView):
               <button  data-inverted="" data-tooltip="Delete" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick ="delUser('{}')" class="ui circular youtube icon button" style="margin-left: 3px">
                 <i class="trash alternate icon"></i>
               </button>'''.format(item.pk, item.pk, item.pk),
-            elif 'SalesAdmin' in self.request.user.groups.values_list('name', flat=True):
+            elif 'SalesAdmin' in group_names:
                 action = '''<button  data-inverted="" data-tooltip="Make Approval" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
                                <i class="whatsapp icon"></i>
                               </button>'''.format(item.pk)
@@ -2029,25 +2164,33 @@ class SalesByStaffListJson(BaseDatatableView):
                 sDate = datetime.strptime(startDateV, '%d/%m/%Y')
                 eDate = datetime.strptime(endDateV, '%d/%m/%Y')
                 if staffID == 'All':
-                    return Sales.objects.select_related().filter(isDeleted__exact=False,
-                                                                 buildDate__range=[sDate.date(), eDate.date()])
+                    return _sales_list_base_qs().filter(
+                        isDeleted__exact=False,
+                        buildDate__range=[sDate.date(), eDate.date()]
+                    )
                 else:
-                    return Sales.objects.select_related().filter(isDeleted__exact=False,
-                                                                 buildDate__range=[sDate.date(), eDate.date()],
-                                                                 createdBy_id=int(staffID))
+                    return _sales_list_base_qs().filter(
+                        isDeleted__exact=False,
+                        buildDate__range=[sDate.date(), eDate.date()],
+                        createdBy_id=int(staffID)
+                    )
             except:
-                return Sales.objects.select_related().filter(isDeleted__exact=False,
-                                                             buildDate__icontains=datetime.today().date())
+                return _sales_list_base_qs().filter(
+                    isDeleted__exact=False,
+                    buildDate__exact=datetime.today().date()
+                )
 
         else:
-            return Sales.objects.select_related().filter(isDeleted__exact=False,
-                                                         buildDate__icontains=datetime.today().date())
+            return _sales_list_base_qs().filter(
+                isDeleted__exact=False,
+                buildDate__exact=datetime.today().date()
+            )
 
     #
     # else:
     #
     #     return Sales.objects.select_related().filter(isDeleted__exact=False,
-    #                                                       buildDate__icontains=datetime.today().date(), createdBy__user_ID_id=self.request.user.pk)
+    #                                                       buildDate__exact=datetime.today().date(), createdBy__user_ID_id=self.request.user.pk)
 
     def filter_queryset(self, qs):
         search = self.request.GET.get('search[value]', None)
@@ -2065,8 +2208,9 @@ class SalesByStaffListJson(BaseDatatableView):
 
     def prepare_results(self, qs):
         json_data = []
+        group_names = _request_group_names(self.request)
         for item in qs:
-            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+            if 'Admin' in group_names:
 
                 action = '''<button  data-inverted="" data-tooltip="Send Message" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
                <i class="whatsapp icon"></i>
@@ -2109,12 +2253,17 @@ def generate_sales_report(request):
     colDate = datetime.strptime(cDate, '%d/%m/%Y')
     a_total = 0.0
     if staffID == 'All':
-        col = Sales.objects.select_related().filter(buildDate__icontains=colDate.date(),
-                                                    isDeleted__exact=False).order_by('createdBy__name')
+        col = Sales.objects.select_related().filter(
+            buildDate__exact=colDate.date(),
+            isDeleted__exact=False
+        ).order_by('createdBy__name')
         staffName = 'All'
     else:
-        col = Sales.objects.select_related().filter(buildDate__icontains=colDate.date(),
-                                                    isDeleted__exact=False, createdBy_id=int(staffID)).order_by(
+        col = Sales.objects.select_related().filter(
+            buildDate__exact=colDate.date(),
+            isDeleted__exact=False,
+            createdBy_id=int(staffID)
+        ).order_by(
             'createdBy__name')
         user = StaffUser.objects.get(pk=int(staffID))
         staffName = user.name + ' - ' + user.partyGroupID.name
@@ -2330,18 +2479,18 @@ class CashCounterByStaffListJson(BaseDatatableView):
                 sDate = datetime.strptime(startDateV, '%d/%m/%Y')
                 eDate = datetime.strptime(endDateV, '%d/%m/%Y')
 
-                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                return _cash_counter_list_base_qs().filter(isDeleted__exact=False,
                                                                    datetime__range=[sDate.date(),
                                                                                     eDate.date() + timedelta(days=1)],
                                                                    mode__iexact="Cash")
 
             except:
-                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                                   datetime__icontains=datetime.today().date(),
+                return _cash_counter_list_base_qs().filter(isDeleted__exact=False,
+                                                                   datetime__date=datetime.today().date(),
                                                                    mode__iexact="Cash")
         else:
-            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                               datetime__icontains=datetime.today().date(),
+            return _cash_counter_list_base_qs().filter(isDeleted__exact=False,
+                                                               datetime__date=datetime.today().date(),
                                                                createdBy__user_ID_id=self.request.user.pk,
                                                                mode__iexact="Cash")
 
@@ -2361,8 +2510,9 @@ class CashCounterByStaffListJson(BaseDatatableView):
 
     def prepare_results(self, qs):
         json_data = []
+        group_names = _request_group_names(self.request)
         for item in qs:
-            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+            if 'Admin' in group_names:
 
                 action = '''
               <a href="/edit_cash_counter/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
@@ -2410,19 +2560,19 @@ class CardCounterByStaffListJson(BaseDatatableView):
                 sDate = datetime.strptime(startDateV, '%d/%m/%Y')
                 eDate = datetime.strptime(endDateV, '%d/%m/%Y')
 
-                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                return _cash_counter_list_base_qs().filter(isDeleted__exact=False,
                                                                    datetime__range=[sDate.date(),
                                                                                     eDate.date() + timedelta(days=1)],
                                                                    mode__iexact="Card")
 
             except:
-                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                                   datetime__icontains=datetime.today().date(),
+                return _cash_counter_list_base_qs().filter(isDeleted__exact=False,
+                                                                   datetime__date=datetime.today().date(),
                                                                    mode__iexact="Card")
 
         else:
-            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                               datetime__icontains=datetime.today().date(),
+            return _cash_counter_list_base_qs().filter(isDeleted__exact=False,
+                                                               datetime__date=datetime.today().date(),
                                                                mode__iexact="Card",
                                                                createdBy__user_ID_id=self.request.user.pk)
 
@@ -2442,8 +2592,9 @@ class CardCounterByStaffListJson(BaseDatatableView):
 
     def prepare_results(self, qs):
         json_data = []
+        group_names = _request_group_names(self.request)
         for item in qs:
-            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+            if 'Admin' in group_names:
 
                 action = '''
               <a href="/edit_cash_counter/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
@@ -2496,18 +2647,18 @@ class ReturnCounterByStaffListJson(BaseDatatableView):
                 sDate = datetime.strptime(startDateV, '%d/%m/%Y')
                 eDate = datetime.strptime(endDateV, '%d/%m/%Y')
 
-                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                return _cash_counter_list_base_qs().filter(isDeleted__exact=False,
                                                                    datetime__range=[sDate.date(),
                                                                                     eDate.date() + timedelta(days=1)],
                                                                    mode__iexact="Return")
 
             except:
-                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                                   datetime__icontains=datetime.today().date(),
+                return _cash_counter_list_base_qs().filter(isDeleted__exact=False,
+                                                                   datetime__date=datetime.today().date(),
                                                                    mode__iexact="Return")
         else:
-            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                               datetime__icontains=datetime.today().date(),
+            return _cash_counter_list_base_qs().filter(isDeleted__exact=False,
+                                                               datetime__date=datetime.today().date(),
                                                                mode__iexact="Return",
                                                                createdBy__user_ID_id=self.request.user.pk)
 
@@ -2527,8 +2678,9 @@ class ReturnCounterByStaffListJson(BaseDatatableView):
 
     def prepare_results(self, qs):
         json_data = []
+        group_names = _request_group_names(self.request)
         for item in qs:
-            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+            if 'Admin' in group_names:
 
                 action = '''
               <a href="/edit_cash_counter/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
@@ -2576,18 +2728,18 @@ class CreditCounterByStaffListJson(BaseDatatableView):
                 sDate = datetime.strptime(startDateV, '%d/%m/%Y')
                 eDate = datetime.strptime(endDateV, '%d/%m/%Y')
 
-                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                return _cash_counter_list_base_qs().filter(isDeleted__exact=False,
                                                                    datetime__range=[sDate.date(),
                                                                                     eDate.date() + timedelta(days=1)],
                                                                    mode__iexact="Credit")
 
             except:
-                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                                   datetime__icontains=datetime.today().date(),
+                return _cash_counter_list_base_qs().filter(isDeleted__exact=False,
+                                                                   datetime__date=datetime.today().date(),
                                                                    mode__iexact="Credit")
         else:
-            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                               datetime__icontains=datetime.today().date(),
+            return _cash_counter_list_base_qs().filter(isDeleted__exact=False,
+                                                               datetime__date=datetime.today().date(),
                                                                mode__iexact="Credit",
                                                                createdBy__user_ID_id=self.request.user.pk)
 
@@ -2608,8 +2760,9 @@ class CreditCounterByStaffListJson(BaseDatatableView):
 
     def prepare_results(self, qs):
         json_data = []
+        group_names = _request_group_names(self.request)
         for item in qs:
-            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+            if 'Admin' in group_names:
 
                 action = '''
               <a href="/edit_cash_counter/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
@@ -2662,19 +2815,19 @@ class MixCounterByStaffListJson(BaseDatatableView):
                 sDate = datetime.strptime(startDateV, '%d/%m/%Y')
                 eDate = datetime.strptime(endDateV, '%d/%m/%Y')
 
-                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                return _cash_counter_list_base_qs().filter(isDeleted__exact=False,
                                                                    datetime__range=[sDate.date(),
                                                                                     eDate.date() + timedelta(days=1)],
                                                                    mode__iexact="Mix")
 
             except:
-                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                                   datetime__icontains=datetime.today().date(),
+                return _cash_counter_list_base_qs().filter(isDeleted__exact=False,
+                                                                   datetime__date=datetime.today().date(),
                                                                    mode__iexact="Mix",
                                                                    createdBy__user_ID_id=self.request.user.pk)
         else:
-            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                               datetime__icontains=datetime.today().date(),
+            return _cash_counter_list_base_qs().filter(isDeleted__exact=False,
+                                                               datetime__date=datetime.today().date(),
                                                                createdBy__user_ID_id=self.request.user.pk,
                                                                mode__iexact="Mix")
 
@@ -2695,8 +2848,9 @@ class MixCounterByStaffListJson(BaseDatatableView):
 
     def prepare_results(self, qs):
         json_data = []
+        group_names = _request_group_names(self.request)
         for item in qs:
-            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+            if 'Admin' in group_names:
 
                 action = '''
               <a href="/edit_cash_counter/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
@@ -2749,18 +2903,18 @@ class CollectionCounterByStaffListJson(BaseDatatableView):
                 sDate = datetime.strptime(startDateV, '%d/%m/%Y')
                 eDate = datetime.strptime(endDateV, '%d/%m/%Y')
 
-                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                return _cash_counter_list_base_qs().filter(isDeleted__exact=False,
                                                                    datetime__range=[sDate.date(),
                                                                                     eDate.date() + timedelta(days=1)],
                                                                    mode__iexact="Collection")
 
             except:
-                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                                   datetime__icontains=datetime.today().date(),
+                return _cash_counter_list_base_qs().filter(isDeleted__exact=False,
+                                                                   datetime__date=datetime.today().date(),
                                                                    mode__iexact="Collection")
         else:
-            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                               datetime__icontains=datetime.today().date(),
+            return _cash_counter_list_base_qs().filter(isDeleted__exact=False,
+                                                               datetime__date=datetime.today().date(),
                                                                mode__iexact="Collection",
                                                                createdBy__user_ID_id=self.request.user.pk)
 
@@ -2780,8 +2934,9 @@ class CollectionCounterByStaffListJson(BaseDatatableView):
 
     def prepare_results(self, qs):
         json_data = []
+        group_names = _request_group_names(self.request)
         for item in qs:
-            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+            if 'Admin' in group_names:
 
                 action = '''
               <a href="/edit_cash_counter/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
@@ -2833,18 +2988,18 @@ class AdvanceCounterByStaffListJson(BaseDatatableView):
                 sDate = datetime.strptime(startDateV, '%d/%m/%Y')
                 eDate = datetime.strptime(endDateV, '%d/%m/%Y')
 
-                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                return _cash_counter_list_base_qs().filter(isDeleted__exact=False,
                                                                    datetime__range=[sDate.date(),
                                                                                     eDate.date() + timedelta(days=1)],
                                                                    mode__iexact="Advance")
 
             except:
-                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                                   datetime__icontains=datetime.today().date(),
+                return _cash_counter_list_base_qs().filter(isDeleted__exact=False,
+                                                                   datetime__date=datetime.today().date(),
                                                                    mode__iexact="Advance")
         else:
-            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                               datetime__icontains=datetime.today().date(),
+            return _cash_counter_list_base_qs().filter(isDeleted__exact=False,
+                                                               datetime__date=datetime.today().date(),
                                                                mode__iexact="Advance",
                                                                createdBy__user_ID_id=self.request.user.pk)
 
@@ -2864,8 +3019,9 @@ class AdvanceCounterByStaffListJson(BaseDatatableView):
 
     def prepare_results(self, qs):
         json_data = []
+        group_names = _request_group_names(self.request)
         for item in qs:
-            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+            if 'Admin' in group_names:
 
                 action = '''
               <a href="/edit_cash_counter/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
@@ -2917,18 +3073,18 @@ class ExpenseCounterByStaffListJson(BaseDatatableView):
                 sDate = datetime.strptime(startDateV, '%d/%m/%Y')
                 eDate = datetime.strptime(endDateV, '%d/%m/%Y')
 
-                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
+                return _cash_counter_list_base_qs().filter(isDeleted__exact=False,
                                                                    datetime__range=[sDate.date(),
                                                                                     eDate.date() + timedelta(days=1)],
                                                                    mode__iexact="Expense")
 
             except:
-                return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                                   datetime__icontains=datetime.today().date(),
+                return _cash_counter_list_base_qs().filter(isDeleted__exact=False,
+                                                                   datetime__date=datetime.today().date(),
                                                                    mode__iexact="Expense")
         else:
-            return CashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                               datetime__icontains=datetime.today().date(),
+            return _cash_counter_list_base_qs().filter(isDeleted__exact=False,
+                                                               datetime__date=datetime.today().date(),
                                                                mode__iexact="Expense",
                                                                createdBy__user_ID_id=self.request.user.pk)
 
@@ -2947,8 +3103,9 @@ class ExpenseCounterByStaffListJson(BaseDatatableView):
 
     def prepare_results(self, qs):
         json_data = []
+        group_names = _request_group_names(self.request)
         for item in qs:
-            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+            if 'Admin' in group_names:
 
                 action = '''
               <a href="/edit_cash_counter/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
@@ -2982,131 +3139,64 @@ class ExpenseCounterByStaffListJson(BaseDatatableView):
 
 @cache_page(60 * 30)
 def get_cash_counter_dashboard_report_api(request):
-    cash_total = CashCounter.objects.filter(
-        mode="Cash",
+    today = datetime.today().date()
+    base_qs = CashCounter.objects.filter(
         isDeleted=False,
-        datetime__icontains=datetime.today().date(),
+        datetime__date=today,
         createdBy__user_ID=request.user.pk
-    ).aggregate(amount=Sum('amount'))['amount'] or 0.0
-    card_total = CashCounter.objects.filter(
-        mode="Card",
-        isDeleted=False,
-        datetime__icontains=datetime.today().date(),
-        createdBy__user_ID=request.user.pk
-    ).aggregate(amount=Sum('amount'))['amount'] or 0.0
-    credit_total = CashCounter.objects.filter(
-        mode="Credit",
-        isDeleted=False,
-        datetime__icontains=datetime.today().date(),
-        createdBy__user_ID=request.user.pk
-    ).aggregate(amount=Sum('amount'))['amount'] or 0.0
-    collection_total = CashCounter.objects.filter(
-        mode="Collection",
-        isDeleted=False,
-        datetime__icontains=datetime.today().date(),
-        createdBy__user_ID=request.user.pk
-    ).aggregate(amount=Sum('amount'))['amount'] or 0.0
-    expense_total = CashCounter.objects.filter(
-        mode="Expense",
-        isDeleted=False,
-        datetime__icontains=datetime.today().date(),
-        createdBy__user_ID=request.user.pk
-    ).aggregate(amount=Sum('amount'))['amount'] or 0.0
-    advance_total = CashCounter.objects.filter(
-        mode="Advance",
-        isDeleted=False,
-        datetime__icontains=datetime.today().date(),
-        createdBy__user_ID=request.user.pk
-    ).aggregate(amount=Sum('amount'))['amount'] or 0.0
-    return_total = CashCounter.objects.filter(
-        mode="Return",
-        isDeleted=False,
-        datetime__icontains=datetime.today().date(),
-        createdBy__user_ID=request.user.pk
-    ).aggregate(amount=Sum('amount'))['amount'] or 0.0
-    mix_cash_total = CashCounter.objects.filter(
-        mode="Mix",
-        isDeleted=False,
-        datetime__icontains=datetime.today().date(),
-        createdBy__user_ID=request.user.pk
-    ).aggregate(amount=Sum('mixCashAmount'))['amount'] or 0.0
-    mix_card_total = CashCounter.objects.filter(
-        mode="Mix",
-        isDeleted=False,
-        datetime__icontains=datetime.today().date(),
-        createdBy__user_ID=request.user.pk
-    ).aggregate(amount=Sum('mixCardAmount'))['amount'] or 0.0
+    )
+    totals = base_qs.aggregate(
+        cash_total=Sum('amount', filter=Q(mode="Cash")),
+        card_total=Sum('amount', filter=Q(mode="Card")),
+        credit_total=Sum('amount', filter=Q(mode="Credit")),
+        collection_total=Sum('amount', filter=Q(mode="Collection")),
+        expense_total=Sum('amount', filter=Q(mode="Expense")),
+        advance_total=Sum('amount', filter=Q(mode="Advance")),
+        return_total=Sum('amount', filter=Q(mode="Return")),
+        mix_cash_total=Sum('mixCashAmount', filter=Q(mode="Mix")),
+        mix_card_total=Sum('mixCardAmount', filter=Q(mode="Mix")),
+    )
     data = {
-        'cash_total': formatINR(cash_total),
-        'card_total': formatINR(card_total),
-        'credit_total': formatINR(credit_total),
-        'collection_total': formatINR(collection_total),
-        'expense_total': formatINR(expense_total),
-        'advance_total': formatINR(advance_total),
-        'return_total': formatINR(return_total),
-        'mix_cash_total': formatINR(mix_cash_total),
-        'mix_card_total': formatINR(mix_card_total)
+        'cash_total': formatINR(totals['cash_total'] or 0.0),
+        'card_total': formatINR(totals['card_total'] or 0.0),
+        'credit_total': formatINR(totals['credit_total'] or 0.0),
+        'collection_total': formatINR(totals['collection_total'] or 0.0),
+        'expense_total': formatINR(totals['expense_total'] or 0.0),
+        'advance_total': formatINR(totals['advance_total'] or 0.0),
+        'return_total': formatINR(totals['return_total'] or 0.0),
+        'mix_cash_total': formatINR(totals['mix_cash_total'] or 0.0),
+        'mix_card_total': formatINR(totals['mix_card_total'] or 0.0)
     }
     return JsonResponse({'data': data}, safe=False)
 
 
 @cache_page(60 * 30)
 def get_cash_counter_dashboard_report_admin_api(request):
-    cash_total = CashCounter.objects.filter(
-        mode="Cash",
+    today = datetime.today().date()
+    totals = CashCounter.objects.filter(
         isDeleted=False,
-        datetime__icontains=datetime.today().date()
-    ).aggregate(amount=Sum('amount'))['amount'] or 0.0
-    card_total = CashCounter.objects.filter(
-        mode="Card",
-        isDeleted=False,
-        datetime__icontains=datetime.today().date(),
-    ).aggregate(amount=Sum('amount'))['amount'] or 0.0
-    credit_total = CashCounter.objects.filter(
-        mode="Credit",
-        isDeleted=False,
-        datetime__icontains=datetime.today().date()
-    ).aggregate(amount=Sum('amount'))['amount'] or 0.0
-    collection_total = CashCounter.objects.filter(
-        mode="Collection",
-        isDeleted=False,
-        datetime__icontains=datetime.today().date()
-    ).aggregate(amount=Sum('amount'))['amount'] or 0.0
-    expense_total = CashCounter.objects.filter(
-        mode="Expense",
-        isDeleted=False,
-        datetime__icontains=datetime.today().date()
-    ).aggregate(amount=Sum('amount'))['amount'] or 0.0
-    advance_total = CashCounter.objects.filter(
-        mode="Advance",
-        isDeleted=False,
-        datetime__icontains=datetime.today().date()
-    ).aggregate(amount=Sum('amount'))['amount'] or 0.0
-    return_total = CashCounter.objects.filter(
-        mode="Return",
-        isDeleted=False,
-        datetime__icontains=datetime.today().date()
-    ).aggregate(amount=Sum('amount'))['amount'] or 0.0
-    mix_cash_total = CashCounter.objects.filter(
-        mode="Mix",
-        isDeleted=False,
-        datetime__icontains=datetime.today().date()
-    ).aggregate(amount=Sum('mixCashAmount'))['amount'] or 0.0
-    mix_card_total = CashCounter.objects.filter(
-        mode="Mix",
-        isDeleted=False,
-        datetime__icontains=datetime.today().date()
-    ).aggregate(amount=Sum('mixCardAmount'))['amount'] or 0.0
+        datetime__date=today
+    ).aggregate(
+        cash_total=Sum('amount', filter=Q(mode="Cash")),
+        card_total=Sum('amount', filter=Q(mode="Card")),
+        credit_total=Sum('amount', filter=Q(mode="Credit")),
+        collection_total=Sum('amount', filter=Q(mode="Collection")),
+        expense_total=Sum('amount', filter=Q(mode="Expense")),
+        advance_total=Sum('amount', filter=Q(mode="Advance")),
+        return_total=Sum('amount', filter=Q(mode="Return")),
+        mix_cash_total=Sum('mixCashAmount', filter=Q(mode="Mix")),
+        mix_card_total=Sum('mixCardAmount', filter=Q(mode="Mix")),
+    )
     data = {
-        'cash_total': formatINR(cash_total),
-        'card_total': formatINR(card_total),
-        'credit_total': formatINR(credit_total),
-        'collection_total': formatINR(collection_total),
-        'expense_total': formatINR(expense_total),
-        'advance_total': formatINR(advance_total),
-        'return_total': formatINR(return_total),
-        'mix_cash_total': formatINR(mix_cash_total),
-        'mix_card_total': formatINR(mix_card_total)
+        'cash_total': formatINR(totals['cash_total'] or 0.0),
+        'card_total': formatINR(totals['card_total'] or 0.0),
+        'credit_total': formatINR(totals['credit_total'] or 0.0),
+        'collection_total': formatINR(totals['collection_total'] or 0.0),
+        'expense_total': formatINR(totals['expense_total'] or 0.0),
+        'advance_total': formatINR(totals['advance_total'] or 0.0),
+        'return_total': formatINR(totals['return_total'] or 0.0),
+        'mix_cash_total': formatINR(totals['mix_cash_total'] or 0.0),
+        'mix_card_total': formatINR(totals['mix_card_total'] or 0.0)
     }
     return JsonResponse({'data': data}, safe=False)
 
@@ -3185,8 +3275,10 @@ def generate_cash_counter_report(request):
     a_total_online = 0.0
     a_total_cheque_cc = 0.0
     a_total_party = 0.0
-    ccol = CollectionCashCounter.objects.select_related().filter(collectionDateTime__icontains=colDate.date(),
-                                                                 isDeleted__exact=False).order_by('collectedBy__name')
+    ccol = _cash_counter_collection_list_base_qs().filter(
+        collectionDateTime__date=colDate.date(),
+        isDeleted__exact=False
+    ).order_by('collectedBy__name')
 
     for a in ccol:
         if a.modeOfPayment == 'Cash':
@@ -3212,8 +3304,10 @@ def generate_cash_counter_report(request):
     mix_card_total = 0.0
     collection_total = 0.0
 
-    col = CashCounter.objects.select_related().filter(datetime__icontains=colDate.date(),
-                                                      isDeleted__exact=False).order_by(
+    col = _cash_counter_list_base_qs().filter(
+        datetime__date=colDate.date(),
+        isDeleted__exact=False
+    ).order_by(
         'mode')
     for a in col:
         if a.mode == 'Cash':
@@ -3342,17 +3436,17 @@ class CashCounterCollectionListJson(BaseDatatableView):
                 sDate = datetime.strptime(startDateV, '%d/%m/%Y')
                 eDate = datetime.strptime(endDateV, '%d/%m/%Y')
 
-                return CollectionCashCounter.objects.select_related().filter(isDeleted__exact=False,
+                return _cash_counter_collection_list_base_qs().filter(isDeleted__exact=False,
                                                                              collectionDateTime__date__range=[
                                                                                  sDate.date(),
                                                                                  eDate.date()])
 
             except:
-                return CollectionCashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                                             datetime__icontains=datetime.today().date())
+                return _cash_counter_collection_list_base_qs().filter(isDeleted__exact=False,
+                                                                             datetime__date=datetime.today().date())
         else:
-            return CollectionCashCounter.objects.select_related().filter(isDeleted__exact=False,
-                                                                         datetime__icontains=datetime.today().date(),
+            return _cash_counter_collection_list_base_qs().filter(isDeleted__exact=False,
+                                                                         datetime__date=datetime.today().date(),
 
                                                                          collectedBy__user_ID_id=self.request.user.pk)
 
@@ -3376,8 +3470,9 @@ class CashCounterCollectionListJson(BaseDatatableView):
 
     def prepare_results(self, qs):
         json_data = []
+        group_names = _request_group_names(self.request)
         for item in qs:
-            if 'Admin' in self.request.user.groups.values_list('name', flat=True):
+            if 'Admin' in group_names:
 
                 action = '''
                   <a href="/edit_cash_counter_collection/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
@@ -3450,7 +3545,8 @@ def edit_cash_counter_collection_by_admin_api(request):
             cus = Party.objects.select_related().get(pk=int(party))
 
             obj = CollectionCashCounter.objects.get(pk=int(ID))
-            if 'Admin' or 'Moderator' in request.user.groups.values_list('name', flat=True):
+            request_groups = _request_group_names(request)
+            if 'Admin' in request_groups or 'Moderator' in request_groups:
                 obj.partyID_id = cus.pk
                 obj.modeOfPayment = paymentMode
                 obj.paidAmount = float(amountPaid)

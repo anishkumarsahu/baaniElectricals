@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 
 from django.contrib.auth import logout, authenticate, login, update_session_auth_hash
+from django.core.cache import cache
 from django.db.models.functions import Length
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -28,13 +29,18 @@ from .models import *
 #         pass
 
 
+def _request_group_names(request):
+    if not hasattr(request, "_group_name_cache"):
+        request._group_name_cache = set(request.user.groups.values_list('name', flat=True))
+    return request._group_name_cache
+
+
 def check_group(*group_names):
     def _check_group(view_func):
         @wraps(view_func)
         def wrapper(request, *args, **kwargs):
-            for group_name in group_names:
-                if request.user.groups.filter(name=group_name).exists():
-                    return view_func(request, *args, **kwargs)
+            if _request_group_names(request).intersection(group_names):
+                return view_func(request, *args, **kwargs)
             return redirect('/')
 
         return wrapper
@@ -68,7 +74,7 @@ def check_two_group(*group_names):
     def _check_group(view_func):
         @wraps(view_func)
         def wrapper(request, *args, **kwargs):
-            if request.user.groups.filter(name__in=group_names).exists():
+            if _request_group_names(request).intersection(group_names):
                 return view_func(request, *args, **kwargs)
             return redirect('/')
 
@@ -171,7 +177,7 @@ def postLogin(request):
 
         if user is not None:
             login(request, user)
-            user_groups = request.user.groups.values_list('name', flat=True)
+            user_groups = _request_group_names(request)
             allowed_groups = ['Admin', 'Moderator', 'Collection', 'NormalStaff', 'CashCounter', 'SalesAdmin',
                               'Customer']
             if any(group in user_groups for group in allowed_groups):
@@ -183,19 +189,18 @@ def postLogin(request):
 #
 def homepage(request):
     if request.user.is_authenticated:
-        if 'Admin' in request.user.groups.values_list('name',
-                                                      flat=True) or 'Moderator' in request.user.groups.values_list(
-            'name', flat=True):
+        user_groups = _request_group_names(request)
+        if 'Admin' in user_groups or 'Moderator' in user_groups:
             return redirect('/admin_home/')
-        elif 'Collection' in request.user.groups.values_list('name', flat=True):
+        elif 'Collection' in user_groups:
             return redirect('/collection_home/')
-        elif 'NormalStaff' in request.user.groups.values_list('name', flat=True):
+        elif 'NormalStaff' in user_groups:
             return redirect('/staff_home/')
-        elif 'CashCounter' in request.user.groups.values_list('name', flat=True):
+        elif 'CashCounter' in user_groups:
             return redirect('/cash_counter_home/')
-        elif 'SalesAdmin' in request.user.groups.values_list('name', flat=True):
+        elif 'SalesAdmin' in user_groups:
             return redirect('/collection_home/')
-        elif 'Customer' in request.user.groups.values_list('name', flat=True):
+        elif 'Customer' in user_groups:
             return redirect('/customer_home/')
         else:
             return render(request, 'home/login.html')
@@ -205,23 +210,43 @@ def homepage(request):
 
 @check_group('Customer')
 def customer_home(request):
-    party = Party.objects.filter(userID_id=request.user.pk, isDeleted=False).last()
+    party = Party.objects.filter(userID_id=request.user.pk, isDeleted=False).only(
+        'id', 'name', 'phone', 'address', 'username', 'password'
+    ).order_by('-id').first()
     if not party:
         return redirect('/')
 
-    base_messages = WhatsappMessageStatus.objects.filter(
-        isDeleted=False
-    ).filter(phone=party.phone)
-    if party.name:
-        base_messages = base_messages.filter(messageTo__iexact=party.name)
+    msg_cache_key = f'customer_home_messages:{request.user.pk}:{party.phone}:{party.name or ""}'
+    cached_messages = cache.get(msg_cache_key)
+    if cached_messages is None:
+        base_messages = WhatsappMessageStatus.objects.filter(
+            isDeleted=False,
+            phone=party.phone
+        ).only('id', 'message', 'messageTo', 'phone', 'status', 'datetime').order_by('-datetime')
+        if party.name:
+            base_messages = base_messages.filter(messageTo__iexact=party.name)
 
-    collection_messages = base_messages.filter(message__icontains='Your Payment has been').order_by('-datetime')[:10]
-    sales_messages = base_messages.filter(message__icontains='order has been dispatched').order_by('-datetime')[:10]
+        collection_messages = []
+        sales_messages = []
+        for msg in base_messages[:80]:
+            text = (msg.message or "").lower()
+            if len(collection_messages) < 10 and 'your payment has been' in text:
+                collection_messages.append(msg)
+            if len(sales_messages) < 10 and 'order has been dispatched' in text:
+                sales_messages.append(msg)
+            if len(collection_messages) >= 10 and len(sales_messages) >= 10:
+                break
+
+        cached_messages = {
+            'collection_messages': collection_messages,
+            'sales_messages': sales_messages,
+        }
+        cache.set(msg_cache_key, cached_messages, timeout=60)
 
     context = {
         'party': party,
-        'collection_messages': collection_messages,
-        'sales_messages': sales_messages,
+        'collection_messages': cached_messages['collection_messages'],
+        'sales_messages': cached_messages['sales_messages'],
     }
     return render(request, 'home/customer.html', context)
 
