@@ -89,6 +89,8 @@ class Party(models.Model):
     userID = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL, related_name='party_user')
     partyGroupID = models.ForeignKey(PartyGroup, blank=True, null=True, on_delete=models.SET_NULL)
     assignTo = models.ForeignKey(StaffUser, blank=True, null=True, on_delete=models.SET_NULL)
+    createdBy = models.ForeignKey(StaffUser, blank=True, null=True, on_delete=models.SET_NULL,
+                                  related_name='partyCreatedBy')
     datetime = models.DateTimeField(auto_now_add=True, auto_now=False)
     lastUpdatedOn = models.DateTimeField(auto_now_add=False, auto_now=True)
     isDeleted = models.BooleanField(default=False)

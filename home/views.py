@@ -453,6 +453,7 @@ def my_sales_list(request):
     return render(request, 'home/sales/salesListByStaff.html', context)
 
 
+@check_two_group('Admin', 'Moderator', 'SalesAdmin')
 def edit_sales(request, id=None):
     obj = get_object_or_404(Sales, pk=id)
     invoice = obj.invoiceNumber

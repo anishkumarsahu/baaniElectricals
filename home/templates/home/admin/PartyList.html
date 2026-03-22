@@ -77,6 +77,7 @@
                                 <th>Password</th>
                                 <th>PartyGroup/Station</th>
                                 <th>AssignedTo/Staff</th>
+                                <th>Created By</th>
                                 <th>Added On</th>
                                 <th>Actions</th>
                             </tr>
@@ -380,7 +381,7 @@
             buttons: [{
                 extend: 'excel',
                 exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6]
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7]
                 }
             }
                 {% comment %}      , {
@@ -397,8 +398,9 @@
                 {"name": "password", "targets": 3, "orderable": true},
                 {"name": "partyGroupID.name", "targets": 4, "orderable": true},
                 {"name": "assignTo.name", "targets": 5, "orderable": true},
-                {"name": "datetime", "targets": 6, "orderable": true},
-                {"name": "action", "targets": 7, "orderable": false}
+                {"name": "createdBy.name", "targets": 6, "orderable": true},
+                {"name": "datetime", "targets": 7, "orderable": true},
+                {"name": "action", "targets": 8, "orderable": false}
 
             ],
             aaSorting: [[0, 'asc']],

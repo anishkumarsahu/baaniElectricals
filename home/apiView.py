@@ -118,6 +118,23 @@ def formatINR(number):
     return "".join([r] + d)
 
 
+def _get_request_staff_id(request):
+    try:
+        return StaffUser.objects.only('id').get(user_ID_id=request.user.pk).pk
+    except:
+        return None
+
+
+def _resolve_party_created_by_id(request, fallback_staff_id=None):
+    created_by_id = _get_request_staff_id(request)
+    if created_by_id:
+        return created_by_id
+    try:
+        return int(fallback_staff_id)
+    except:
+        return None
+
+
 def _collection_list_base_qs():
     return Collection.objects.select_related(
         'partyID', 'transferredPartyID', 'bankID', 'collectedBy', 'approvedBy'
@@ -681,10 +698,12 @@ def add_party_api(request):
             partyGroup = request.POST.get("partyGroup")
             # address = request.POST.get("address")
             staffID = request.POST.get("staffID")
+            created_by_id = _resolve_party_created_by_id(request, staffID)
 
             obj = Party()
             obj.name = partyName
             obj.phone = phoneNumber
+            obj.createdBy_id = created_by_id
             try:
                 obj.assignTo_id = int(staffID)
             except:
@@ -770,13 +789,14 @@ def generate_party_users_api(request):
 
 
 class PartyListJson(BaseDatatableView):
-    order_columns = ['name', 'phone', 'username', 'password', 'partyGroupID.name', 'assignTo.name', 'datetime']
+    order_columns = ['name', 'phone', 'username', 'password', 'partyGroupID.name', 'assignTo.name', 'createdBy.name',
+                     'datetime']
 
     def get_initial_queryset(self):
         # if 'Admin' in group_names:
-        return Party.objects.select_related('partyGroupID', 'assignTo').filter(isDeleted__exact=False).only(
+        return Party.objects.select_related('partyGroupID', 'assignTo', 'createdBy').filter(isDeleted__exact=False).only(
             'id', 'name', 'phone', 'username', 'password', 'address', 'datetime',
-            'partyGroupID__name', 'assignTo__name'
+            'partyGroupID__name', 'assignTo__name', 'createdBy__name'
         )
 
     def filter_queryset(self, qs):
@@ -786,7 +806,8 @@ class PartyListJson(BaseDatatableView):
             qs = qs.filter(
                 Q(name__icontains=search) | Q(phone__icontains=search) | Q(username__icontains=search)
                 | Q(password__icontains=search) | Q(address__icontains=search)
-                | Q(partyGroupID__name__icontains=search) | Q(assignTo__name__icontains=search) | Q(
+                | Q(partyGroupID__name__icontains=search) | Q(assignTo__name__icontains=search)
+                | Q(createdBy__name__icontains=search) | Q(
                     datetime__icontains=search)
             )
 
@@ -817,6 +838,10 @@ class PartyListJson(BaseDatatableView):
                 usr = item.assignTo.name
             except:
                 usr = 'N/A'
+            try:
+                created_by = item.createdBy.name
+            except:
+                created_by = 'N/A'
 
             if item.username:
                 username = '''{} <button data-copy="{}" class="ui mini icon button copy-btn" type="button" title="Copy Username"><i class="copy outline icon"></i></button>'''.format(
@@ -840,6 +865,7 @@ class PartyListJson(BaseDatatableView):
                 password,
                 party,
                 usr,
+                created_by,
                 escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
                 action,
 
@@ -2106,9 +2132,9 @@ class SalesByAdminListJson(BaseDatatableView):
                 <i class="trash alternate icon"></i>
               </button>'''.format(item.pk, item.pk, item.pk),
             elif 'SalesAdmin' in group_names:
-                action = '''<button  data-inverted="" data-tooltip="Make Approval" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
-                               <i class="whatsapp icon"></i>
-                              </button>'''.format(item.pk)
+                action = '''<a href="/edit_sales/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
+                                <i class="pen icon"></i>
+                              </a>'''.format(item.pk)
             else:
                 action = '''<div class="ui tiny label">
               Denied
