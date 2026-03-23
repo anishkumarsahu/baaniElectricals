@@ -2132,9 +2132,12 @@ class SalesByAdminListJson(BaseDatatableView):
                 <i class="trash alternate icon"></i>
               </button>'''.format(item.pk, item.pk, item.pk),
             elif 'SalesAdmin' in group_names:
-                action = '''<a href="/edit_sales/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
+                action = '''<button  data-inverted="" data-tooltip="Make Approval" data-position="left center" data-variation="mini"  style="font-size:10px;" onclick = "showConfirmationModal('{}')" class="ui circular facebook icon button purple">
+                               <i class="whatsapp icon"></i>
+                              </button>
+                              <a href="/edit_sales/{}/" data-inverted="" data-tooltip="Edit Detail" data-position="left center" data-variation="mini" style="font-size:10px;"  class="ui circular facebook icon button green">
                                 <i class="pen icon"></i>
-                              </a>'''.format(item.pk)
+                              </a>'''.format(item.pk, item.pk)
             else:
                 action = '''<div class="ui tiny label">
               Denied
