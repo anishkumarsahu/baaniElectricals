@@ -1,6 +1,6 @@
 .idea
 __pycache__
-.vscode,
+.vscode
 setup.md
 ssh
 zivainfotech.com.conf
@@ -8,3 +8,4 @@ msg.py
 docker-compose-nginx.yml
 docker-compose.yml
 Dockerfile
+.vscode/sftp.json
