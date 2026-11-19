@@ -1,0 +1,145 @@
+name: ${COMPOSE_PROJECT_NAME:-${PROJECT_NAME:-baani-electricals}-${DEPLOY_ENV:-production}}
+x-app: &app
+  image: ${APP_IMAGE:-${IMAGE_NAME:-baani-electricals}:${APP_IMAGE_TAG:-local}}
+  env_file: ${APP_ENV_FILE:-.env}
+  environment:
+    DEBUG: "False"
+    DATABASE_URL: ${DATABASE_URL:-sqlite:////data/db.sqlite3}
+    REDIS_URL: redis://redis:6379/1
+    STATIC_ROOT: /app/staticfiles
+    MEDIA_ROOT: /media_cdn
+    MYSQL_ROOT_PASSWORD: ""
+  volumes: &app-volumes
+    - type: bind
+      source: ${MEDIA_DATA_DIR:-${APP_DATA_ROOT:-${VPS_STORAGE_ROOT:-/srv/apps}/${PROJECT_NAME:-baani-electricals}/${DEPLOY_ENV:-production}}/media}
+      target: /media_cdn
+    - type: bind
+      source: ${APP_DATA_ROOT:-${VPS_STORAGE_ROOT:-/srv/apps}/${PROJECT_NAME:-baani-electricals}/${DEPLOY_ENV:-production}}/data
+      target: /data
+  depends_on:
+    storage-init:
+      condition: service_completed_successfully
+  init: true
+  user: "10001:10001"
+  deploy:
+    resources:
+      limits:
+        cpus: "${WEB_CPUS:-1.0}"
+        memory: ${WEB_MEMORY_LIMIT:-1g}
+        pids: 128
+  pids_limit: 128
+  logging:
+    driver: json-file
+    options:
+      max-size: "5m"
+      max-file: "2"
+  security_opt:
+    - no-new-privileges:true
+services:
+  storage-init:
+    image: ${APP_IMAGE:-${IMAGE_NAME:-baani-electricals}:${APP_IMAGE_TAG:-local}}
+    user: "0:0"
+    healthcheck:
+      disable: true
+    restart: "no"
+    entrypoint: [/bin/sh, -ec]
+    command: ["mkdir -p /media_cdn /data; chown 10001:10001 /media_cdn /data; chmod 0750 /media_cdn /data"]
+    volumes: *app-volumes
+    security_opt:
+      - no-new-privileges:true
+  web:
+    <<: *app
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PYTHON_IMAGE: ${PYTHON_IMAGE:-python:3.14-slim}
+        UV_IMAGE: ${UV_IMAGE:-ghcr.io/astral-sh/uv:0.8.5}
+    restart: unless-stopped
+    stop_grace_period: 45s
+    environment:
+      DEBUG: "False"
+      DATABASE_URL: ${DATABASE_URL:-sqlite:////data/db.sqlite3}
+      REDIS_URL: redis://redis:6379/1
+      STATIC_ROOT: /app/staticfiles
+      MEDIA_ROOT: /media_cdn
+      MYSQL_ROOT_PASSWORD: ""
+      WEB_MAX_REQUESTS: ${WEB_MAX_REQUESTS:-2000}
+      WEB_MAX_REQUESTS_JITTER: ${WEB_MAX_REQUESTS_JITTER:-200}
+    command: ["sh", "-ec", "python manage.py check; python manage.py migrate --check; exec gunicorn -c gunicorn.conf.py baani.wsgi:application --bind 0.0.0.0:8004 --workers ${WEB_WORKERS:-1} --timeout ${WEB_TIMEOUT:-120}"]
+    ports:
+      - "${HOST_BIND:-127.0.0.1}:${PORT:-8004}:8004"
+    depends_on:
+      storage-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "/app/baani/healthcheck.py"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+  migrate:
+    <<: *app
+    profiles: [tools]
+    restart: "no"
+    entrypoint: ["python", "manage.py"]
+    command: ["migrate", "--noinput"]
+    healthcheck:
+      disable: true
+  worker:
+    <<: *app
+    profiles: [worker]
+    healthcheck:
+      disable: true
+    restart: "no"
+    command: ["python", "sms_worker.py"]
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  mysql:
+    image: mysql:8.4
+    profiles: [mysql]
+    restart: unless-stopped
+    stop_grace_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: "${MYSQL_CPUS:-1.0}"
+          memory: ${MYSQL_MEMORY_LIMIT:-1g}
+          pids: 256
+    pids_limit: 256
+    command:
+      - --character-set-server=utf8mb4
+      - --innodb-buffer-pool-size=${MYSQL_BUFFER_POOL_SIZE:-64M}
+      - --max-connections=${MYSQL_MAX_CONNECTIONS:-30}
+      - --table-open-cache=200
+      - --temptable-max-ram=64M
+      - --tmp-table-size=16M
+      - --max-heap-table-size=16M
+      - --performance-schema=OFF
+      - --max-binlog-size=64M
+      - --innodb-flush-log-at-trx-commit=1
+      - --sync-binlog=1
+      - --binlog-expire-logs-seconds=${MYSQL_BINLOG_EXPIRE_SECONDS:-604800}
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-baani}
+      MYSQL_USER: ${MYSQL_USER:-baani}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-}
+    volumes:
+      - type: bind
+        source: ${MYSQL_DATA_DIR:-${APP_DATA_ROOT:-${VPS_STORAGE_ROOT:-/srv/apps}/${PROJECT_NAME:-baani-electricals}/${DEPLOY_ENV:-production}}/mysql}
+        target: /var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", 'MYSQL_PWD="$${MYSQL_PASSWORD}" mysql --protocol=TCP -h 127.0.0.1 -u "$${MYSQL_USER}" "$${MYSQL_DATABASE}" -e "SELECT 1" >/dev/null']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s

@@ -6,6 +6,25 @@ ssh
 zivainfotech.com.conf
 msg.py
 docker-compose-nginx.yml
-docker-compose.yml
-Dockerfile
 .vscode/sftp.json
+.venv/
+.DS_Store
+.env
+.coverage
+htmlcov/
+*.log
+
+
+.env
+.coverage
+htmlcov/
+*.log.*
+!.env
+.coverage
+htmlcov/
+*.log.example
+
+# Private configuration and backups must never be committed.
+.env
+.env.*
+!.env.example
