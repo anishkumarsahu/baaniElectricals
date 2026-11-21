@@ -102,6 +102,12 @@ This document serves as persistent operational memory for the **Baani Electrical
     8. `home/tests/test_sms_worker_e2e.py`: Staging queue, 10-digit filtering, callback updating, daemon execution.
     9. `home/tests/test_reports_and_system_e2e.py`: Collection/Sales/POS reports, admin/staff dashboards, `/healthz`, and PWA service worker endpoints.
 
+### 9. Browser Error Pages
+
+- Django’s built-in handlers discover `templates/400.html`, `403.html`, `404.html`, and `500.html`. CSRF rejection uses `templates/403_csrf.html`.
+- The templates share an inline-styled layout and link to the sign-in route. The 500 template can render without request context, external assets, or a database connection.
+- The media view raises `PermissionDenied` for anonymous and inactive users so their 403 response uses the shared template.
+
 ---
 
 ## ⚠️ Important Caveats & Known Technical Debt

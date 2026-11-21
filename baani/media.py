@@ -3,14 +3,15 @@ import mimetypes
 from pathlib import Path
 
 from django.conf import settings
-from django.http import FileResponse, Http404, HttpResponseForbidden
+from django.core.exceptions import PermissionDenied
+from django.http import FileResponse, Http404
 from django.views.decorators.http import require_safe
 
 
 @require_safe
 def uploaded_media(request, path):
     if not request.user.is_authenticated or not request.user.is_active:
-        return HttpResponseForbidden()
+        raise PermissionDenied
 
     try:
         relative = Path(path)

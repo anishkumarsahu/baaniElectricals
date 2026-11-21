@@ -23,6 +23,7 @@ flowchart TD
 
     subgraph AppServer["Application Layer (Django 6.1 / Gunicorn)"]
         CoreSettings["baani.settings (12-Factor Env)"]
+        ErrorPages["Django error handlers and shared HTML templates"]
         PWAModule["PWA Controller (serviceworker.js / manifest.json)"]
         HomeApp["home App (Core Business Logic)"]
         ActivationApp["activation App (License / Expiry)"]
@@ -48,6 +49,7 @@ flowchart TD
     ReverseProxy --> WhiteNoise
     ReverseProxy --> AppServer
 
+    AppServer -->|Handled request errors and CSRF rejection| ErrorPages
     HomeApp --> DB
     ActivationApp --> DB
     HomeApp --> RedisCache
@@ -121,6 +123,7 @@ sequenceDiagram
   - `baani/settings.py`: 12-factor configuration parsed via `django-environ`.
   - `baani/urls.py`: Global URL dispatcher; serves PWA files directly at `/serviceworker.js` and `/manifest.json`.
   - `baani/wsgi.py` & `baani/asgi.py`: Entry points for WSGI and ASGI application servers.
+  - `templates/errors/page.html` provides the shared browser layout for Django’s 400, 403, 404, and 500 templates and the CSRF rejection template. Django selects the production 400, 404, and 500 pages with `DEBUG=False`.
 
 ### 2. `home` (Business Domain Logic)
 - **Role**: Houses the domain models, templates, controllers, and APIs.

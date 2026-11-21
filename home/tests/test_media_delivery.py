@@ -35,7 +35,8 @@ class MediaDeliveryTests(TestCase):
         response.close()
 
     def test_anonymous_missing_hidden_and_escape_denied(self):
-        self.assertEqual(self.client.get('/media/photo/test%20image.png').status_code, 403)
+        response = self.client.get('/media/photo/test%20image.png')
+        self.assertContains(response, 'Access denied', status_code=403)
         self.client.force_login(self.user)
         outside = Path(self.directory.name) / 'secret.txt'
         outside.write_text('private')

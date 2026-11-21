@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ code }} · {{ heading }} | BSSAC</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; color: #183831; background: #f5f7f2; font-family: "Segoe UI", Roboto, sans-serif; }
+        main { min-height: 100vh; min-height: 100svh; display: grid; place-items: center; padding: 24px; }
+        article { width: min(100%, 780px); background: white; border: 1px solid #c8d8cf; border-radius: 20px;
+            overflow: hidden; box-shadow: 0 20px 65px #18383114; }
+        header { position: relative; isolation: isolate; overflow: hidden; padding: 28px clamp(24px,6vw,56px);
+            color: #edfff3; background: #103f39; }
+        header::after { content: ""; position: absolute; z-index: -1; inset: 0 0 0 35%;
+            background: repeating-radial-gradient(circle at 100% 100%, transparent 0 18px, #78dfb54d 19px 20px, transparent 21px 32px); }
+        strong { font-size: 1rem; }
+        .code { margin: 24px 0 0; font: 700 clamp(70px,14vw,124px)/1 monospace; letter-spacing: -.07em; color: #c2f88f; }
+        section { padding: clamp(24px,6vw,56px); }
+        h1 { margin: 0; font-size: clamp(28px,5vw,42px); letter-spacing: -.035em; line-height: 1.1; }
+        p { max-width: 48ch; margin: 16px 0 28px; color: #465f56; line-height: 1.6; }
+        a { display: inline-block; padding: 13px 20px; color: white; background: #105d50; border-radius: 8px;
+            font-weight: 650; text-decoration: none; }
+        a:hover { background: #103f39; }
+        a:focus-visible { outline: 3px solid #246bd1; outline-offset: 4px; }
+    </style>
+</head>
+<body>
+<main>
+    <article aria-labelledby="heading">
+        <header><strong>BSSAC</strong><div class="code">{{ code }}</div></header>
+        <section>
+            <h1 id="heading">{{ heading }}</h1>
+            <p>{{ message }}</p>
+            <a href="{% url 'homeApp:loginPage' %}">Go to sign-in</a>
+        </section>
+    </article>
+</main>
+</body>
+</html>

@@ -15,6 +15,8 @@ This document tracks all active, in-progress, completed, and backlog tasks for t
 
 ### ✅ Completed Tasks
 
+- [x] **Browser error pages** — Integrated branded 400, 403, 404, 500, and CSRF pages and verified their HTTP responses with debug disabled.
+
 - [x] **Authenticated media delivery**: Serve existing and new uploads in production with session authentication and path protections.
 
 - [x] **Hansika-style Docker release**: Added image-pinned guarded deployments, health checks, resource limits, and migration preflight.

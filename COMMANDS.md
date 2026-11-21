@@ -154,6 +154,9 @@ uv run python manage.py test home.tests.test_sms_worker_e2e
 uv run python manage.py test home.tests.test_reports_and_system_e2e
 uv run python manage.py test activation
 
+# Verify branded error responses with DEBUG disabled in the tests
+uv run python manage.py test home.tests.test_error_pages home.tests.test_media_delivery
+
 # Run test coverage report
 uv run --with coverage coverage run --source=home,activation manage.py test
 uv run --with coverage coverage report --omit="*/migrations/*,*/tests/*"
