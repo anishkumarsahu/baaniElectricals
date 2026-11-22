@@ -10,21 +10,51 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 import os
+import sys
 from pathlib import Path
+
+import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Initialize environment variables
+env = environ.Env(
+    DEBUG=(bool, True),
+    PORT=(int, 8004),
+    SECRET_KEY=(str, 'django-insecure-4!5x-kbkh4k1wp@u5j0wvpuv=vdz+^a#wjp!+g*(1uw9rao$m0'),
+    ALLOWED_HOSTS=(list, ['*']),
+    CSRF_TRUSTED_ORIGINS=(list, ['http://localhost:8004', 'http://127.0.0.1:8004']),
+    REDIS_URL=(str, 'redis://127.0.0.1:6379/1'),
+    TIME_ZONE=(str, 'Asia/Kolkata'),
+    LANGUAGE_CODE=(str, 'en-us'),
+    STATIC_URL=(str, '/static/'),
+    MEDIA_URL=(str, '/media/'),
+    SECURE_SSL_REDIRECT=(bool, False),
+    SESSION_COOKIE_SECURE=(bool, False),
+    CSRF_COOKIE_SECURE=(bool, False),
+    PWA_APP_NAME=(str, 'BSSAC'),
+    PWA_APP_DESCRIPTION=(str, 'In-house management Application.'),
+    PWA_APP_THEME_COLOR=(str, '#272E38'),
+    PWA_APP_DISPLAY=(str, 'standalone'),
+    PWA_APP_START_URL=(str, '/home/'),
+)
+
+# Read .env file if present
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-4!5x-kbkh4k1wp@u5j0wvpuv=vdz+^a#wjp!+g*(1uw9rao$m0'
+SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.bool('DEBUG')
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS')
+PORT = env.int('PORT')
 
 # Application definition
 
@@ -76,26 +106,24 @@ WSGI_APPLICATION = 'baani.wsgi.application'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': env.db_url('DATABASE_URL', default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}")
 }
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'baani',
-#         'HOST': 'localhost',
-#         'PORT': '3306',
-#         'USER': 'root',
-#         'PASSWORD': 'password',
-#         'OPTIONS': {
-#             "init_command": "SET foreign_key_checks = 0;",
-#             'charset': 'utf8mb4',
-#         },
-#     }
-# }
+if 'test' in sys.argv:
+    test_db_url = env('TEST_DATABASE_URL', default=None)
+    if test_db_url:
+        DATABASES['default'] = env.db_url('TEST_DATABASE_URL')
+    elif 'mysql' in DATABASES['default']['ENGINE'] and '@mysql:' in env('DATABASE_URL', default=''):
+        DATABASES['default'] = env.db_url('TEST_DATABASE_URL', default='sqlite:///:memory:')
+    PASSWORD_HASHERS = [
+        'django.contrib.auth.hashers.MD5PasswordHasher',
+    ]
+
+if 'mysql' in DATABASES['default']['ENGINE']:
+    DATABASES['default'].setdefault('OPTIONS', {})
+    DATABASES['default']['OPTIONS'].setdefault("init_command", "SET foreign_key_checks = 0;")
+    DATABASES['default']['OPTIONS'].setdefault('charset', 'utf8mb4')
+
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
 
@@ -117,39 +145,39 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = env('LANGUAGE_CODE', default='en-us')
 
-TIME_ZONE = 'Asia/Kolkata'
+TIME_ZONE = env('TIME_ZONE', default='Asia/Kolkata')
 
 USE_I18N = True
-
-USE_L10N = True
 
 USE_TZ = False
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = env('STATIC_URL', default='/static/')
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static")
 ]
 
-STATIC_ROOT = os.environ.get("STATIC_ROOT", os.path.join(BASE_DIR, "staticfiles"))
+STATIC_ROOT = env('STATIC_ROOT', default=os.path.join(BASE_DIR, "staticfiles"))
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.environ.get("MEDIA_ROOT", os.path.join(BASE_DIR, "media"))
+MEDIA_URL = env('MEDIA_URL', default='/media/')
+MEDIA_ROOT = env('MEDIA_ROOT', default=str(BASE_DIR.parent / "media_cdn"))
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-PWA_APP_NAME = 'BSSAC'
-PWA_APP_DESCRIPTION = "In-house management Application."
-PWA_APP_THEME_COLOR = '#272E38'
-PWA_APP_DISPLAY = 'standalone'
-PWA_APP_START_URL = '/home/'
+# Progressive Web App (PWA) Settings
+PWA_APP_NAME = env('PWA_APP_NAME', default='BSSAC')
+PWA_APP_DESCRIPTION = env('PWA_APP_DESCRIPTION', default="In-house management Application.")
+PWA_APP_THEME_COLOR = env('PWA_APP_THEME_COLOR', default='#272E38')
+PWA_APP_DISPLAY = env('PWA_APP_DISPLAY', default='standalone')
+PWA_APP_START_URL = env('PWA_APP_START_URL', default='/home/')
 PWA_APP_ICONS = [
     {"src": "static/sw/images/favicon.ico", "type": "image/x-icon", "sizes": "16x16 32x32"},
     {"src": "static/sw/images/icon-192.png", "type": "image/png", "sizes": "192x192"},
@@ -160,12 +188,18 @@ PWA_APP_ICONS = [
 
 PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'home', '../static/sw/serviceworker.js')
 
+# Cache / Redis Configuration
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
+        "LOCATION": env('REDIS_URL', default="redis://127.0.0.1:6379/1"),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     }
 }
+
+# Production Security Toggles
+SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
+SESSION_COOKIE_SECURE = env.bool('SESSION_COOKIE_SECURE', default=False)
+CSRF_COOKIE_SECURE = env.bool('CSRF_COOKIE_SECURE', default=False)

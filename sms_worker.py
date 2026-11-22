@@ -1,22 +1,33 @@
+import os
+from pathlib import Path
 import time
 
 import requests
+from dotenv import load_dotenv
+
+BASE_DIR = Path(__file__).resolve().parent
+load_dotenv(BASE_DIR / '.env')
 
 
 class MessageProcessor:
-    # FETCH_URL = "http://localhost:8000/api/get_all_unsent_messages/"
-    FETCH_URL = "https://bssac.in/api/get_all_unsent_messages/"
-    SEND_URL = "http://localhost:8082/api/v1/users/send-message"
-    # UPDATE_STATUS_URL = "http://localhost:8000/api/update_sent_msg_status/"
-    UPDATE_STATUS_URL = "https://bssac.in/api/update_sent_msg_status/"
-    user_id = '1'
+    FETCH_URL = os.environ.get("SMS_FETCH_URL", "https://bssac.in/api/get_all_unsent_messages/")
+    SEND_URL = os.environ.get("SMS_SEND_URL", "http://localhost:8082/api/v1/users/send-message")
+    UPDATE_STATUS_URL = os.environ.get("SMS_UPDATE_STATUS_URL", "https://bssac.in/api/update_sent_msg_status/")
+    user_id = os.environ.get("SMS_USER_ID", "1")
 
-    # AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiaHlkcmFib3QiLCJ0aW1lIjoiMjAyNS0wNi0yM1QxMDo0Nzo0My40OTFaIiwiaWF0IjoxNzUwNjc1NjYzfQ.7SHnk7qFz21weHgr6p-swLlMxn0NET1Ja5DhP-If8Sg"
+    def __init__(self, delay_between_requests=None):
+        env_delay = os.environ.get("SMS_DELAY_SECONDS")
+        self.delay = int(env_delay) if env_delay is not None else (delay_between_requests or 5)
 
-    def __init__(self, delay_between_requests=5):
-        self.delay = delay_between_requests  # in seconds
+        auth_token = os.environ.get(
+            "SMS_AUTH_TOKEN",
+            "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiaHlkcmFib3QiLCJ0aW1lIjoiMjAyNS0wNi0yM1QxMDo0Nzo0My40OTFaIiwiaWF0IjoxNzUwNjc1NjYzfQ.7SHnk7qFz21weHgr6p-swLlMxn0NET1Ja5DhP-If8Sg"
+        )
+        if auth_token and not auth_token.startswith("Bearer "):
+            auth_token = f"Bearer {auth_token}"
+
         self.auth_header = {
-            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiaHlkcmFib3QiLCJ0aW1lIjoiMjAyNS0wNi0yM1QxMDo0Nzo0My40OTFaIiwiaWF0IjoxNzUwNjc1NjYzfQ.7SHnk7qFz21weHgr6p-swLlMxn0NET1Ja5DhP-If8Sg"
+            "Authorization": auth_token
         }
 
     def fetch_unsent_messages(self):
